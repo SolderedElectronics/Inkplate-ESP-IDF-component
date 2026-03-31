@@ -5,6 +5,7 @@
 #include "string.h"
 
 #include "Inkplate6.h"
+#include "esp_log.h"
 
 // static const char* TAG = "ESP_INKPLATE6";
 
@@ -26,9 +27,13 @@ PCAL expander2(IO_EXT_ADDR, expander1.getBusHandle());
  */
 Inkplate6::Inkplate6()
 {
-  // framebuffer in PSRAM
+  // 3-bit framebuffer: 4 bits per pixel (2 pixels per byte)
   m_framebufferColor = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM);
   memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
+
+  // 1-bit framebuffer: 1 bit per pixel (8 pixels per byte)
+  m_framebuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8, MALLOC_CAP_SPIRAM);
+  memset(m_framebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
 
   // DMA line buffer and descriptor in DMA-capable DRAM
   m_dmaLineBuffer = (volatile uint8_t*)heap_caps_malloc((E_INK_WIDTH / 4) + 16,  MALLOC_CAP_DMA);
@@ -49,19 +54,31 @@ void Inkplate6::begin()
   pmicBegin();
 }
 
+void Inkplate6::setDisplayMode(displayMode_t mode)
+{
+  m_displayMode = mode;
+}
+
 void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 {
-  int16_t x0 = x;
-  int16_t y0 = y;
-  if (x0 > E_INK_WIDTH - 1 || y0 > E_INK_HEIGHT - 1 || x0 < 0 || y0 < 0)
+  if (x > E_INK_WIDTH - 1 || y > E_INK_HEIGHT - 1 || x < 0 || y < 0)
     return;
 
-  color &= 7;
-  int x_ = x0 >> 1;
-  int x_sub = x0 & 1;
-  uint8_t temp;
-  temp = *(m_framebufferColor+ 400 * y0 + x_);
-  *(m_framebufferColor + 400 * y0 + x_) = (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
+  if (m_displayMode == BLACK_AND_WHITE)
+  {
+    int x1 = x >> 3;
+    int x_sub = x & 7;
+    uint8_t temp = *(m_framebuffer + 100 * y + x1);
+    *(m_framebuffer + 100 * y + x1) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
+  }
+  else
+  {
+    color &= 7;
+    int x1 = x >> 1;
+    int x_sub = x & 1;
+    uint8_t temp = *(m_framebufferColor + 400 * y + x1);
+    *(m_framebufferColor + 400 * y + x1) = (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
+  }
 }
 
 /**
@@ -69,7 +86,8 @@ void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
  */
 void Inkplate6::clearDisplay()
 {
-  memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
+  memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2); // 3-bit: 0xFF = white
+  memset(m_framebuffer,      0x00, E_INK_WIDTH * E_INK_HEIGHT / 8); // 1-bit: 0x00 = white
 }
 
 /**
@@ -80,6 +98,13 @@ void Inkplate6::fillDisplay()
   memset(m_framebufferColor, 0, E_INK_WIDTH * E_INK_HEIGHT / 2);
 }
 
+void Inkplate6::display(bool leaveOn)
+{
+  if (m_displayMode == BLACK_AND_WHITE)
+    display1b(leaveOn);
+  else if (m_displayMode == GRAYSCALE)
+    display3b(leaveOn);
+}
 
 /**
  * @brief  Push the framebuffer to the display using 3-bit (8-level) grayscale.
@@ -131,6 +156,100 @@ void Inkplate6::display3b(bool leaveOn)
   clean(3, 1);
   vscanStart();
 
+  // if (!leaveOn)
+    // einkOff();
+}
+
+/**
+ * @brief  Push the framebuffer to the display using 1-bit (black or white).
+ *
+ * @param  bool leaveOn
+ *         if true, leave the eink power supply on after the update
+ */
+void Inkplate6::display1b(bool leaveOn)
+{
+  
+  if (!einkOn())
+    return;
+
+  clean(0, 1);
+  clean(1, 18);
+  clean(2, 1);
+  clean(0, 18);
+  clean(2, 1);
+  clean(1, 18);
+  clean(2, 1);
+  clean(0, 18);
+  clean(2, 1);
+
+  int rep = 5;
+
+  for (int k = 0; k < rep; k++)
+  {
+    uint8_t *memoryPtr = m_framebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+    vscanStart();
+
+    for (int i = 0; i < E_INK_HEIGHT; i++)
+    {
+      for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
+      {
+        uint8_t dram1 = *(memoryPtr);
+        uint8_t dram2 = *(memoryPtr - 1);
+        m_dmaLineBuffer[j]     = LUTB[(dram2 >> 4) & 0x0F];
+        m_dmaLineBuffer[j + 1] = LUTB[dram2 & 0x0F];
+        m_dmaLineBuffer[j + 2] = LUTB[(dram1 >> 4) & 0x0F];
+        m_dmaLineBuffer[j + 3] = LUTB[dram1 & 0x0F];
+        memoryPtr -= 2;
+      }
+      sendDataI2S();
+      vscanEnd();
+    }
+    esp_rom_delay_us(230);
+  }
+
+  for (int k = 0; k < 1; ++k)
+  {
+    uint8_t *memoryPtr = m_framebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+    vscanStart();
+
+    for (int i = 0; i < E_INK_HEIGHT; i++)
+    {
+      for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
+      {
+        uint8_t dram1 = *(memoryPtr);
+        uint8_t dram2 = *(memoryPtr - 1);
+        m_dmaLineBuffer[j]     = LUT2[(dram2 >> 4) & 0x0F];
+        m_dmaLineBuffer[j + 1] = LUT2[dram2 & 0x0F];
+        m_dmaLineBuffer[j + 2] = LUT2[(dram1 >> 4) & 0x0F];
+        m_dmaLineBuffer[j + 3] = LUT2[dram1 & 0x0F];
+        memoryPtr -= 2;
+      }
+      sendDataI2S();
+      vscanEnd();
+    }
+    esp_rom_delay_us(230);
+  }
+
+  for (int k = 0; k < 1; ++k)
+  {
+    vscanStart();
+
+    for (int i = 0; i < E_INK_HEIGHT; i++)
+    {
+      for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
+      {
+        m_dmaLineBuffer[j]     = 0;
+        m_dmaLineBuffer[j + 1] = 0;
+        m_dmaLineBuffer[j + 2] = 0;
+        m_dmaLineBuffer[j + 3] = 0;
+      }
+      sendDataI2S();
+      vscanEnd();
+    }
+    esp_rom_delay_us(230);
+  }
+
+  vscanStart();
   // if (!leaveOn)
     // einkOff();
 }

@@ -23,16 +23,25 @@ static const uint8_t waveform3Bit[8][9] =
    {1, 1, 1, 2, 2, 1, 1, 0, 0}, {1, 1, 1, 1, 2, 2, 1, 0, 0}, {0, 1, 1, 1, 2, 2, 1, 0, 0},
    {0, 0, 0, 0, 1, 1, 2, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 0, 0}};
 
+typedef enum
+{
+  BLACK_AND_WHITE = 0,
+  GRAYSCALE,
+} displayMode_t;
+
 class Inkplate6 : public I2S
 {
 public:
   Inkplate6();
 
   void    begin();
+  void    setDisplayMode(displayMode_t mode);
   void    writePixelInternal(int16_t x, int16_t y, uint16_t color);
   void    clearDisplay();
   void    fillDisplay();
-  void    display3b(bool leaveOn = false);
+  void    display(bool leaveOn = false);
+  void    display3b(bool leaveOn);
+  void    display1b(bool leaveOn);
   int     einkOn();
   void    einkOff();
 
@@ -50,7 +59,10 @@ private:
   void    setPanelState(bool state);
   bool    getPanelState();
 
+  displayMode_t           m_displayMode  = GRAYSCALE;
+
   uint8_t*                m_framebufferColor = nullptr;
+  uint8_t*                m_framebuffer      = nullptr;
 
   uint8_t                 m_glut[9 * 256];
   uint8_t                 m_glut2[9 * 256];
@@ -58,6 +70,7 @@ private:
 
   bool                    m_panelState   = false;
   i2c_master_dev_handle_t m_tpsHandle    = NULL;
+
 };
 
 #endif
