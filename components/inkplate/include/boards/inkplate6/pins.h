@@ -3,7 +3,7 @@
 
 #include "soc/gpio_reg.h"
 #include "soc/gpio_struct.h"
-#include "pcal.h"
+#include "PCAL.h"
 
 extern PCAL expander1;
 

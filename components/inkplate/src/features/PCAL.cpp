@@ -2,7 +2,7 @@
 #include "esp_log.h"
 #include "esp_check.h"
 
-#include "pcal.h"
+#include "PCAL.h"
 
 static const char* TAG = "ESP_PCAL";
 

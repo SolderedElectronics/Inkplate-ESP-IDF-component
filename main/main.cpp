@@ -1,19 +1,28 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "inkplate6.h"
+#include "Inkplate.h"
 
-static Inkplate6 inkplate;
+static Inkplate inkplate;
 
 extern "C"
 void app_main(void)
 {
-  inkplate.begin();
+    inkplate.begin();
 
-  inkplate.clearDisplay();
-  inkplate.display3b();
-  vTaskDelay(pdMS_TO_TICKS(5000));
+    // --- Basic drawing demo ---
 
-  inkplate.fillDisplay();
-  inkplate.display3b();
+    inkplate.clearDisplay();
+
+    // Text
+    inkplate.setTextSize(5);
+    inkplate.setTextColor(0); // black
+    inkplate.setCursor(200, 10);
+    inkplate.print("hello");
+
+    inkplate.fillRect(200, 200, 400, 300, 4); // Arguments are: start X, start Y, size X, size Y, color
+
+
+    // Push framebuffer to the e-ink display
+    inkplate.display3b();
 }

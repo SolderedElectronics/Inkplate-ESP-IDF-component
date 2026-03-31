@@ -6,7 +6,7 @@
 #include "soc/i2s_reg.h"
 #include "soc/gpio_periph.h"
 
-#include "i2s.h"
+#include "I2S.h"
 #include "../../include/boards/inkplate6/pins.h"
 
 // static const char* TAG = "ESP_I2S";

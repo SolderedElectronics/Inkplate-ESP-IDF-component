@@ -4,7 +4,7 @@
 #include "esp_heap_caps.h"
 #include "string.h"
 
-#include "inkplate6.h"
+#include "Inkplate6.h"
 
 // static const char* TAG = "ESP_INKPLATE6";
 
@@ -47,6 +47,21 @@ void Inkplate6::begin()
 {
   gpioInit();
   pmicBegin();
+}
+
+void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
+{
+  int16_t x0 = x;
+  int16_t y0 = y;
+  if (x0 > E_INK_WIDTH - 1 || y0 > E_INK_HEIGHT - 1 || x0 < 0 || y0 < 0)
+    return;
+
+  color &= 7;
+  int x_ = x0 >> 1;
+  int x_sub = x0 & 1;
+  uint8_t temp;
+  temp = *(m_framebufferColor+ 400 * y0 + x_);
+  *(m_framebufferColor + 400 * y0 + x_) = (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
 }
 
 /**
