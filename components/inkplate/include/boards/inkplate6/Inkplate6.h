@@ -10,7 +10,7 @@
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
 
-#include "../../../graphics/GraphicsDefs.h"
+#include "../../graphics/GraphicsDefs.h"
 
 #define E_INK_WIDTH  800
 #define E_INK_HEIGHT 600

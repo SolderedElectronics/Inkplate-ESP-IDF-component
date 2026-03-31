@@ -1,17 +1,17 @@
 #ifndef _GRAPHICS_H_
 #define _GRAPHICS_H_
 
-#include "Adafruit_GFX/Adafruit_GFX.h"
+#include "Shapes/Shapes.h"
 #include "GraphicsDefs.h"
 
 /**
  * @brief       Graphics class that holds basic functionalities for Inkplate
  * display
  */
-class Graphics : virtual public Adafruit_GFX
+class Graphics : public Shapes
 {
   public:
-    Graphics(int16_t w, int16_t h) : Adafruit_GFX(w, h){};
+    Graphics(int16_t w, int16_t h) : Adafruit_GFX(w, h), Shapes(w, h){};
 
     void setRotation(uint8_t r);
     uint8_t getRotation();

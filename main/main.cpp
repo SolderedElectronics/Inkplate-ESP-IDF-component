@@ -20,7 +20,7 @@ void app_main(void)
     inkplate.setCursor(200, 10);
     inkplate.print("hello");
 
-    inkplate.fillRect(200, 200, 400, 300, 4); // Arguments are: start X, start Y, size X, size Y, color
+    inkplate.fillElipse(200, 200, 400, 600, 4); // Arguments are: start X, start Y, size X, size Y, color
 
 
     // Push framebuffer to the e-ink display
