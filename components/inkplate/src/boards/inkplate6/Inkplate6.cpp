@@ -33,6 +33,12 @@ Inkplate6::Inkplate6()
   m_framebuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8, MALLOC_CAP_SPIRAM);
   memset(m_framebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
 
+  m_newFramebuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8, MALLOC_CAP_SPIRAM);
+  memset(m_newFramebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
+
+  m_pBuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM);
+  memset(m_pBuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 4);
+
   m_dmaLineBuffer = (volatile uint8_t*)heap_caps_malloc((E_INK_WIDTH / 4) + 16,  MALLOC_CAP_DMA);
   m_dmaI2SDesc    = (volatile lldesc_s*)heap_caps_malloc(sizeof(lldesc_s),       MALLOC_CAP_DMA);
 
@@ -50,10 +56,21 @@ void Inkplate6::begin()
 {
   gpioInit();
   pmicBegin();
+
+  ESP_LOGI(TAG, "Inkplate6 initilization finished!");
 }
 
 void Inkplate6::setDisplayMode(displayMode_t mode)
 {
+  const char *name;
+  if (mode == BLACK_AND_WHITE)
+    name = "Black and white";
+  else if (mode == GRAYSCALE)
+    name = "Grayscale";
+  else
+    name = "Wrong display mode selected, defaulting to grayscale.";
+
+  ESP_LOGI(TAG, "Selected display mode: %s", name);
   m_displayMode = mode;
 }
 
@@ -66,8 +83,8 @@ void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
   {
     int x1 = x >> 3;
     int x_sub = x & 7;
-    uint8_t temp = *(m_framebuffer + 100 * y + x1);
-    *(m_framebuffer + 100 * y + x1) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
+    uint8_t temp = *(m_newFramebuffer + 100 * y + x1);
+    *(m_newFramebuffer + 100 * y + x1) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
   }
   else if (m_displayMode == GRAYSCALE)
   {
@@ -85,9 +102,11 @@ void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 void Inkplate6::clearDisplay()
 {
   if (m_displayMode == BLACK_AND_WHITE)
-    memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
+    memset(m_newFramebuffer,   0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
   else if (m_displayMode == GRAYSCALE)
-    memset(m_framebuffer,      0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
+    memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
+
+  ESP_LOGI(TAG, "Display cleared.");
 }
 
 /**
@@ -95,11 +114,12 @@ void Inkplate6::clearDisplay()
  */
 void Inkplate6::fillDisplay()
 {
-
   if (m_displayMode == BLACK_AND_WHITE)
-    memset(m_framebufferColor, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 2);
+    memset(m_newFramebuffer,   0xFF, E_INK_WIDTH * E_INK_HEIGHT / 8);
   else if (m_displayMode == GRAYSCALE)
-    memset(m_framebuffer,      0xFF, E_INK_WIDTH * E_INK_HEIGHT / 8);
+    memset(m_framebufferColor, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 2);
+
+  ESP_LOGI(TAG, "Display filled.");
 }
 
 /**
@@ -111,6 +131,210 @@ void Inkplate6::display(bool leaveOn)
     display1b(leaveOn);
   else if (m_displayMode == GRAYSCALE)
     display3b(leaveOn);
+
+  ESP_LOGI(TAG, "Content displayed.");
+}
+
+uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
+{
+  // grayscale not supported
+  if (m_displayMode == GRAYSCALE)
+  {
+    ESP_LOGI(TAG, "Selected display mode does not support partial updating.");
+    return 0;
+  }
+
+  if (m_partialUpdateCounter >= m_partialUpdateLimiter && m_partialUpdateLimiter != 0)
+  {
+    ESP_LOGI(TAG, "Partial update limit reached, forcing full update.");
+    // force full update
+    display1b(leaveOn);
+    // reset the counter
+    m_partialUpdateCounter = 0;
+    return 0;
+  }
+
+  uint16_t position = (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+  uint8_t diffWhite, diffBlack;
+  uint32_t n = (E_INK_WIDTH * E_INK_HEIGHT / 4) - 1;
+
+  uint32_t changeCount = 0;
+
+  m_dmaI2SDesc->size = (E_INK_WIDTH / 4) + 16;
+  m_dmaI2SDesc->length = (E_INK_WIDTH / 4) + 16;
+  m_dmaI2SDesc->sosf = 1;
+  m_dmaI2SDesc->owner = 1;
+  m_dmaI2SDesc->qe.stqe_next = 0;
+  m_dmaI2SDesc->eof = 1;
+  m_dmaI2SDesc->buf = m_dmaLineBuffer;
+  m_dmaI2SDesc->offset = 0;
+
+  for (int i = 0; i < E_INK_HEIGHT; i++)
+  {
+    for (int j = 0; j < E_INK_WIDTH / 8; j++)
+    {
+      diffWhite = *(m_framebuffer + position) & ~*(m_newFramebuffer + position);
+      diffBlack = ~*(m_framebuffer + position) & *(m_newFramebuffer + position);
+      // count pixels turning from black to white as these are visible blur
+      if (diffWhite)
+      {
+        for (int bv = 1; bv < 256; bv <<=1)
+        {
+          if (diffWhite & bv)
+            changeCount++;
+        }
+      }
+
+      position--;
+      *(m_pBuffer + n) = LUTW[diffWhite >> 4] & LUTB[diffBlack >> 4];
+      n--;
+      *(m_pBuffer + n) = LUTW[diffWhite & 0x0F] & LUTB[diffBlack & 0x0F];
+      n--;
+    }
+  }
+
+  if (!einkOn())
+    return 0;
+
+  uint8_t rep = 6;
+
+  for (int k = 0; k < rep; k++)
+  {
+    vscanStart();
+    n = (E_INK_WIDTH * E_INK_HEIGHT / 4) - 1;
+
+    for (int i = 0; i < E_INK_HEIGHT; i++)
+    {
+      for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
+      {
+        m_dmaLineBuffer[j]     = *(m_pBuffer + n - 2);
+        m_dmaLineBuffer[j + 1] = *(m_pBuffer + n - 3);
+        m_dmaLineBuffer[j + 2] = *(m_pBuffer + n);
+        m_dmaLineBuffer[j + 3] = *(m_pBuffer + n - 1);
+        n -= 4;
+      }
+      sendDataI2S();
+      vscanEnd();
+    }
+    esp_rom_delay_us(230);
+  }
+
+  clean(2, 2);
+  clean(3, 1);
+  vscanStart();
+
+  if (!einkOn())
+    einkOff();
+
+  memcpy(m_framebuffer, m_newFramebuffer, E_INK_WIDTH * E_INK_HEIGHT / 8);
+
+  if (m_partialUpdateLimiter != 0)
+    m_partialUpdateCounter++;
+
+  return changeCount;
+}
+
+/**
+ * @brief  Turn on epaper power supply (TPS65186).
+ *
+ * @return 1 on success, 0 on timeout waiting for power good.
+ *
+ * @note   Power-on order matters — wrong order can damage the display.
+ */
+int Inkplate6::einkOn()
+{
+  if (getPanelState())
+    return 1;
+
+  WAKEUP_SET;
+  esp_rom_delay_us(5000);
+
+  uint8_t buf[2];
+  // enable all rails
+  buf[0] = 0x01;
+  buf[1] = 0b00100000;
+  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
+  // modify power up sequence
+  buf[0] = 0x09;
+  buf[1] = 0b11100100;
+  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
+  // modify power down sequence (VEE and VNEG swapped)
+  buf[0] = 0x0B;
+  buf[1] = 0b00011011;
+  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
+
+  pinsAsOutputs();
+  LE_CLEAR;
+  SPH_SET;
+  GMOD_SET;
+  SPV_SET;
+  CKV_CLEAR;
+  OE_CLEAR;
+  PWRUP_SET;
+  setPanelState(true);
+
+  if (!waitPowerGood(true))
+  {
+    einkOff();
+    return 0;
+  }
+
+  ESP_LOGI(TAG, "Eink turned on.");
+
+  VCOM_SET;
+  OE_SET;
+  return 1;
+}
+
+/**
+ * @brief  Turn off epaper power supply and put all IO pins in high-Z state.
+ */
+void Inkplate6::einkOff()
+{
+  if (!getPanelState())
+    return;
+
+  VCOM_CLEAR;
+  OE_CLEAR;
+  GMOD_CLEAR;
+  LE_CLEAR;
+  CKV_CLEAR;
+  SPH_CLEAR;
+  SPV_CLEAR;
+  PWRUP_CLEAR;
+
+  waitPowerGood(false);
+
+  WAKEUP_CLEAR;
+
+  uint8_t buf[2] = {0x01, 0b00000000};
+  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
+
+  pinsZstate();
+  setPanelState(false);
+
+  ESP_LOGI(TAG, "Eink turned off.");
+}
+
+/**
+ * ============================================================
+ * Private functions
+ * ============================================================
+ */
+
+/**
+ * @brief  Pre-compute m_glut and m_glut2 waveform lookup tables.
+ */
+void Inkplate6::calculateLUTs()
+{
+  for (int j = 0; j < 9; ++j)
+  {
+    for (int i = 0; i < 256; ++i)
+    {
+      m_glut [j * 256 + i]  = (waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j]);
+      m_glut2[j * 256 + i] = ((waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j])) << 4;
+    }
+  }
 }
 
 /**
@@ -122,7 +346,10 @@ void Inkplate6::display(bool leaveOn)
 void Inkplate6::display3b(bool leaveOn)
 {
   if (!einkOn())
+  {
+    ESP_LOGI(TAG, "Display is not on!");
     return;
+  }
 
   clean(0, 1);
   clean(1, 18);
@@ -176,7 +403,10 @@ void Inkplate6::display3b(bool leaveOn)
 void Inkplate6::display1b(bool leaveOn)
 {
   if (!einkOn())
+  {
+    ESP_LOGI(TAG, "Display is not on!");
     return;
+  }
 
   clean(0, 1);
   clean(1, 18);
@@ -188,11 +418,13 @@ void Inkplate6::display1b(bool leaveOn)
   clean(0, 18);
   clean(2, 1);
 
+  memcpy(m_framebuffer, m_newFramebuffer, E_INK_WIDTH * E_INK_HEIGHT / 8);
+
   int rep = 5;
 
   for (int k = 0; k < rep; k++)
   {
-    uint8_t *memoryPtr = m_framebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+    uint8_t *memoryPtr = m_newFramebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
     vscanStart();
 
     for (int i = 0; i < E_INK_HEIGHT; i++)
@@ -215,7 +447,7 @@ void Inkplate6::display1b(bool leaveOn)
 
   for (int k = 0; k < 1; ++k)
   {
-    uint8_t *memoryPtr = m_framebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+    uint8_t *memoryPtr = m_newFramebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
     vscanStart();
 
     for (int i = 0; i < E_INK_HEIGHT; i++)
@@ -258,109 +490,6 @@ void Inkplate6::display1b(bool leaveOn)
   vscanStart();
   if (!leaveOn)
     einkOff();
-}
-
-/**
- * @brief  Turn on epaper power supply (TPS65186).
- *
- * @return 1 on success, 0 on timeout waiting for power good.
- *
- * @note   Power-on order matters — wrong order can damage the display.
- */
-int Inkplate6::einkOn()
-{
-  if (getPanelState())
-    return 1;
-
-  WAKEUP_SET;
-  esp_rom_delay_us(5000);
-
-  uint8_t buf[2];
-  // enable all rails
-  buf[0] = 0x01;
-  buf[1] = 0b00100000;
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
-  // modify power up sequence
-  buf[0] = 0x09;
-  buf[1] = 0b11100100;
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
-  // modify power down sequence (VEE and VNEG swapped)
-  buf[0] = 0x0B;
-  buf[1] = 0b00011011;
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
-
-  pinsAsOutputs();
-  LE_CLEAR;
-  SPH_SET;
-  GMOD_SET;
-  SPV_SET;
-  CKV_CLEAR;
-  OE_CLEAR;
-  PWRUP_SET;
-  setPanelState(true);
-
-  if (!waitPowerGood(true))
-  {
-    einkOff();
-    return 0;
-  }
-
-  ESP_LOGI(TAG, "Eink on");
-
-  VCOM_SET;
-  OE_SET;
-  return 1;
-}
-
-/**
- * @brief  Turn off epaper power supply and put all IO pins in high-Z state.
- */
-void Inkplate6::einkOff()
-{
-  if (!getPanelState())
-    return;
-
-  VCOM_CLEAR;
-  OE_CLEAR;
-  GMOD_CLEAR;
-  LE_CLEAR;
-  CKV_CLEAR;
-  SPH_CLEAR;
-  SPV_CLEAR;
-  PWRUP_CLEAR;
-
-  waitPowerGood(false);
-
-  WAKEUP_CLEAR;
-
-  uint8_t buf[2] = {0x01, 0b00000000};
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
-
-  pinsZstate();
-  setPanelState(false);
-
-  ESP_LOGI(TAG, "Eink off");
-}
-
-/**
- * ============================================================
- * Private functions
- * ============================================================
- */
-
-/**
- * @brief  Pre-compute m_glut and m_glut2 waveform lookup tables.
- */
-void Inkplate6::calculateLUTs()
-{
-  for (int j = 0; j < 9; ++j)
-  {
-    for (int i = 0; i < 256; ++i)
-    {
-      m_glut [j * 256 + i]  = (waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j]);
-      m_glut2[j * 256 + i] = ((waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j])) << 4;
-    }
-  }
 }
 
 /**

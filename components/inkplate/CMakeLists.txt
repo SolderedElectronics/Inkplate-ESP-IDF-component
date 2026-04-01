@@ -1,10 +1,10 @@
 idf_component_register(SRCS "src/features/RTC.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp"
                              "src/boards/inkplate6/Inkplate6.cpp"
-                             "Inkplate.cpp"
+                             "src/boards/Inkplate.cpp"
                              "src/graphics/Graphics.cpp"
                              "src/graphics/Adafruit_GFX/Adafruit_GFX.cpp"
                              "src/graphics/Shapes/Shapes.cpp"
                              "src/graphics/Shapes/ShapesPolygon.cpp"
                        REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer"
-                       INCLUDE_DIRS "." "include" "include/features" "include/boards/inkplate6"
+                       INCLUDE_DIRS "include" "include/features" "include/boards" "include/boards/inkplate6"
                                     "include/graphics" "include/graphics/Adafruit_GFX" "include/graphics/Shapes")
