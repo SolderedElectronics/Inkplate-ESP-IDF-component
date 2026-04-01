@@ -3,17 +3,18 @@
 
 #include "Inkplate.h"
 
-static Inkplate inkplate;
-const char text[] = "This is partial update";
-int offset = 800;
-int partialUpdates=9;
 
 extern "C"
 void app_main(void)
 {
-    inkplate.begin();
+    const char text[] = "This is partial update";
+    int offset = 800;
+    int partialUpdates=9;
+    Inkplate inkplate;
     inkplate.setTextSize(4);             // Set text to be 4 times bigger than classic 5x7 px text
     inkplate.setDisplayMode(BLACK_AND_WHITE);
+    inkplate.setTextWrap(false);
+    //inkplate.setTextColor(0, 1);
     inkplate.clearDisplay();         // Clear content in frame buffer
     inkplate.display();
 

@@ -13,7 +13,6 @@ typedef enum
 class BoardBase : public I2S
 {
 public:
-    virtual void begin() = 0;
     virtual void setDisplayMode(displayMode_t mode) = 0;
     virtual void writePixelInternal(int16_t x, int16_t y, uint16_t color) = 0;
     virtual void clearDisplay() = 0;

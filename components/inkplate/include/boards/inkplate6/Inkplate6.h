@@ -5,6 +5,7 @@
 #include "PCAL.h"
 #include "pins.h"
 #include "driver/i2c_master.h"
+#include "esp_err.h"
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
 
@@ -26,7 +27,6 @@ class Inkplate6 : public BoardBase
 public:
   Inkplate6();
 
-  void    begin();
   void    setDisplayMode(displayMode_t mode);
   void    writePixelInternal(int16_t x, int16_t y, uint16_t color);
   void    clearDisplay();
@@ -37,6 +37,7 @@ public:
   void    einkOff();
 
 private:
+  esp_err_t initBuffers();
   void    calculateLUTs();
   void    display3b(bool leaveOn);
   void    display1b(bool leaveOn);
@@ -62,9 +63,9 @@ private:
   uint16_t                m_partialUpdateLimiter = 10;
   uint16_t                m_partialUpdateCounter = 0;
 
-  uint8_t                 m_glut[9 * 256];
-  uint8_t                 m_glut2[9 * 256];
-  uint32_t                m_pinLUT[256];
+  uint8_t*                m_glut    = nullptr;
+  uint8_t*                m_glut2   = nullptr;
+  uint32_t*               m_pinLUT  = nullptr;
 
   bool                    m_panelState   = false;
   i2c_master_dev_handle_t m_tpsHandle    = NULL;

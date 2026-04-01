@@ -22,44 +22,25 @@ PCAL expander2(IO_EXT_ADDR, expander1.getBusHandle());
 /**
  * @brief  Inkplate6 constructor.
  *
- * @note   Allocates framebuffer and DMA buffers in DMA-capable DRAM
- *         and pre-computes the grayscale waveform LUTs.
+ * @note   Allocates framebuffer and DMA buffers and pre-computes the grayscale waveform LUTs.
  */
 Inkplate6::Inkplate6()
 {
-  m_framebufferColor = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM);
-  memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
-
-  m_framebuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8, MALLOC_CAP_SPIRAM);
-  memset(m_framebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
-
-  m_newFramebuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8, MALLOC_CAP_SPIRAM);
-  memset(m_newFramebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
-
-  m_pBuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM);
-  memset(m_pBuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 4);
-
-  m_dmaLineBuffer = (volatile uint8_t*)heap_caps_malloc((E_INK_WIDTH / 4) + 16,  MALLOC_CAP_DMA);
-  m_dmaI2SDesc    = (volatile lldesc_s*)heap_caps_malloc(sizeof(lldesc_s),       MALLOC_CAP_DMA);
-
+  ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
-}
 
-/**
- * @brief  Initialize the Inkplate6 hardware.
- *
- * @note   Must be called once before any display operations.
- *         Problem with FreerRTOS kernel if just using constructor.
- *         Initializes GPIO, IO expanders, and the PMIC.
- */
-void Inkplate6::begin()
-{
   gpioInit();
   pmicBegin();
 
   ESP_LOGI(TAG, "Inkplate6 initilization finished!");
 }
 
+/**
+ * @brief  Set the active display mode.
+ *
+ * @param  displayMode_t mode
+ *         BLACK_AND_WHITE for 1-bit mode, GRAYSCALE for 3-bit mode.
+ */
 void Inkplate6::setDisplayMode(displayMode_t mode)
 {
   const char *name;
@@ -74,6 +55,19 @@ void Inkplate6::setDisplayMode(displayMode_t mode)
   m_displayMode = mode;
 }
 
+/**
+ * @brief  Write a single pixel into the framebuffer.
+ *
+ * @param  int16_t x
+ *         Pixel X coordinate (0 = left).
+ * @param  int16_t y
+ *         Pixel Y coordinate (0 = top).
+ * @param  uint16_t color
+ *         In BLACK_AND_WHITE: 0 = white, non-zero = black.
+ *         In GRAYSCALE: 0–7 grey level (0 = white, 7 = black).
+ *
+ * @note   Out-of-bounds coordinates are ignored.
+ */
 void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 {
   if (x > E_INK_WIDTH - 1 || y > E_INK_HEIGHT - 1 || x < 0 || y < 0)
@@ -135,6 +129,22 @@ void Inkplate6::display(bool leaveOn)
   ESP_LOGI(TAG, "Content displayed.");
 }
 
+/**
+ * @brief  Send only the changed pixels to the display (1-bit mode only).
+ *
+ * @param  bool forced  
+ *         TODO
+ * @param  bool leaveOn
+ *         if true, leave the eink power supply on after the update
+ *
+ * @return uint32_t
+ *         Number of pixels that transitioned from black to white.
+ *         Returns 0 if a full refresh was triggered instead, or if
+ *         GRAYSCALE mode is active (not supported).
+ *
+ * @note   After m_partialUpdateLimiter partial updates, a full display1b refresh
+ *         is forced automatically to clear accumulated ghosting.
+ */
 uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
 {
   // grayscale not supported
@@ -321,6 +331,49 @@ void Inkplate6::einkOff()
  * Private functions
  * ============================================================
  */
+
+/**
+ * @brief  Allocate and zero-initialise all framebuffers and DMA descriptors.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, ESP_ERR_NO_MEM if any allocation fails.
+ *
+ */
+esp_err_t Inkplate6::initBuffers()
+{
+  m_framebufferColor = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM);
+  if (!m_framebufferColor) return ESP_ERR_NO_MEM;
+  memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
+
+  m_framebuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8, MALLOC_CAP_SPIRAM);
+  if (!m_framebuffer) return ESP_ERR_NO_MEM;
+  memset(m_framebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
+
+  m_newFramebuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8, MALLOC_CAP_SPIRAM);
+  if (!m_newFramebuffer) return ESP_ERR_NO_MEM;
+  memset(m_newFramebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
+
+  m_pBuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM);
+  if (!m_pBuffer) return ESP_ERR_NO_MEM;
+  memset(m_pBuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 4);
+
+  m_dmaLineBuffer = (volatile uint8_t*)heap_caps_malloc((E_INK_WIDTH / 4) + 16, MALLOC_CAP_DMA);
+  if (!m_dmaLineBuffer) return ESP_ERR_NO_MEM;
+
+  m_dmaI2SDesc = (volatile lldesc_s*)heap_caps_malloc(sizeof(lldesc_s), MALLOC_CAP_DMA);
+  if (!m_dmaI2SDesc) return ESP_ERR_NO_MEM;
+
+  m_glut = (uint8_t*)heap_caps_malloc(9 * 256, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+  if (!m_glut) return ESP_ERR_NO_MEM;
+
+  m_glut2 = (uint8_t*)heap_caps_malloc(9 * 256, MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+  if (!m_glut2) return ESP_ERR_NO_MEM;
+
+  m_pinLUT = (uint32_t*)heap_caps_malloc(256 * sizeof(uint32_t), MALLOC_CAP_8BIT | MALLOC_CAP_INTERNAL);
+  if (!m_pinLUT) return ESP_ERR_NO_MEM;
+
+  return ESP_OK;
+}
 
 /**
  * @brief  Pre-compute m_glut and m_glut2 waveform lookup tables.
