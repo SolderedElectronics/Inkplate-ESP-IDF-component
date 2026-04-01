@@ -25,24 +25,25 @@ class Inkplate6 : public BoardBase
 public:
   Inkplate6();
 
-  void    setDisplayMode(displayMode_t mode);
-  void    writePixelInternal(int16_t x, int16_t y, uint16_t color);
-  void    clearDisplay();
-  void    fillDisplay();
-  void    display(bool leaveOn = false);
-  uint32_t partialUpdate(bool forced = false, bool leaveOn = false);
-  int     einkOn();
-  void    einkOff();
-  void    setFullUpdateThreshold(uint16_t numberOfPartialUpdates);
+  void      setDisplayMode(displayMode_t mode);
+  void      writePixelInternal(int16_t x, int16_t y, uint16_t color);
+  void      clearDisplay();
+  void      fillDisplay();
+  esp_err_t display(bool leaveOn = false);
+  uint32_t  partialUpdate(bool forced = false, bool leaveOn = false);
+  esp_err_t einkOn();
+  esp_err_t einkOff();
+  void      setFullUpdateThreshold(uint16_t numberOfPartialUpdates);
+  double    readBattery();
 
 private:
   esp_err_t initBuffers();
   void    calculateLUTs();
-  void    display3b(bool leaveOn);
-  void    display1b(bool leaveOn);
-  void    gpioInit();
-  void    clean(uint8_t c, uint8_t rep);
-  void    pmicBegin();
+  esp_err_t display3b(bool leaveOn);
+  esp_err_t display1b(bool leaveOn);
+  void      gpioInit();
+  void      clean(uint8_t c, uint8_t rep);
+  esp_err_t pmicBegin();
   void    vscanStart();
   void    vscanEnd();
   void    pinsAsOutputs();
@@ -68,7 +69,6 @@ private:
   uint32_t*               m_pinLUT  = nullptr;
 
   bool                    m_panelState = false;
-  TPS                     m_tps;
 
 };
 

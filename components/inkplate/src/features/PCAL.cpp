@@ -201,9 +201,9 @@ esp_err_t PCAL::setPullMode(IOPin_t pin, IOPullMode_t pullMode)
   // enable the pull resistor for this pin
   uint8_t enVal = readPin(enReg);
   enVal |= (1 << bit);
-  esp_err_t err = writePin(enReg, enVal);
-  if (err != ESP_OK)
-    return err;
+  esp_err_t ret = writePin(enReg, enVal);
+  if (ret != ESP_OK)
+    return ret;
 
   // select pull-up (1) or pull-down (0)
   uint8_t selVal = readPin(selReg);

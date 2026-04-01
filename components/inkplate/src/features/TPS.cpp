@@ -1,4 +1,5 @@
 #include "TPS.h"
+#include "esp_err.h"
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
 
@@ -7,65 +8,78 @@
  *
  * @param  i2c_master_bus_handle_t busHandle
  *         Handle to an already-initialised I2C master bus.
- *
- * @return esp_err_t
- *         ESP_OK on success
- *         ESP_ERR_INVALID_STATE if already registered or an I2C driver error code.
  */
-esp_err_t TPS::begin(i2c_master_bus_handle_t busHandle)
+TPS::TPS(i2c_master_bus_handle_t busHandle)
 {
   i2c_device_config_t cfg = {};
   cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
   cfg.device_address  = TPS_I2C_ADDR;
   cfg.scl_speed_hz    = 100000;
-  return i2c_master_bus_add_device(busHandle, &cfg, &m_handle);
+  ESP_ERROR_CHECK(i2c_master_bus_add_device(busHandle, &cfg, &m_handle));
 }
 
 /**
  * @brief  Write startup power-up/down sequences to the PMIC (UPSEQ0/1, DWNSEQ0/1).
  *
- * @note   Should be called once after begin(), with WAKEUP asserted.
+ * @note   Should be called once after construction, with WAKEUP asserted.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an I2C driver error code.
  */
-void TPS::initSequences()
+esp_err_t TPS::initSequences()
 {
   uint8_t buf[5] = {0x09, 0b00011011, 0b00000000, 0b00011011, 0b00000000};
-  i2c_master_transmit(m_handle, buf, sizeof(buf), -1);
+  return i2c_master_transmit(m_handle, buf, sizeof(buf), -1);
 }
 
 /**
  * @brief  Enable all power rails (register 0x01, bit 5).
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an I2C driver error code.
  */
-void TPS::enableRails()
+esp_err_t TPS::enableRails()
 {
-  writeReg(0x01, 0b00100000);
+  return writeReg(0x01, 0b00100000);
 }
 
 /**
  * @brief  Disable all power rails (register 0x01 = 0x00).
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an I2C driver error code.
  */
-void TPS::disableRails()
+esp_err_t TPS::disableRails()
 {
-  writeReg(0x01, 0b00000000);
+  return writeReg(0x01, 0b00000000);
 }
 
 /**
  * @brief  Set the power-up sequence register (UPSEQ0, 0x09).
  *
- * @param  uint8_t seq  Sequence byte value.
+ * @param  uint8_t seq
+ *         Sequence byte value.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an I2C driver error code.
  */
-void TPS::setPowerUpSequence(uint8_t seq)
+esp_err_t TPS::setPowerUpSequence(uint8_t seq)
 {
-  writeReg(0x09, seq);
+  return writeReg(0x09, seq);
 }
 
 /**
  * @brief  Set the power-down sequence register (DWNSEQ0, 0x0B).
  *
- * @param  uint8_t seq  Sequence byte value.
+ * @param  uint8_t seq
+ *         Sequence byte value.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an I2C driver error code.
  */
-void TPS::setPowerDownSequence(uint8_t seq)
+esp_err_t TPS::setPowerDownSequence(uint8_t seq)
 {
-  writeReg(0x0B, seq);
+  return writeReg(0x0B, seq);
 }
 
 /**
@@ -94,13 +108,14 @@ bool TPS::waitPowerGood(bool target)
   do {
     esp_rom_delay_us(1000);
   } while ((readPowerGood() == TPS_PWR_GOOD) != target && (esp_timer_get_time() - timer) < 250000LL);
+
   return (esp_timer_get_time() - timer) < 250000LL;
 }
 
-void TPS::writeReg(uint8_t reg, uint8_t val)
+esp_err_t TPS::writeReg(uint8_t reg, uint8_t val)
 {
   uint8_t buf[2] = {reg, val};
-  i2c_master_transmit(m_handle, buf, sizeof(buf), -1);
+  return i2c_master_transmit(m_handle, buf, sizeof(buf), -1);
 }
 
 uint8_t TPS::readReg(uint8_t reg)

@@ -2,6 +2,9 @@
 #include "soc/gpio_sig_map.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
+#include "esp_adc/adc_oneshot.h"
+#include "esp_adc/adc_cali.h"
+#include "esp_adc/adc_cali_scheme.h"
 #include "string.h"
 #include "esp_log.h"
 
@@ -12,6 +15,7 @@ static const char* TAG = "ESP_INKPLATE6";
 // global instance, declared extern in pins.h
 PCAL expander1(IO_INT_ADDR);
 PCAL expander2(IO_EXT_ADDR, expander1.getBusHandle());
+TPS  tps(expander1.getBusHandle());
 
 /**
  * ============================================================
@@ -30,7 +34,7 @@ Inkplate6::Inkplate6()
   calculateLUTs();
 
   gpioInit();
-  pmicBegin();
+  ESP_ERROR_CHECK(pmicBegin());
 
   ESP_LOGI(TAG, "Inkplate6 initilization finished!");
 }
@@ -119,21 +123,23 @@ void Inkplate6::fillDisplay()
 /**
  * @brief  Display buffer to screen.
  */
-void Inkplate6::display(bool leaveOn)
+esp_err_t Inkplate6::display(bool leaveOn)
 {
+  esp_err_t ret = ESP_OK;
   if (m_displayMode == BLACK_AND_WHITE)
-    display1b(leaveOn);
+    ret = display1b(leaveOn);
   else if (m_displayMode == GRAYSCALE)
-    display3b(leaveOn);
+    ret = display3b(leaveOn);
 
   ESP_LOGI(TAG, "Content displayed.");
+  return ret;
 }
 
 /**
  * @brief  Send only the changed pixels to the display (1-bit mode only).
  *
  * @param  bool forced  
- *         TODO
+ *         if true, force update
  * @param  bool leaveOn
  *         if true, leave the eink power supply on after the update
  *
@@ -209,7 +215,7 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
     }
   }
 
-  if (!einkOn())
+  if (einkOn() != ESP_OK)
     return 0;
 
   uint8_t rep = 6;
@@ -239,7 +245,7 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
   clean(3, 1);
   vscanStart();
 
-  if (!einkOn())
+  if (einkOn() != ESP_OK)
     einkOff();
 
   memcpy(m_framebuffer, m_newFramebuffer, E_INK_WIDTH * E_INK_HEIGHT / 8);
@@ -253,21 +259,22 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
 /**
  * @brief  Turn on epaper power supply (TPS65186).
  *
- * @return 1 on success, 0 on timeout waiting for power good.
+ * @return esp_err_t
+ *         ESP_OK on success, ESP_ERR_TIMEOUT if power good not reached.
  *
  * @note   Power-on order matters — wrong order can damage the display.
  */
-int Inkplate6::einkOn()
+esp_err_t Inkplate6::einkOn()
 {
   if (getPanelState())
-    return 1;
+    return ESP_OK;
 
   WAKEUP_SET;
   esp_rom_delay_us(5000);
 
-  m_tps.enableRails();
-  m_tps.setPowerUpSequence(0b11100100);
-  m_tps.setPowerDownSequence(0b00011011);
+  tps.enableRails();
+  tps.setPowerUpSequence(TPS_PWRUP_SEQ);
+  tps.setPowerDownSequence(TPS_PWRDN_SEQ);
 
   pinsAsOutputs();
   LE_CLEAR;
@@ -279,26 +286,29 @@ int Inkplate6::einkOn()
   PWRUP_SET;
   setPanelState(true);
 
-  if (!m_tps.waitPowerGood(true))
+  if (!tps.waitPowerGood(true))
   {
     einkOff();
-    return 0;
+    return ESP_ERR_TIMEOUT;
   }
 
   ESP_LOGI(TAG, "Eink turned on.");
 
   VCOM_SET;
   OE_SET;
-  return 1;
+  return ESP_OK;
 }
 
 /**
  * @brief  Turn off epaper power supply and put all IO pins in high-Z state.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an I2C driver error code.
  */
-void Inkplate6::einkOff()
+esp_err_t Inkplate6::einkOff()
 {
   if (!getPanelState())
-    return;
+    return ESP_OK;
 
   VCOM_CLEAR;
   OE_CLEAR;
@@ -309,15 +319,16 @@ void Inkplate6::einkOff()
   SPV_CLEAR;
   PWRUP_CLEAR;
 
-  m_tps.waitPowerGood(false);
+  tps.waitPowerGood(false);
 
   WAKEUP_CLEAR;
-  m_tps.disableRails();
+  esp_err_t ret = tps.disableRails();
 
   pinsZstate();
   setPanelState(false);
 
   ESP_LOGI(TAG, "Eink turned off.");
+  return ret;
 }
 
 /**
@@ -336,6 +347,56 @@ void Inkplate6::setFullUpdateThreshold(uint16_t numberOfPartialUpdates)
 
   if (numberOfPartialUpdates != 0)
     m_blockPartial = true;
+}
+
+/**
+ * @brief  Read the battery voltage.
+ *
+ * @note   Briefly enables the voltage divider MOSFET, reads ADC1 channel 7
+ *         (GPIO35), then disables the divider. 
+ *
+ * @return double
+ *         Battery voltage in volts, or 0.0 if ADC calibration is unavailable.
+ */
+double Inkplate6::readBattery()
+{
+  // enable voltage divider
+  expander1.setLevel(IO_NUM_B1, 1);
+  esp_rom_delay_us(5000);
+
+  // init ADC oneshot unit
+  adc_oneshot_unit_handle_t adcHandle;
+  adc_oneshot_unit_init_cfg_t initCfg = {};
+  initCfg.unit_id = ADC_UNIT_1;
+  adc_oneshot_new_unit(&initCfg, &adcHandle);
+
+  adc_oneshot_chan_cfg_t chanCfg = {};
+  chanCfg.atten    = ADC_ATTEN_DB_12;
+  chanCfg.bitwidth = ADC_BITWIDTH_12;
+  adc_oneshot_config_channel(adcHandle, ADC_CHANNEL_7, &chanCfg);
+
+  // calibrate
+  adc_cali_handle_t caliHandle = NULL;
+  adc_cali_line_fitting_config_t caliCfg = {};
+  caliCfg.unit_id  = ADC_UNIT_1;
+  caliCfg.atten    = ADC_ATTEN_DB_12;
+  caliCfg.bitwidth = ADC_BITWIDTH_12;
+  bool calibrated = (adc_cali_create_scheme_line_fitting(&caliCfg, &caliHandle) == ESP_OK);
+
+  int raw = 0, mv = 0;
+  adc_oneshot_read(adcHandle, ADC_CHANNEL_7, &raw);
+  if (calibrated)
+  {
+    adc_cali_raw_to_voltage(caliHandle, raw, &mv);
+    adc_cali_delete_scheme_line_fitting(caliHandle);
+  }
+  adc_oneshot_del_unit(adcHandle);
+
+  // disable voltage divider
+  expander1.setLevel(IO_NUM_B1, 0);
+
+  // voltage is divided by 2 on the board, so multiply back
+  return (double(mv) * 2.0 / 1000.0);
 }
 
 /**
@@ -408,12 +469,13 @@ void Inkplate6::calculateLUTs()
  * @param  bool leaveOn
  *         if true, leave the eink power supply on after the update
  */
-void Inkplate6::display3b(bool leaveOn)
+esp_err_t Inkplate6::display3b(bool leaveOn)
 {
-  if (!einkOn())
+  esp_err_t ret = einkOn();
+  if (ret != ESP_OK)
   {
     ESP_LOGI(TAG, "Display is not on!");
-    return;
+    return ret;
   }
 
   clean(0, 1);
@@ -457,6 +519,8 @@ void Inkplate6::display3b(bool leaveOn)
 
   if (!leaveOn)
     einkOff();
+
+  return ESP_OK;
 }
 
 /**
@@ -465,12 +529,13 @@ void Inkplate6::display3b(bool leaveOn)
  * @param  bool leaveOn
  *         if true, leave the eink power supply on after the update
  */
-void Inkplate6::display1b(bool leaveOn)
+esp_err_t Inkplate6::display1b(bool leaveOn)
 {
-  if (!einkOn())
+  esp_err_t ret = einkOn();
+  if (ret != ESP_OK)
   {
     ESP_LOGI(TAG, "Display is not on!");
-    return;
+    return ret;
   }
 
   clean(0, 1);
@@ -557,6 +622,7 @@ void Inkplate6::display1b(bool leaveOn)
     einkOff();
 
   m_blockPartial = false;
+  return ESP_OK;
 }
 
 /**
@@ -657,18 +723,15 @@ void Inkplate6::clean(uint8_t c, uint8_t rep)
 /**
  * @brief  Initialize the TPS65186 PMIC.
  *
- * @note   Registers the device on the I2C bus and programs the
- *         power-up/down rail sequences (UPSEQ0/1, DWNSEQ0/1).
  */
-void Inkplate6::pmicBegin()
+esp_err_t Inkplate6::pmicBegin()
 {
-  ESP_ERROR_CHECK(m_tps.begin(expander1.getBusHandle()));
-
   WAKEUP_SET;
   esp_rom_delay_us(1000);
-  m_tps.initSequences();
+  esp_err_t ret = tps.initSequences();
   esp_rom_delay_us(1000);
   WAKEUP_CLEAR;
+  return ret;
 }
 
 /**

@@ -59,7 +59,7 @@ RTC::RTC()
  */
 esp_err_t RTC::setTime(tm time)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
 
   uint8_t data[8] =
   {
@@ -73,14 +73,14 @@ esp_err_t RTC::setTime(tm time)
      decToBcd(time.tm_year - 1900)
   };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  if (ret != ESP_OK)
+    return ret;
 
   uint8_t data_[2] = { RTC_RAM, RTC_SET };
-  err = i2c_master_transmit(m_devHandle, data_, sizeof(data_), -1);
+  ret = i2c_master_transmit(m_devHandle, data_, sizeof(data_), -1);
 
-  return err;
+  return ret;
 }
 
 /**
@@ -96,13 +96,13 @@ esp_err_t RTC::setTime(tm time)
  */
 esp_err_t RTC::getTime(tm *time)
 {
-  esp_err_t err = updateTime();
-  if (err != ESP_OK)
-    return err;
+  esp_err_t ret = updateTime();
+  if (ret != ESP_OK)
+    return ret;
 
   memcpy(time, &m_time, sizeof(tm));
 
-  return err;
+  return ret;
 }
 
 /**
@@ -139,14 +139,14 @@ esp_err_t RTC::setTime(time_t epoch)
  */
 esp_err_t RTC::getTime(time_t *epoch)
 {
-  esp_err_t err = updateTime();
-  if (err != ESP_OK)
-    return err;
+  esp_err_t ret = updateTime();
+  if (ret != ESP_OK)
+    return ret;
   
   m_time.tm_year -= 1900;
   *epoch = mktime(&m_time);
 
-  return err;
+  return ret;
 }
 
 /**
@@ -160,14 +160,14 @@ esp_err_t RTC::getTime(time_t *epoch)
  */
 esp_err_t RTC::changeTimeFormat(rtcHourFormat_t format)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
 
   uint8_t reg = RTC_CTRL_1;
   uint8_t ctrl1 = 0;
 
-  err = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl1, 1, -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl1, 1, -1);
+  if (ret != ESP_OK)
+    return ret;
 
   if (format == RTC_FORMAT_12H)
     ctrl1 |=  RTC_12_24;
@@ -180,13 +180,13 @@ esp_err_t RTC::changeTimeFormat(rtcHourFormat_t format)
     ctrl1
   };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  if (ret != ESP_OK)
+    return ret;
 
   m_hourFormat = format;
 
-  return err;
+  return ret;
 }
 
 /**
@@ -200,7 +200,7 @@ esp_err_t RTC::changeTimeFormat(rtcHourFormat_t format)
  */
 esp_err_t RTC::setAlarm(uint8_t second)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
   enableAlarm();
 
   uint8_t data[2] =
@@ -209,8 +209,8 @@ esp_err_t RTC::setAlarm(uint8_t second)
     (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
   };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
-  return err;
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  return ret;
 }
 
 /**
@@ -227,7 +227,7 @@ esp_err_t RTC::setAlarm(uint8_t second)
  */
 esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
   enableAlarm();
 
   uint8_t data[3] =
@@ -237,8 +237,8 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute)
     (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE),
   };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
-  return err;
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  return ret;
 }
 
 /**
@@ -258,7 +258,7 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute)
  */
 esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
   enableAlarm();
 
   uint8_t data[4] =
@@ -269,8 +269,8 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour)
     (uint8_t)(encodeHour(hour)   & ~RTC_ALARM_AIE),
   };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
-  return err;
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  return ret;
 }
 
 /**
@@ -293,7 +293,7 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour)
  */
 esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t mday)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
   enableAlarm();
 
   uint8_t data[5] =
@@ -305,8 +305,8 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t md
     (uint8_t)(decToBcd(mday)   & ~RTC_ALARM_AIE),
   };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
-  return err;
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  return ret;
 }
 
 /**
@@ -332,7 +332,7 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t md
  */
 esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t mday, uint8_t wday)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
   enableAlarm();
 
   uint8_t data[6] =
@@ -345,8 +345,8 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t md
     (uint8_t)(decToBcd(wday)   & ~RTC_ALARM_AIE),
   };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
-  return err;
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  return ret;
 }
 
 /**
@@ -380,14 +380,14 @@ esp_err_t RTC::setAlarmEpoch(time_t epoch)
  */
 esp_err_t RTC::getAlarm(tm *time)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
 
   uint8_t reg = RTC_SECOND_ALARM;
   uint8_t data[5];
 
-  err = i2c_master_transmit_receive(m_devHandle, &reg, 1, data, sizeof(data), -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, data, sizeof(data), -1);
+  if (ret != ESP_OK)
+    return ret;
 
   m_alarmTime.tm_sec  = bcdToDec(data[0]);
   m_alarmTime.tm_min  = bcdToDec(data[1]);
@@ -397,7 +397,7 @@ esp_err_t RTC::getAlarm(tm *time)
 
   memcpy(time, &m_alarmTime, sizeof(tm));
 
-  return err;
+  return ret;
 }
 
 /**
@@ -426,20 +426,20 @@ bool RTC::checkAlarmFlag()
  */
 esp_err_t RTC::clearAlarmFlag()
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
 
   uint8_t reg = RTC_CTRL_2;
   uint8_t ctrl2 = 0;
 
-  err = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl2, 1, -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl2, 1, -1);
+  if (ret != ESP_OK)
+    return ret;
 
   // clear AF bit and write back
   uint8_t data[2] = {RTC_CTRL_2, (uint8_t)(ctrl2 & ~RTC_ALARM_AF)};
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 
-  return err;
+  return ret;
 }
 
 /**
@@ -464,13 +464,13 @@ esp_err_t RTC::clearAlarmFlag()
  */
 esp_err_t RTC::setTimer(rtcCountdownSrcClock_t sourceClock, uint8_t value, bool intEnable, bool intPulse)
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
 
   uint8_t data[2] = { RTC_CTRL_2, 0x00 };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  if (ret != ESP_OK)
+    return ret;
 
   uint8_t mode = RTC_TIMER_TE;
   if (intEnable)
@@ -481,9 +481,9 @@ esp_err_t RTC::setTimer(rtcCountdownSrcClock_t sourceClock, uint8_t value, bool 
 
   uint8_t data_[3] = { RTC_TIMER_VALUE, value, mode };
 
-  err = i2c_master_transmit(m_devHandle, data_, sizeof(data_), -1);
+  ret = i2c_master_transmit(m_devHandle, data_, sizeof(data_), -1);
 
-  return err;
+  return ret;
 }
 
 /**
@@ -494,20 +494,20 @@ esp_err_t RTC::setTimer(rtcCountdownSrcClock_t sourceClock, uint8_t value, bool 
  */
 esp_err_t RTC::disableTimer()
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
   
   uint8_t reg = RTC_TIMER_MODE;
   uint8_t mode = 0;
   
-  err = i2c_master_transmit_receive(m_devHandle, &reg, 1, &mode, 1, -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &mode, 1, -1);
+  if (ret != ESP_OK)
+    return ret;
 
   uint8_t data[2] = { RTC_TIMER_MODE, (uint8_t)(mode & ~RTC_TIMER_TE) };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 
-  return err;
+  return ret;
 }
 
 /**
@@ -536,20 +536,20 @@ bool RTC::checkTimerFlag()
  */
 esp_err_t RTC::clearTimerFlag()
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
 
   uint8_t reg = RTC_CTRL_2;
   uint8_t ctrl2 = 0;
 
-  err = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl2, 1, -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl2, 1, -1);
+  if (ret != ESP_OK)
+    return ret;
 
   // clear TF bit and write back
   uint8_t data[2] = {RTC_CTRL_2, (uint8_t)(ctrl2 & ~RTC_TIMER_TF)};
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 
-  return err;
+  return ret;
 }
 
 /**
@@ -560,13 +560,13 @@ esp_err_t RTC::clearTimerFlag()
  */
 esp_err_t RTC::reset()
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
 
   uint8_t data[2] = { RTC_CTRL_1,RTC_CTRL_1_DEFAULT, };
 
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 
-  return err;
+  return ret;
 }
 
 /**
@@ -580,14 +580,14 @@ esp_err_t RTC::reset()
  */
 esp_err_t RTC::setInternalCapacitor(bool value)
 {
-  esp_err_t err;
+  esp_err_t ret;
 
   uint8_t reg = RTC_CTRL_1;
   uint8_t ctrl1 = 0;
 
-  err = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl1, 1, -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl1, 1, -1);
+  if (ret != ESP_OK)
+    return ret;
 
   if (value)
     ctrl1 |=  (1 << 0);
@@ -596,9 +596,9 @@ esp_err_t RTC::setInternalCapacitor(bool value)
 
   uint8_t data[2] =  { RTC_CTRL_1, ctrl1 };
   
-  err = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 
-  return err;
+  return ret;
 }
 
 /**
@@ -791,17 +791,17 @@ uint8_t RTC::getAlarmWeekday()
  */
 esp_err_t RTC::updateTime()
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
 
   uint8_t reg = RTC_SECOND_ADDR;
   uint8_t data[7] = {0};
 
-  err = i2c_master_transmit(m_devHandle, &reg, 1, -1);
-  if (err != ESP_OK)
-    return err;
-  err = i2c_master_receive(m_devHandle, data, sizeof(data), -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit(m_devHandle, &reg, 1, -1);
+  if (ret != ESP_OK)
+    return ret;
+  ret = i2c_master_receive(m_devHandle, data, sizeof(data), -1);
+  if (ret != ESP_OK)
+    return ret;
 
   // check datasheet to see unused bits in registers
   m_time.tm_sec  = bcdToDec(data[0] & 0x7F);
@@ -825,7 +825,7 @@ esp_err_t RTC::updateTime()
     m_time.tm_hour = bcdToDec(data[2] & 0x3F);
   }
 
-  return err;
+  return ret;
 }
 
 /**
@@ -836,12 +836,12 @@ esp_err_t RTC::updateTime()
  */
 esp_err_t RTC::updateAlarm()
 {
-  esp_err_t err = ESP_OK;
+  esp_err_t ret = ESP_OK;
   uint8_t reg = RTC_SECOND_ALARM;
   uint8_t data[5] = {0};
-  err = i2c_master_transmit_receive(m_devHandle, &reg, 1, data, sizeof(data), -1);
-  if (err != ESP_OK)
-    return err;
+  ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, data, sizeof(data), -1);
+  if (ret != ESP_OK)
+    return ret;
 
   m_alarmTime.tm_sec  = bcdToDec(data[0] & 0x7F);
   m_alarmTime.tm_min  = bcdToDec(data[1] & 0x7F);
@@ -861,7 +861,7 @@ esp_err_t RTC::updateAlarm()
     m_alarmTime.tm_hour = bcdToDec(data[2] & 0x3F);
   }
 
-  return err;
+  return ret;
 }
 
 /**

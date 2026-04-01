@@ -13,7 +13,6 @@ class Inkplate : public Graphics, public Inkplate6
     void setRotation(uint8_t r);
 
   private:
-    uint8_t _rotation = 0;
     void writePixel(int16_t x, int16_t y, uint16_t color);
 };
 #endif
