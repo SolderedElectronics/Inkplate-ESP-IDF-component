@@ -3,11 +3,11 @@
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
 #include "string.h"
-
-#include "Inkplate6.h"
 #include "esp_log.h"
 
-// static const char* TAG = "ESP_INKPLATE6";
+#include "Inkplate6.h"
+
+static const char* TAG = "ESP_INKPLATE6";
 
 // global instance, declared extern in pins.h
 PCAL expander1(IO_INT_ADDR);
@@ -22,20 +22,17 @@ PCAL expander2(IO_EXT_ADDR, expander1.getBusHandle());
 /**
  * @brief  Inkplate6 constructor.
  *
- * @note   Allocates framebuffer and DMA buffers in PSRAM/DMA-capable DRAM
+ * @note   Allocates framebuffer and DMA buffers in DMA-capable DRAM
  *         and pre-computes the grayscale waveform LUTs.
  */
 Inkplate6::Inkplate6()
 {
-  // 3-bit framebuffer: 4 bits per pixel (2 pixels per byte)
   m_framebufferColor = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM);
   memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
 
-  // 1-bit framebuffer: 1 bit per pixel (8 pixels per byte)
   m_framebuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 8, MALLOC_CAP_SPIRAM);
   memset(m_framebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
 
-  // DMA line buffer and descriptor in DMA-capable DRAM
   m_dmaLineBuffer = (volatile uint8_t*)heap_caps_malloc((E_INK_WIDTH / 4) + 16,  MALLOC_CAP_DMA);
   m_dmaI2SDesc    = (volatile lldesc_s*)heap_caps_malloc(sizeof(lldesc_s),       MALLOC_CAP_DMA);
 
@@ -46,6 +43,7 @@ Inkplate6::Inkplate6()
  * @brief  Initialize the Inkplate6 hardware.
  *
  * @note   Must be called once before any display operations.
+ *         Problem with FreerRTOS kernel if just using constructor.
  *         Initializes GPIO, IO expanders, and the PMIC.
  */
 void Inkplate6::begin()
@@ -71,7 +69,7 @@ void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
     uint8_t temp = *(m_framebuffer + 100 * y + x1);
     *(m_framebuffer + 100 * y + x1) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
   }
-  else
+  else if (m_displayMode == GRAYSCALE)
   {
     color &= 7;
     int x1 = x >> 1;
@@ -82,22 +80,31 @@ void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 }
 
 /**
- * @brief  Clear the framebuffer to white (0xFF).
+ * @brief  Clear the framebuffer to white.
  */
 void Inkplate6::clearDisplay()
 {
-  memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2); // 3-bit: 0xFF = white
-  memset(m_framebuffer,      0x00, E_INK_WIDTH * E_INK_HEIGHT / 8); // 1-bit: 0x00 = white
+  if (m_displayMode == BLACK_AND_WHITE)
+    memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
+  else if (m_displayMode == GRAYSCALE)
+    memset(m_framebuffer,      0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
 }
 
 /**
- * @brief  Fill the framebuffer to black (0x00).
+ * @brief  Fill the framebuffer to black.
  */
 void Inkplate6::fillDisplay()
 {
-  memset(m_framebufferColor, 0, E_INK_WIDTH * E_INK_HEIGHT / 2);
+
+  if (m_displayMode == BLACK_AND_WHITE)
+    memset(m_framebufferColor, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 2);
+  else if (m_displayMode == GRAYSCALE)
+    memset(m_framebuffer,      0xFF, E_INK_WIDTH * E_INK_HEIGHT / 8);
 }
 
+/**
+ * @brief  Display buffer to screen.
+ */
 void Inkplate6::display(bool leaveOn)
 {
   if (m_displayMode == BLACK_AND_WHITE)
@@ -156,19 +163,18 @@ void Inkplate6::display3b(bool leaveOn)
   clean(3, 1);
   vscanStart();
 
-  // if (!leaveOn)
-    // einkOff();
+  if (!leaveOn)
+    einkOff();
 }
 
 /**
- * @brief  Push the framebuffer to the display using 1-bit (black or white).
+ * @brief  Push the framebuffer to the display using 1-bit (black and white).
  *
  * @param  bool leaveOn
  *         if true, leave the eink power supply on after the update
  */
 void Inkplate6::display1b(bool leaveOn)
 {
-  
   if (!einkOn())
     return;
 
@@ -250,8 +256,8 @@ void Inkplate6::display1b(bool leaveOn)
   }
 
   vscanStart();
-  // if (!leaveOn)
-    // einkOff();
+  if (!leaveOn)
+    einkOff();
 }
 
 /**
@@ -267,7 +273,7 @@ int Inkplate6::einkOn()
     return 1;
 
   WAKEUP_SET;
-  vTaskDelay(pdMS_TO_TICKS(5));
+  esp_rom_delay_us(5000);
 
   uint8_t buf[2];
   // enable all rails
@@ -298,6 +304,8 @@ int Inkplate6::einkOn()
     einkOff();
     return 0;
   }
+
+  ESP_LOGI(TAG, "Eink on");
 
   VCOM_SET;
   OE_SET;
@@ -330,28 +338,8 @@ void Inkplate6::einkOff()
 
   pinsZstate();
   setPanelState(false);
-}
 
-/**
- * @brief  Set the panel power state.
- *
- * @param  bool state
- *         true if the panel is powered on, false if powered off
- */
-void Inkplate6::setPanelState(bool state)
-{
-  m_panelState = state;
-}
-
-/**
- * @brief  Get the panel power state.
- *
- * @return bool
- *         true if the panel is powered on, false if powered off
- */
-bool Inkplate6::getPanelState()
-{
-  return m_panelState;
+  ESP_LOGI(TAG, "Eink off");
 }
 
 /**
@@ -362,10 +350,6 @@ bool Inkplate6::getPanelState()
 
 /**
  * @brief  Pre-compute m_glut and m_glut2 waveform lookup tables.
- *
- * @note   Each entry maps a packed pixel byte to the I2S output byte
- *         for a given waveform phase. m_glut2 is the same but shifted
- *         into the high nibble for interleaved output.
  */
 void Inkplate6::calculateLUTs()
 {
@@ -378,7 +362,6 @@ void Inkplate6::calculateLUTs()
     }
   }
 }
-
 
 /**
  * @brief  Configure all GPIO, IO expander pins, and the pixel-to-GPIO LUT.
@@ -475,7 +458,6 @@ void Inkplate6::clean(uint8_t c, uint8_t rep)
   }
 }
 
-
 /**
  * @brief  Initialize the TPS65186 PMIC.
  *
@@ -491,12 +473,12 @@ void Inkplate6::pmicBegin()
   i2c_master_bus_add_device(expander1.getBusHandle(), &tps_cfg, &m_tpsHandle);
 
   WAKEUP_SET;
-  vTaskDelay(pdMS_TO_TICKS(1));
+  esp_rom_delay_us(1000);
 
   uint8_t buf[5] = {0x09, 0b00011011, 0b00000000, 0b00011011, 0b00000000};
   i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
 
-  vTaskDelay(pdMS_TO_TICKS(1));
+  esp_rom_delay_us(1000);
   WAKEUP_CLEAR;
 }
 
@@ -527,11 +509,10 @@ bool Inkplate6::waitPowerGood(bool target)
 {
   int64_t timer = esp_timer_get_time();
   do {
-    vTaskDelay(pdMS_TO_TICKS(1));
+    esp_rom_delay_us(1000);
   } while ((readPowerGood() == PWR_GOOD_OK) != target && (esp_timer_get_time() - timer) < 250000LL);
   return (esp_timer_get_time() - timer) < 250000LL;
 }
-
 
 /**
  * @brief  Start a new frame by pulsing SPV/CKV to initialise the gate driver.
@@ -628,3 +609,26 @@ void Inkplate6::pinsZstate()
   gpio_set_direction(GPIO_NUM_26, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 }
+
+/**
+ * @brief  Set the panel power state.
+ *
+ * @param  bool state
+ *         true if the panel is powered on, false if powered off
+ */
+void Inkplate6::setPanelState(bool state)
+{
+  m_panelState = state;
+}
+
+/**
+ * @brief  Get the panel power state.
+ *
+ * @return bool
+ *         true if the panel is powered on, false if powered off
+ */
+bool Inkplate6::getPanelState()
+{
+  return m_panelState;
+}
+

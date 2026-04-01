@@ -16,11 +16,13 @@ void app_main(void)
 
     // Text
     inkplate.setDisplayMode(GRAYSCALE);
-    inkplate.setTextSize(5);
-    inkplate.setCursor(200, 10);
-    inkplate.print("hello");
+    inkplate.setTextSize(3);
+    inkplate.setCursor(20, 10);
+    inkplate.print("inkplate");
 
-
+   
+ inkplate.fillRect(200, 200, 400, 300, 4); // Arguments are: start X, start Y, size X, size Y, color
+    
 
     // Push framebuffer to the e-ink display
     inkplate.display();

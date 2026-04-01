@@ -5,8 +5,6 @@
 #include "PCAL.h"
 #include "pins.h"
 #include "driver/i2c_master.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
 
