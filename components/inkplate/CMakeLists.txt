@@ -1,4 +1,4 @@
-idf_component_register(SRCS "src/features/RTC.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp"
+idf_component_register(SRCS "src/features/RTC.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"
                              "src/boards/inkplate6/Inkplate6.cpp"
                              "src/boards/Inkplate.cpp"
                              "src/graphics/Graphics.cpp"

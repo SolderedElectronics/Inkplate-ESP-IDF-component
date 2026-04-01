@@ -32,7 +32,7 @@ RTC::RTC()
 
   i2c_device_config_t dev_config = {};
   dev_config.dev_addr_length = I2C_ADDR_BIT_LEN_7;
-  dev_config.device_address = I2C_ADDR;
+  dev_config.device_address = RTC_I2C_ADDR;
   dev_config.scl_speed_hz = 400000;
 
   ESP_ERROR_CHECK(i2c_master_bus_add_device(m_busHandle, &dev_config, &m_devHandle));

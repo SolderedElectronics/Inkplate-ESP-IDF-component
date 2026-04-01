@@ -20,6 +20,7 @@ public:
     virtual void display(bool leaveOn = false) = 0;
     virtual int  einkOn() = 0;
     virtual void einkOff() = 0;
+    virtual void setFullUpdateThreshold(uint16_t numberOfPartialUpdates) = 0;
 
     virtual ~BoardBase() = default;
 };

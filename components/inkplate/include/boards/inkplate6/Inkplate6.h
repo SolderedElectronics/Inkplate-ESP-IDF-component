@@ -3,8 +3,8 @@
 
 #include "BoardBase.h"
 #include "PCAL.h"
+#include "TPS.h"
 #include "pins.h"
-#include "driver/i2c_master.h"
 #include "esp_err.h"
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
@@ -14,8 +14,6 @@
 #define E_INK_WIDTH  800
 #define E_INK_HEIGHT 600
 
-// TPS65186 PGSTAT register value when all rails are good
-#define PWR_GOOD_OK 0b11111010
 
 static const uint8_t waveform3Bit[8][9] =
   {{0, 0, 0, 0, 1, 1, 1, 1, 0}, {0, 0, 0, 1, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 0, 2, 1, 0, 0},
@@ -35,6 +33,7 @@ public:
   uint32_t partialUpdate(bool forced = false, bool leaveOn = false);
   int     einkOn();
   void    einkOff();
+  void    setFullUpdateThreshold(uint16_t numberOfPartialUpdates);
 
 private:
   esp_err_t initBuffers();
@@ -44,8 +43,6 @@ private:
   void    gpioInit();
   void    clean(uint8_t c, uint8_t rep);
   void    pmicBegin();
-  uint8_t readPowerGood();
-  bool    waitPowerGood(bool target);
   void    vscanStart();
   void    vscanEnd();
   void    pinsAsOutputs();
@@ -57,18 +54,21 @@ private:
 
   uint8_t*                m_framebufferColor = nullptr;
   uint8_t*                m_framebuffer      = nullptr;
+  // buffer for partial updates
   uint8_t*                m_newFramebuffer   = nullptr;
-  uint8_t*                m_pBuffer          = nullptr;
+  // holds the pre-computed waveform data ready to send to the display
+  uint8_t*                m_waveformBuffer   = nullptr;
 
   uint16_t                m_partialUpdateLimiter = 10;
   uint16_t                m_partialUpdateCounter = 0;
+  bool                    m_blockPartial = true;
 
   uint8_t*                m_glut    = nullptr;
   uint8_t*                m_glut2   = nullptr;
   uint32_t*               m_pinLUT  = nullptr;
 
-  bool                    m_panelState   = false;
-  i2c_master_dev_handle_t m_tpsHandle    = NULL;
+  bool                    m_panelState = false;
+  TPS                     m_tps;
 
 };
 

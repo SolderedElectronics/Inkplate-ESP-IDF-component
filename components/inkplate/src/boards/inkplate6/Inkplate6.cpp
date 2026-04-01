@@ -154,6 +154,12 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
     return 0;
   }
 
+  if (m_blockPartial && !forced)
+  {
+    display1b(leaveOn);
+    return 0;
+  }
+
   if (m_partialUpdateCounter >= m_partialUpdateLimiter && m_partialUpdateLimiter != 0)
   {
     ESP_LOGI(TAG, "Partial update limit reached, forcing full update.");
@@ -165,19 +171,19 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
   }
 
   uint16_t position = (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
-  uint8_t diffWhite, diffBlack;
   uint32_t n = (E_INK_WIDTH * E_INK_HEIGHT / 4) - 1;
+  uint8_t diffWhite, diffBlack;
 
   uint32_t changeCount = 0;
 
-  m_dmaI2SDesc->size = (E_INK_WIDTH / 4) + 16;
-  m_dmaI2SDesc->length = (E_INK_WIDTH / 4) + 16;
-  m_dmaI2SDesc->sosf = 1;
-  m_dmaI2SDesc->owner = 1;
+  m_dmaI2SDesc->size         = (E_INK_WIDTH / 4) + 16;
+  m_dmaI2SDesc->length       = (E_INK_WIDTH / 4) + 16;
+  m_dmaI2SDesc->sosf         = 1;
+  m_dmaI2SDesc->owner        = 1;
   m_dmaI2SDesc->qe.stqe_next = 0;
-  m_dmaI2SDesc->eof = 1;
-  m_dmaI2SDesc->buf = m_dmaLineBuffer;
-  m_dmaI2SDesc->offset = 0;
+  m_dmaI2SDesc->eof          = 1;
+  m_dmaI2SDesc->buf          = m_dmaLineBuffer;
+  m_dmaI2SDesc->offset       = 0;
 
   for (int i = 0; i < E_INK_HEIGHT; i++)
   {
@@ -196,9 +202,9 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
       }
 
       position--;
-      *(m_pBuffer + n) = LUTW[diffWhite >> 4] & LUTB[diffBlack >> 4];
+      *(m_waveformBuffer + n) = LUTW[diffWhite >> 4] & LUTB[diffBlack >> 4];
       n--;
-      *(m_pBuffer + n) = LUTW[diffWhite & 0x0F] & LUTB[diffBlack & 0x0F];
+      *(m_waveformBuffer + n) = LUTW[diffWhite & 0x0F] & LUTB[diffBlack & 0x0F];
       n--;
     }
   }
@@ -217,10 +223,10 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
     {
       for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
       {
-        m_dmaLineBuffer[j]     = *(m_pBuffer + n - 2);
-        m_dmaLineBuffer[j + 1] = *(m_pBuffer + n - 3);
-        m_dmaLineBuffer[j + 2] = *(m_pBuffer + n);
-        m_dmaLineBuffer[j + 3] = *(m_pBuffer + n - 1);
+        m_dmaLineBuffer[j]     = *(m_waveformBuffer + n - 2);
+        m_dmaLineBuffer[j + 1] = *(m_waveformBuffer + n - 3);
+        m_dmaLineBuffer[j + 2] = *(m_waveformBuffer + n);
+        m_dmaLineBuffer[j + 3] = *(m_waveformBuffer + n - 1);
         n -= 4;
       }
       sendDataI2S();
@@ -259,19 +265,9 @@ int Inkplate6::einkOn()
   WAKEUP_SET;
   esp_rom_delay_us(5000);
 
-  uint8_t buf[2];
-  // enable all rails
-  buf[0] = 0x01;
-  buf[1] = 0b00100000;
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
-  // modify power up sequence
-  buf[0] = 0x09;
-  buf[1] = 0b11100100;
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
-  // modify power down sequence (VEE and VNEG swapped)
-  buf[0] = 0x0B;
-  buf[1] = 0b00011011;
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
+  m_tps.enableRails();
+  m_tps.setPowerUpSequence(0b11100100);
+  m_tps.setPowerDownSequence(0b00011011);
 
   pinsAsOutputs();
   LE_CLEAR;
@@ -283,7 +279,7 @@ int Inkplate6::einkOn()
   PWRUP_SET;
   setPanelState(true);
 
-  if (!waitPowerGood(true))
+  if (!m_tps.waitPowerGood(true))
   {
     einkOff();
     return 0;
@@ -313,17 +309,33 @@ void Inkplate6::einkOff()
   SPV_CLEAR;
   PWRUP_CLEAR;
 
-  waitPowerGood(false);
+  m_tps.waitPowerGood(false);
 
   WAKEUP_CLEAR;
-
-  uint8_t buf[2] = {0x01, 0b00000000};
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
+  m_tps.disableRails();
 
   pinsZstate();
   setPanelState(false);
 
   ESP_LOGI(TAG, "Eink turned off.");
+}
+
+/**
+ * @brief   Set the number of partial updates afterwhich full screen update is performed.
+ *
+ * @param   uint16_t numberOfPartialUpdates
+ *          Number of allowed partial updates afterwhich full update is performed.
+ *          0 = disabled, no automatic full update will be performed.
+ *
+ * @note    By default, this is disabled, but to keep best image quality perform a full update
+ *          every 60-80 partial updates.
+ */
+void Inkplate6::setFullUpdateThreshold(uint16_t numberOfPartialUpdates)
+{
+  m_partialUpdateLimiter = numberOfPartialUpdates;
+
+  if (numberOfPartialUpdates != 0)
+    m_blockPartial = true;
 }
 
 /**
@@ -353,9 +365,9 @@ esp_err_t Inkplate6::initBuffers()
   if (!m_newFramebuffer) return ESP_ERR_NO_MEM;
   memset(m_newFramebuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
 
-  m_pBuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM);
-  if (!m_pBuffer) return ESP_ERR_NO_MEM;
-  memset(m_pBuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 4);
+  m_waveformBuffer = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM);
+  if (!m_waveformBuffer) return ESP_ERR_NO_MEM;
+  memset(m_waveformBuffer, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 4);
 
   m_dmaLineBuffer = (volatile uint8_t*)heap_caps_malloc((E_INK_WIDTH / 4) + 16, MALLOC_CAP_DMA);
   if (!m_dmaLineBuffer) return ESP_ERR_NO_MEM;
@@ -543,6 +555,8 @@ void Inkplate6::display1b(bool leaveOn)
   vscanStart();
   if (!leaveOn)
     einkOff();
+
+  m_blockPartial = false;
 }
 
 /**
@@ -562,12 +576,12 @@ void Inkplate6::gpioInit()
   gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_15, GPIO_MODE_INPUT);
 
-  expander1.setDirection(IO_NUM_A0, IO_MODE_OUTPUT);  // OE
-  expander1.setDirection(IO_NUM_A1, IO_MODE_OUTPUT);  // GMOD
-  expander1.setDirection(IO_NUM_A2, IO_MODE_OUTPUT);  // SPV
-  expander1.setDirection(IO_NUM_A3, IO_MODE_OUTPUT);  // WAKEUP
-  expander1.setDirection(IO_NUM_A4, IO_MODE_OUTPUT);  // PWRUP
-  expander1.setDirection(IO_NUM_A5, IO_MODE_OUTPUT);  // VCOM
+  expander1.setDirection(OE,     IO_MODE_OUTPUT);
+  expander1.setDirection(GMOD,   IO_MODE_OUTPUT);
+  expander1.setDirection(SPV,    IO_MODE_OUTPUT);
+  expander1.setDirection(WAKEUP, IO_MODE_OUTPUT);
+  expander1.setDirection(PWRUP,  IO_MODE_OUTPUT);
+  expander1.setDirection(VCOM,   IO_MODE_OUTPUT);
 
   expander1.setDirection(GPIO0_ENABLE, IO_MODE_OUTPUT);
   expander1.setLevel(GPIO0_ENABLE, 1);
@@ -617,14 +631,14 @@ void Inkplate6::clean(uint8_t c, uint8_t rep)
   for (int i = 0; i < (E_INK_WIDTH / 4); i++)
     m_dmaLineBuffer[i] = data;
 
-  m_dmaI2SDesc->size          = (E_INK_WIDTH / 4) + 16;
-  m_dmaI2SDesc->length        = (E_INK_WIDTH / 4) + 16;
-  m_dmaI2SDesc->sosf          = 1;
-  m_dmaI2SDesc->owner         = 1;
-  m_dmaI2SDesc->qe.stqe_next  = 0;
-  m_dmaI2SDesc->eof           = 1;
-  m_dmaI2SDesc->buf           = m_dmaLineBuffer;
-  m_dmaI2SDesc->offset        = 0;
+  m_dmaI2SDesc->size         = (E_INK_WIDTH / 4) + 16;
+  m_dmaI2SDesc->length       = (E_INK_WIDTH / 4) + 16;
+  m_dmaI2SDesc->sosf         = 1;
+  m_dmaI2SDesc->owner        = 1;
+  m_dmaI2SDesc->qe.stqe_next = 0;
+  m_dmaI2SDesc->eof          = 1;
+  m_dmaI2SDesc->buf          = m_dmaLineBuffer;
+  m_dmaI2SDesc->offset       = 0;
 
   for (int k = 0; k < rep; ++k)
   {
@@ -648,52 +662,13 @@ void Inkplate6::clean(uint8_t c, uint8_t rep)
  */
 void Inkplate6::pmicBegin()
 {
-  i2c_device_config_t tps_cfg = {};
-  tps_cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
-  tps_cfg.device_address  = 0x48;
-  tps_cfg.scl_speed_hz    = 100000;
-  i2c_master_bus_add_device(expander1.getBusHandle(), &tps_cfg, &m_tpsHandle);
+  ESP_ERROR_CHECK(m_tps.begin(expander1.getBusHandle()));
 
   WAKEUP_SET;
   esp_rom_delay_us(1000);
-
-  uint8_t buf[5] = {0x09, 0b00011011, 0b00000000, 0b00011011, 0b00000000};
-  i2c_master_transmit(m_tpsHandle, buf, sizeof(buf), -1);
-
+  m_tps.initSequences();
   esp_rom_delay_us(1000);
   WAKEUP_CLEAR;
-}
-
-/**
- * @brief  Read the TPS65186 PGSTAT register.
- *
- * @return uint8_t
- *         raw power-good status bitmask; compare against PWR_GOOD_OK
- */
-uint8_t Inkplate6::readPowerGood()
-{
-  uint8_t reg = 0x0F;
-  uint8_t val = 0;
-  i2c_master_transmit_receive(m_tpsHandle, &reg, 1, &val, 1, -1);
-  return val;
-}
-
-/**
- * @brief  Poll the PMIC until power-good state matches target or timeout.
- *
- * @param  bool target
- *         true to wait until all rails are up, false to wait until they are down
- *
- * @return bool
- *         true if target state was reached, false if 250 ms timeout elapsed
- */
-bool Inkplate6::waitPowerGood(bool target)
-{
-  int64_t timer = esp_timer_get_time();
-  do {
-    esp_rom_delay_us(1000);
-  } while ((readPowerGood() == PWR_GOOD_OK) != target && (esp_timer_get_time() - timer) < 250000LL);
-  return (esp_timer_get_time() - timer) < 250000LL;
 }
 
 /**

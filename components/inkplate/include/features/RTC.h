@@ -5,7 +5,7 @@
 #include "driver/i2c_master.h"
 #include "esp_check.h"
 
-#define I2C_ADDR           0x51
+#define RTC_I2C_ADDR       0x51
 // TODO QWIIC connections, change accordingly
 #define I2C_SDA            GPIO_NUM_21
 #define I2C_SCL            GPIO_NUM_22
