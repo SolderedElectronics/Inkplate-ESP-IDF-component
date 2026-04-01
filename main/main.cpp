@@ -7,17 +7,41 @@ extern "C"
 void app_main(void)
 {
     Inkplate display;
-    
-    display.clearDisplay();             // Clear frame buffer of display
-    display.display();                  // Put clear image on display
-    display.setTextSize(2);             // Scale text to be two times bigger then original (5x7 px)
 
-    double voltage = display.readBattery();                  // Read battery voltage
-    char voltageStr[16];
-    snprintf(voltageStr, sizeof(voltageStr), "%.2fV", voltage);
+    // --- rotation 0 (normal) ---
+    display.setRotation(0);
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setCursor(10, 10);
+    display.print("Rotation 1");
+    display.setCursor(10, 40);
+    display.display();
 
-    display.clearDisplay();                                  // Clear everything in frame buffer of e-paper display
-    display.setCursor(210, 120);
-    display.print(voltageStr);
-    display.display(); // Send everything to display (refresh the screen)
+    vTaskDelay(1000);
+
+    display.setRotation(1);
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setCursor(10, 10);
+    display.print("Rotation 2");
+    display.setCursor(10, 40);
+    display.display();
+
+    vTaskDelay(1000);
+    display.setRotation(2);
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setCursor(10, 10);
+    display.print("Rotation 3");
+    display.setCursor(10, 40);
+    display.display();
+
+    vTaskDelay(1000);
+    display.setRotation(3);
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setCursor(10, 10);
+    display.print("Rotation 4");
+    display.setCursor(10, 40);
+    display.display();
 }

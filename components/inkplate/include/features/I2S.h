@@ -19,7 +19,6 @@ protected:
 
   // use only I2S1 (I2S0 is not compatible with 8 bit data).
   volatile i2s_dev_t* m_i2s;
-
 };
 
 #endif

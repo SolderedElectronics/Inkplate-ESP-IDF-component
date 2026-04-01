@@ -72,25 +72,53 @@ void Inkplate6::setDisplayMode(displayMode_t mode)
  *
  * @note   Out-of-bounds coordinates are ignored.
  */
+#define _swap_int16_t(a, b) { int16_t t = (a); (a) = (b); (b) = t; }
+
 void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 {
-  if (x > E_INK_WIDTH - 1 || y > E_INK_HEIGHT - 1 || x < 0 || y < 0)
+  int16_t x0 = x, y0 = y;
+
+  // bounds check against logical (rotation-aware) dimensions
+  uint8_t r = getRotation();
+  int16_t logW = (r == 1 || r == 3) ? E_INK_HEIGHT : E_INK_WIDTH;
+  int16_t logH = (r == 1 || r == 3) ? E_INK_WIDTH  : E_INK_HEIGHT;
+  if (x0 < 0 || y0 < 0 || x0 >= logW || y0 >= logH)
     return;
 
+  // transform logical to physical coordinates
+  switch (r)
+  {
+  case 1: // 90° left
+    _swap_int16_t(x0, y0);
+    x0 = E_INK_WIDTH - x0 - 1;
+    break;
+  case 2: // 180°
+    x0 = E_INK_WIDTH  - x0 - 1;
+    y0 = E_INK_HEIGHT - y0 - 1;
+    break;
+  case 3: // 90° right
+    _swap_int16_t(x0, y0);
+    y0 = E_INK_HEIGHT - y0 - 1;
+    break;
+  default: // 0° — no transform
+    break;
+  }
+
+  // write to buffers
   if (m_displayMode == BLACK_AND_WHITE)
   {
-    int x1 = x >> 3;
-    int x_sub = x & 7;
-    uint8_t temp = *(m_newFramebuffer + 100 * y + x1);
-    *(m_newFramebuffer + 100 * y + x1) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
+    int x1 = x0 >> 3;
+    int x_sub = x0 & 7;
+    uint8_t temp = *(m_newFramebuffer + 100 * y0 + x1);
+    *(m_newFramebuffer + 100 * y0 + x1) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
   }
   else if (m_displayMode == GRAYSCALE)
   {
     color &= 7;
-    int x1 = x >> 1;
-    int x_sub = x & 1;
-    uint8_t temp = *(m_framebufferColor + 400 * y + x1);
-    *(m_framebufferColor + 400 * y + x1) = (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
+    int x1 = x0 >> 1;
+    int x_sub = x0 & 1;
+    uint8_t temp = *(m_framebufferColor + 400 * y0 + x1);
+    *(m_framebufferColor + 400 * y0 + x1) = (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
   }
 }
 

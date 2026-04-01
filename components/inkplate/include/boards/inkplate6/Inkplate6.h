@@ -38,18 +38,18 @@ public:
 
 private:
   esp_err_t initBuffers();
-  void    calculateLUTs();
+  void      calculateLUTs();
   esp_err_t display3b(bool leaveOn);
   esp_err_t display1b(bool leaveOn);
   void      gpioInit();
   void      clean(uint8_t c, uint8_t rep);
   esp_err_t pmicBegin();
-  void    vscanStart();
-  void    vscanEnd();
-  void    pinsAsOutputs();
-  void    pinsZstate();
-  void    setPanelState(bool state);
-  bool    getPanelState();
+  void      vscanStart();
+  void      vscanEnd();
+  void      pinsAsOutputs();
+  void      pinsZstate();
+  void      setPanelState(bool state);
+  bool      getPanelState();
 
   displayMode_t           m_displayMode  = GRAYSCALE;
 

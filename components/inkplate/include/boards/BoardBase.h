@@ -21,7 +21,8 @@ public:
     virtual esp_err_t display(bool leaveOn = false) = 0;
     virtual esp_err_t einkOn() = 0;
     virtual esp_err_t einkOff() = 0;
-    virtual void setFullUpdateThreshold(uint16_t numberOfPartialUpdates) = 0;
+    virtual void    setFullUpdateThreshold(uint16_t numberOfPartialUpdates) = 0;
+    virtual uint8_t getRotation() { return 0; }
 
     virtual ~BoardBase() = default;
 };
