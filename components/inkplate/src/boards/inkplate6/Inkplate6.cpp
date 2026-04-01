@@ -13,9 +13,10 @@
 static const char* TAG = "ESP_INKPLATE6";
 
 // global instance, declared extern in pins.h
-PCAL expander1(IO_INT_ADDR);
-PCAL expander2(IO_EXT_ADDR, expander1.getBusHandle());
-TPS  tps(expander1.getBusHandle());
+PCAL    expander1(IO_INT_ADDR);
+PCAL    expander2(IO_EXT_ADDR, expander1.getBusHandle());
+TPS     tps(expander1.getBusHandle());
+SDCard  sdCard(expander1);
 
 /**
  * ============================================================
@@ -425,6 +426,21 @@ double Inkplate6::readBattery()
 
   // voltage is divided by 2 on the board, so multiply back
   return (double(mv) * 2.0 / 1000.0);
+}
+
+esp_err_t Inkplate6::sdCardInit()
+{
+  return sdCard.sdCardInit();
+}
+
+esp_err_t Inkplate6::sdCardSleep()
+{
+  return sdCard.sdCardSleep();
+}
+
+const char *Inkplate6::getMountPoint()
+{
+  return sdCard.getMountPoint();
 }
 
 /**

@@ -4,6 +4,7 @@
 #include "BoardBase.h"
 #include "PCAL.h"
 #include "TPS.h"
+#include "SDCard.h"
 #include "pins.h"
 #include "esp_err.h"
 #include "esp_timer.h"
@@ -13,7 +14,6 @@
 
 #define E_INK_WIDTH  800
 #define E_INK_HEIGHT 600
-
 
 static const uint8_t waveform3Bit[8][9] =
   {{0, 0, 0, 0, 1, 1, 1, 1, 0}, {0, 0, 0, 1, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 0, 2, 1, 0, 0},
@@ -35,6 +35,10 @@ public:
   esp_err_t einkOff();
   void      setFullUpdateThreshold(uint16_t numberOfPartialUpdates);
   double    readBattery();
+
+  esp_err_t   sdCardInit();
+  esp_err_t   sdCardSleep();
+  const char *getMountPoint();
 
 private:
   esp_err_t initBuffers();

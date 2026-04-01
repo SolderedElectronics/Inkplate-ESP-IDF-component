@@ -1,0 +1,45 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+#include <stdio.h>
+#include <string.h>
+
+#include "Inkplate.h"
+
+static const char *TAG = "MAIN";
+
+extern "C"
+void app_main(void)
+{
+    Inkplate display;
+
+    if (display.sdCardInit() != ESP_OK)
+    {
+        ESP_LOGE(TAG, "SD card init failed");
+        return;
+    }
+
+    // Write a test file
+    FILE *f = fopen("/sdcard/message.txt", "r");
+    char buf[128] = {};
+
+    if (!f)
+    {
+        ESP_LOGE(TAG, "Failed to open file for reading");
+        return;
+    }
+    fgets(buf, sizeof(buf), f);
+    fclose(f);
+    ESP_LOGI(TAG, "Read: %s", buf);
+
+    display.sdCardSleep();
+
+    // Display the text on the e-ink screen
+    display.clearDisplay();
+    display.setTextSize(2);
+    display.setCursor(10, 10);
+    display.print("From SD card:");
+    display.setCursor(10, 40);
+    display.print(buf);
+    display.display();
+}
