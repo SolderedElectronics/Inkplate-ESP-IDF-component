@@ -69,7 +69,7 @@ typedef enum
 class RTC
 {
 public:
-  RTC(i2c_master_bus_handle_t busHandle);
+  RTC(I2C &i2c);
 
   // time setting
   esp_err_t setTime(tm  time);

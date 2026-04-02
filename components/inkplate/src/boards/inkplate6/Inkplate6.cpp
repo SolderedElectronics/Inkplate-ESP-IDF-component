@@ -14,9 +14,9 @@
 static const char* TAG = "ESP_INKPLATE6";
 
 I2C     i2c;
-PCAL    expander1(IO_INT_ADDR,  i2c.getBusHandle());
-PCAL    expander2(IO_EXT_ADDR,  i2c.getBusHandle());
-TPS     tps(i2c.getBusHandle());
+PCAL    expander1(IO_INT_ADDR, i2c);
+PCAL    expander2(IO_EXT_ADDR, i2c);
+TPS     tps(i2c);
 SDCard  sdCard(expander1);
 
 /**
@@ -30,7 +30,7 @@ SDCard  sdCard(expander1);
  *
  * @note   Allocates framebuffer and DMA buffers and pre-computes the grayscale waveform LUTs.
  */
-Inkplate6::Inkplate6() : rtc(i2c.getBusHandle())
+Inkplate6::Inkplate6() : rtc(i2c)
 {
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();

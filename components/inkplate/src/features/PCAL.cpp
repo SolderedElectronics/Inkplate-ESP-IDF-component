@@ -17,14 +17,9 @@ static const char* TAG = "ESP_PCAL";
  *
  * @note   Sets I2C port properties.
  */
-PCAL::PCAL(uint8_t addr, i2c_master_bus_handle_t busHandle)
+PCAL::PCAL(uint8_t addr, I2C &i2c)
 {
-  i2c_device_config_t dev_config = {};
-  dev_config.dev_addr_length = I2C_ADDR_BIT_LEN_7;
-  dev_config.device_address = addr;
-  dev_config.scl_speed_hz = 400000;
-
-  ESP_ERROR_CHECK(i2c_master_bus_add_device(busHandle, &dev_config, &m_devHandle));
+  ESP_ERROR_CHECK(i2c.addDevice(addr, 400000, &m_devHandle));
 
   m_blockedPins = 0;
 

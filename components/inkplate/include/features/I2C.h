@@ -11,6 +11,7 @@ class I2C
 public:
   I2C();
 
+  esp_err_t               addDevice(uint8_t addr, uint32_t speedHz, i2c_master_dev_handle_t *handle);
   i2c_master_bus_handle_t getBusHandle() { return m_busHandle; }
 
 private:

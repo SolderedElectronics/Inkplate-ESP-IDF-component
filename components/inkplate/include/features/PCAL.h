@@ -84,7 +84,7 @@ typedef enum
 class PCAL
 {
 public:
-  PCAL(uint8_t addr, i2c_master_bus_handle_t busHandle);
+  PCAL(uint8_t addr, I2C &i2c);
 
   esp_err_t setLevel(IOPin_t pin, uint8_t level);
   int       getLevel(IOPin_t pin);

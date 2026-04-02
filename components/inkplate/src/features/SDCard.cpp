@@ -6,7 +6,7 @@
 
 /**
  * @brief  Store a reference to the IO expander used to control the SD power
- *         switch (P-MOS on SD_PMOS_PIN, active LOW).
+ *         switch.
  *
  * @param  PCAL &expander
  *         Reference to the PCAL expander that has SD_PMOS_PIN.
@@ -17,9 +17,6 @@ SDCard::SDCard(PCAL &expander) : m_expander(expander)
 
 /**
  * @brief  Power on the SD card and mount the FAT filesystem via VFS.
- *         Sets SD_PMOS_PIN LOW to enable the P-MOS supply, waits 50 ms for
- *         power to stabilise, initialises SPI2, then mounts the card.
- *         After a successful mount, files are accessed at SD_MOUNT_POINT.
  *
  * @return esp_err_t
  *         ESP_OK on success, or an error code from the SPI/VFS driver.
@@ -62,7 +59,7 @@ esp_err_t SDCard::sdCardInit()
 /**
  * @brief  Unmount the filesystem, free the SPI bus, and cut power to the card.
  *         Sets all SPI lines and the power switch pin as inputs to minimise
- *         current draw in deep sleep.
+ *         current draw.
  *
  * @return esp_err_t
  *         ESP_OK on success, or an error code if unmounting failed.

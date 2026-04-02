@@ -17,14 +17,9 @@ static const char* TAG = "ESP_RTC";
  *
  * @note   Sets I2C port properties.
  */
-RTC::RTC(i2c_master_bus_handle_t busHandle)
+RTC::RTC(I2C &i2c)
 {
-  i2c_device_config_t dev_config = {};
-  dev_config.dev_addr_length = I2C_ADDR_BIT_LEN_7;
-  dev_config.device_address = RTC_I2C_ADDR;
-  dev_config.scl_speed_hz = 400000;
-
-  ESP_ERROR_CHECK(i2c_master_bus_add_device(busHandle, &dev_config, &m_devHandle));
+  ESP_ERROR_CHECK(i2c.addDevice(RTC_I2C_ADDR, 400000, &m_devHandle));
 
   uint8_t data[2] = { RTC_RAM, RTC_NOT_SET };
   ESP_ERROR_CHECK(i2c_master_transmit(m_devHandle, data, sizeof(data), -1));
@@ -109,7 +104,7 @@ esp_err_t RTC::getTime(tm *time)
 esp_err_t RTC::setTime(time_t epoch)
 {
   tm time;
-  gmtime_r(&epoch, &time);
+  localtime_r(&epoch, &time);
   time.tm_year += 1900;
 
   return setTime(time);

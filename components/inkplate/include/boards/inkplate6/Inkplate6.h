@@ -26,7 +26,8 @@ class Inkplate6 : public BoardBase
 public:
   Inkplate6();
 
-  void        setDisplayMode(displayMode_t mode);
+  void          setDisplayMode(displayMode_t mode);
+  displayMode_t getDisplayMode() { return m_displayMode; }
   void        writePixelInternal(int16_t x, int16_t y, uint16_t color);
   void        clearDisplay();
   void        fillDisplay();

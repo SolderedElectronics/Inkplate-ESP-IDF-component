@@ -1,9 +1,10 @@
 #ifndef _TPS_H_
 #define _TPS_H_
 
-#include "driver/i2c_master.h"
 #include "esp_err.h"
 #include <stdint.h>
+
+#include "I2C.h"
 
 #define TPS_I2C_ADDR  0x48
 
@@ -14,7 +15,7 @@
 class TPS
 {
 public:
-  TPS(i2c_master_bus_handle_t busHandle);
+  TPS(I2C &i2c);
 
   esp_err_t initSequences();
   esp_err_t enableRails();

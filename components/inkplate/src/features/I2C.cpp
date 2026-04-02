@@ -5,6 +5,11 @@
 
 static const char *TAG = "I2C";
 
+/**
+ * @brief  I2C constructor.
+ *
+ * @note   Sets up the I2C bus.
+ */
 I2C::I2C()
 {
   i2c_master_bus_config_t bus_config  = {};
@@ -17,4 +22,14 @@ I2C::I2C()
 
   ESP_ERROR_CHECK(i2c_new_master_bus(&bus_config, &m_busHandle));
   ESP_LOGI(TAG, "I2C bus initialized");
+}
+
+esp_err_t I2C::addDevice(uint8_t addr, uint32_t speedHz, i2c_master_dev_handle_t *handle)
+{
+  i2c_device_config_t dev_config  = {};
+  dev_config.dev_addr_length      = I2C_ADDR_BIT_LEN_7;
+  dev_config.device_address       = addr;
+  dev_config.scl_speed_hz         = speedHz;
+
+  return i2c_master_bus_add_device(m_busHandle, &dev_config, handle);
 }

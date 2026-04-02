@@ -3,6 +3,7 @@
 
 #include "Inkplate6.h"
 #include "graphics/Graphics.h"
+#include "Image.h"
 
 class Inkplate : public Graphics, public Inkplate6
 {
@@ -11,6 +12,8 @@ class Inkplate : public Graphics, public Inkplate6
 
     void    drawPixel(int16_t x, int16_t y, uint16_t color);
     uint8_t getRotation() override;
+
+    Image image;
 
   private:
     void writePixel(int16_t x, int16_t y, uint16_t color);

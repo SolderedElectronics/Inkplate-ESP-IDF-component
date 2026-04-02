@@ -1,43 +1,44 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "esp_log.h"
 #include <stdio.h>
 
 #include "Inkplate.h"
+#include "Network.h"
 
+static const char *TAG = "MAIN";
+
+// 800x600 24bpp BMP — replace with any BMP URL accessible on your network
+#define BMP_URL "https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Arduino-library/refs/heads/dev/examples/Inkplate6/Advanced/microSD/Inkplate6_microSD_Pictures/image2.bmp"
 extern "C"
 void app_main(void)
 {
     Inkplate display;
+    WiFi     wifi;
 
-    // Set time once: 2026-04-02 12:00:00
-    tm t      = {};
-    t.tm_year = 2026;
-    t.tm_mon  = 4;
-    t.tm_mday = 2;
-    t.tm_hour = 12;
-    t.tm_min  = 0;
-    t.tm_sec  = 0;
-    display.rtc.setTime(t);
-
-    display.setDisplayMode(BLACK_AND_WHITE);
-    display.setTextSize(5);
-    display.setFullUpdateThreshold(20);
-    display.clearDisplay();
-    display.display();
-
-    while (1)
+    if (!wifi.waitForConnect())
     {
-        tm now;
-        display.rtc.getTime(&now);
-
-        char buf[16];
-        snprintf(buf, sizeof(buf), "%02d:%02d:%02d", now.tm_hour, now.tm_min, now.tm_sec);
-
-        display.clearDisplay();
-        display.setCursor(260, 270);
-        display.print(buf);
-        display.partialUpdate(false, true);
-
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        ESP_LOGE(TAG, "WiFi connection timed out");
+        return;
     }
+
+    int32_t  len  = 800 * 600 * 3 + 54; // worst case 24bpp + BMP header
+    uint8_t *data = wifi.downloadFile(BMP_URL, &len);
+
+    if (!data)
+    {
+        ESP_LOGE(TAG, "Download failed");
+        return;
+    }
+
+    ESP_LOGI(TAG, "Downloaded %ld bytes, drawing...", len);
+
+    display.setDisplayMode(GRAYSCALE);
+    display.clearDisplay();
+
+    display.image.draw(data, 0, 0);
+
+    free(data);
+
+    display.display();
 }

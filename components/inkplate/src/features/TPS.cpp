@@ -9,13 +9,9 @@
  * @param  i2c_master_bus_handle_t busHandle
  *         Handle to an already-initialised I2C master bus.
  */
-TPS::TPS(i2c_master_bus_handle_t busHandle)
+TPS::TPS(I2C &i2c)
 {
-  i2c_device_config_t cfg = {};
-  cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
-  cfg.device_address  = TPS_I2C_ADDR;
-  cfg.scl_speed_hz    = 100000;
-  ESP_ERROR_CHECK(i2c_master_bus_add_device(busHandle, &cfg, &m_handle));
+  ESP_ERROR_CHECK(i2c.addDevice(TPS_I2C_ADDR, 100000, &m_handle));
 }
 
 /**
