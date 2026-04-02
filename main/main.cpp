@@ -6,27 +6,26 @@
 
 static const char *TAG = "MAIN";
 
-#define IMAGE_URL "https://samplelib.com/png/sample-bumblebee-400x300.png"
+// Image file on the SD card root (change extension to match your file)
+#define SD_IMAGE_PATH "image.png"
 
 extern "C"
 void app_main(void)
 {
     Inkplate display;
 
-    if (!display.wifi.waitForConnect())
+    if (display.sdCardInit() != ESP_OK)
     {
-        ESP_LOGE(TAG, "WiFi connection timed out");
+        ESP_LOGE(TAG, "SD card init failed");
         return;
     }
 
     display.setDisplayMode(GRAYSCALE);
     display.clearDisplay();
 
-    if (!display.image.draw(IMAGE_URL, 100, 0))
-    {
-        ESP_LOGE(TAG, "Failed to draw image");
-        return;
-    }
+    if (!display.image.draw(SD_IMAGE_PATH, 100, 300))
+        ESP_LOGE(TAG, "Image draw failed");
 
+    display.sdCardSleep();
     display.display();
 }
