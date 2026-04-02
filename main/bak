@@ -19,7 +19,6 @@ void app_main(void)
         return;
     }
 
-    // Write a test file
     FILE *f = fopen("/sdcard/message.txt", "r");
     char buf[128] = {};
 
@@ -34,6 +33,7 @@ void app_main(void)
 
     display.sdCardSleep();
 
+    return;
     // Display the text on the e-ink screen
     display.clearDisplay();
     display.setTextSize(2);

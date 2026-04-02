@@ -9,13 +9,14 @@
 #include "esp_log.h"
 
 #include "Inkplate6.h"
+#include "I2C.h"
 
 static const char* TAG = "ESP_INKPLATE6";
 
-// global instance, declared extern in pins.h
-PCAL    expander1(IO_INT_ADDR);
-PCAL    expander2(IO_EXT_ADDR, expander1.getBusHandle());
-TPS     tps(expander1.getBusHandle());
+I2C     i2c;
+PCAL    expander1(IO_INT_ADDR,  i2c.getBusHandle());
+PCAL    expander2(IO_EXT_ADDR,  i2c.getBusHandle());
+TPS     tps(i2c.getBusHandle());
 SDCard  sdCard(expander1);
 
 /**
@@ -29,7 +30,7 @@ SDCard  sdCard(expander1);
  *
  * @note   Allocates framebuffer and DMA buffers and pre-computes the grayscale waveform LUTs.
  */
-Inkplate6::Inkplate6()
+Inkplate6::Inkplate6() : rtc(i2c.getBusHandle())
 {
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
@@ -438,7 +439,7 @@ esp_err_t Inkplate6::sdCardSleep()
   return sdCard.sdCardSleep();
 }
 
-const char *Inkplate6::getMountPoint()
+const char* Inkplate6::getMountPoint()
 {
   return sdCard.getMountPoint();
 }

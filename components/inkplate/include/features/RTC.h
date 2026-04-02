@@ -2,13 +2,11 @@
 #define _RTC_H_
 
 #include "time.h"
-#include "driver/i2c_master.h"
 #include "esp_check.h"
 
+#include "I2C.h"
+
 #define RTC_I2C_ADDR       0x51
-// TODO QWIIC connections, change accordingly
-#define I2C_SDA            GPIO_NUM_21
-#define I2C_SCL            GPIO_NUM_22
 
 // control registers
 #define RTC_CTRL_1         0x00
@@ -71,7 +69,7 @@ typedef enum
 class RTC
 {
 public:
-  RTC();
+  RTC(i2c_master_bus_handle_t busHandle);
 
   // time setting
   esp_err_t setTime(tm  time);
@@ -132,7 +130,6 @@ private:
   tm                      m_alarmTime;
   rtcHourFormat_t         m_hourFormat;
 
-  i2c_master_bus_handle_t m_busHandle;
   i2c_master_dev_handle_t m_devHandle;
 };
 

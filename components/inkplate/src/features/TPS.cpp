@@ -19,9 +19,9 @@ TPS::TPS(i2c_master_bus_handle_t busHandle)
 }
 
 /**
- * @brief  Write startup power-up/down sequences to the PMIC (UPSEQ0/1, DWNSEQ0/1).
+ * @brief  Write startup power-up/down sequences to the PMIC.
  *
- * @note   Should be called once after construction, with WAKEUP asserted.
+ * @note   Should be called once, with WAKEUP asserted.
  *
  * @return esp_err_t
  *         ESP_OK on success, or an I2C driver error code.
@@ -112,12 +112,33 @@ bool TPS::waitPowerGood(bool target)
   return (esp_timer_get_time() - timer) < 250000LL;
 }
 
+/**
+ * @brief  Writes to register using I2C.
+ *
+ * @param  uint8_t reg
+ *         register to write to
+ *
+ * @param  uint8_t val
+ *         value to write
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an I2C driver error code.
+ */
 esp_err_t TPS::writeReg(uint8_t reg, uint8_t val)
 {
   uint8_t buf[2] = {reg, val};
   return i2c_master_transmit(m_handle, buf, sizeof(buf), -1);
 }
 
+/**
+ * @brief  Reads from register using I2C.
+ *
+ * @param  uint8_t reg
+ *         register to read from
+ *
+ * @return uint8_t
+ *         read value
+ */
 uint8_t TPS::readReg(uint8_t reg)
 {
   uint8_t val = 0;

@@ -1,11 +1,7 @@
 #ifndef _PCAL_H_
 #define _PCAL_H_
 
-#include "driver/i2c_master.h"
-
-// TODO stavit generic or shtn
-#define I2C_SDA                  GPIO_NUM_21
-#define I2C_SCL                  GPIO_NUM_22
+#include "I2C.h"
 
 // PCAL6416 registers
 #define PCAL6416A_INPORT0        0x00
@@ -88,7 +84,7 @@ typedef enum
 class PCAL
 {
 public:
-  PCAL(uint8_t addr, i2c_master_bus_handle_t busHandle = NULL);
+  PCAL(uint8_t addr, i2c_master_bus_handle_t busHandle);
 
   esp_err_t setLevel(IOPin_t pin, uint8_t level);
   int       getLevel(IOPin_t pin);
@@ -111,8 +107,6 @@ public:
   esp_err_t blockPin(IOPin_t pin);
   esp_err_t unblockPin(IOPin_t pin);
 
-  i2c_master_bus_handle_t getBusHandle() { return m_busHandle; }
-
 private:
   void      pinToRegBit(IOPin_t pin, uint8_t baseReg, uint8_t &reg, uint8_t &bit);
   bool      checkBlockedPins(IOPin_t pin);
@@ -121,7 +115,6 @@ private:
   uint8_t   readPin(uint8_t reg);
 
   uint16_t                m_blockedPins;
-  i2c_master_bus_handle_t m_busHandle;
   i2c_master_dev_handle_t m_devHandle;
 };
 

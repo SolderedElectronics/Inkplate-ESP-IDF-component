@@ -37,7 +37,7 @@ esp_err_t SDCard::sdCardInit()
   busCfg.quadwp_io_num    = -1;
   busCfg.quadhd_io_num    = -1;
   busCfg.max_transfer_sz  = 4096;
-  esp_err_t ret = spi_bus_initialize(SPI2_HOST, &busCfg, SPI_DMA_CH_AUTO);
+  esp_err_t ret = spi_bus_initialize(SPI2_HOST, &busCfg, SDSPI_DEFAULT_DMA);
   if (ret != ESP_OK) return ret;
 
   sdmmc_host_t host             = SDSPI_HOST_DEFAULT();
@@ -52,7 +52,11 @@ esp_err_t SDCard::sdCardInit()
   mountCfg.max_files                        = 5;
   mountCfg.allocation_unit_size             = 16 * 1024;
 
-  return esp_vfs_fat_sdspi_mount(SD_MOUNT_POINT, &host, &slotCfg, &mountCfg, &m_card);
+  ret = esp_vfs_fat_sdspi_mount(SD_MOUNT_POINT, &host, &slotCfg, &mountCfg, &m_card);
+  if (ret != ESP_OK) return ret;
+
+  sdmmc_card_print_info(stdout, m_card);
+  return ret;
 }
 
 /**
