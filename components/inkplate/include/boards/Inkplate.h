@@ -4,6 +4,7 @@
 #include "Inkplate6.h"
 #include "graphics/Graphics.h"
 #include "Image.h"
+#include "Network.h"
 
 class Inkplate : public Graphics, public Inkplate6
 {
@@ -14,6 +15,7 @@ class Inkplate : public Graphics, public Inkplate6
     uint8_t getRotation() override;
 
     Image image;
+    WiFi  wifi;
 
   private:
     void writePixel(int16_t x, int16_t y, uint16_t color);
