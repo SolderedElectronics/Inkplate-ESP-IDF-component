@@ -144,8 +144,11 @@ void WiFi::wifiEventHandler(void *arg, esp_event_base_t event_base,
  */
 uint8_t *WiFi::downloadFile(const char *url, int32_t *len)
 {
-  if (!m_connected)
+  if (!waitForConnect())
+  {
+    ESP_LOGE(TAG, "No WiFi connection");
     return NULL;
+  }
 
   esp_http_client_config_t config = {};
   config.url         = url;
@@ -210,8 +213,11 @@ uint8_t *WiFi::downloadFile(const char *url, int32_t *len)
  */
 uint8_t *WiFi::downloadFileHTTPS(const char *url, int32_t *len)
 {
-  if (!m_connected)
+  if (!waitForConnect())
+  {
+    ESP_LOGE(TAG, "No WiFi connection");
     return NULL;
+  }
 
   esp_http_client_config_t config = {};
   config.url            = url;

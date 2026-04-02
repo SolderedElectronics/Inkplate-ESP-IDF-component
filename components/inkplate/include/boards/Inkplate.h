@@ -1,12 +1,18 @@
 #ifndef __INKPLATE_H__
 #define __INKPLATE_H__
 
-#include "Inkplate6.h"
 #include "graphics/Graphics.h"
 #include "Image.h"
 #include "Network.h"
 
-class Inkplate : public Graphics, public Inkplate6
+#if CONFIG_INKPLATE_BOARD_INKPLATE6
+  #include "inkplate6/Inkplate6.h"
+  #define INKPLATE_BOARD_CLASS Inkplate6
+#else
+  #error "No Inkplate board selected. Choose a board in menuconfig → Inkplate Board."
+#endif
+
+class Inkplate : public Graphics, public INKPLATE_BOARD_CLASS
 {
   public:
     Inkplate();

@@ -1,3 +1,16 @@
+menu "Inkplate Board"
+
+choice INKPLATE_BOARD
+    prompt "Board"
+    default INKPLATE_BOARD_INKPLATE6
+
+    config INKPLATE_BOARD_INKPLATE6
+        bool "Inkplate6"
+
+endchoice
+
+endmenu
+
 menu "WiFi Configuration"
 
 config WIFI_SSID

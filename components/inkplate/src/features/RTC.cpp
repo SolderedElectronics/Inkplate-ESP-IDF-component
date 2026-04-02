@@ -19,7 +19,7 @@ static const char* TAG = "ESP_RTC";
  */
 RTC::RTC(I2C &i2c)
 {
-  ESP_ERROR_CHECK(i2c.addDevice(RTC_I2C_ADDR, 400000, &m_devHandle));
+  ESP_ERROR_CHECK(i2c.addDevice(RTC_I2C_ADDR, &m_devHandle));
 
   uint8_t data[2] = { RTC_RAM, RTC_NOT_SET };
   ESP_ERROR_CHECK(i2c_master_transmit(m_devHandle, data, sizeof(data), -1));

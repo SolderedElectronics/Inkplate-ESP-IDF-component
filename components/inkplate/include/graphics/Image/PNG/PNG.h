@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "pngle.h"
 
@@ -24,11 +25,12 @@ private:
     static void drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h,
                              const uint8_t rgba[4]);
 
-    Inkplate   *m_inkplate;
-    int         m_x;
-    int         m_y;
-    bool        m_invert;
-    static PNG *m_instance;
+    Inkplate     *m_inkplate;
+    int           m_x;
+    int           m_y;
+    bool          m_invert;
+    static PNG    *m_instance;
+    static int64_t m_lastYieldUs;
 };
 
 #endif

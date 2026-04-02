@@ -1,7 +1,12 @@
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_timer.h"
+
 #include "Inkplate.h"
 #include "PNG.h"
 
-PNG *PNG::m_instance = nullptr;
+PNG    *PNG::m_instance   = nullptr;
+int64_t PNG::m_lastYieldUs = 0;
 
 PNG::PNG(Inkplate *inkplate) : m_inkplate(inkplate), m_x(0), m_y(0), m_invert(false)
 {
@@ -20,10 +25,11 @@ PNG::PNG(Inkplate *inkplate) : m_inkplate(inkplate), m_x(0), m_y(0), m_invert(fa
  */
 bool PNG::draw(uint8_t *buf, int32_t len, int x, int y, bool invert)
 {
-    m_instance = this;
-    m_x        = x;
-    m_y        = y;
-    m_invert   = invert;
+    m_instance    = this;
+    m_x           = x;
+    m_y           = y;
+    m_invert      = invert;
+    m_lastYieldUs = esp_timer_get_time();
 
     pngle_t *pngle = pngle_new();
     if (!pngle)
@@ -49,6 +55,14 @@ void PNG::drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint3
 {
     if (!m_instance)
         return;
+
+    // Yield to IDLE task periodically so the task watchdog doesn't trigger
+    int64_t now = esp_timer_get_time();
+    if (now - m_instance->m_lastYieldUs >= 1000000LL)
+    {
+        vTaskDelay(1);
+        m_instance->m_lastYieldUs = esp_timer_get_time();
+    }
 
     // Skip fully transparent pixels
     if (!rgba[3])

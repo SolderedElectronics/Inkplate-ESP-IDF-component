@@ -8,8 +8,6 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                              "src/graphics/Image/BMP/BMP.cpp"
                              "src/graphics/Image/JPEG/JPEG.cpp"
                              "src/graphics/Image/PNG/PNG.cpp"
-                             "src/graphics/Tjpeg/TJpg_Decoder.cpp"
-                             "src/graphics/Tjpeg/tjpgd.c"
                              "src/graphics/pngle/pngle.c"
                              "src/graphics/Adafruit_GFX/Adafruit_GFX.cpp"
                              "src/graphics/Shapes/Shapes.cpp"
@@ -23,5 +21,4 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                                     "include/graphics/Image/BMP"
                                     "include/graphics/Image/JPEG"
                                     "include/graphics/Image/PNG"
-                                    "include/graphics/Tjpeg"
                                     "include/graphics/pngle")

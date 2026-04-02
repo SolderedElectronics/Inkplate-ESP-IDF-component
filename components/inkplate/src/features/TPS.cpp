@@ -11,7 +11,7 @@
  */
 TPS::TPS(I2C &i2c)
 {
-  ESP_ERROR_CHECK(i2c.addDevice(TPS_I2C_ADDR, 100000, &m_handle));
+  ESP_ERROR_CHECK(i2c.addDevice(TPS_I2C_ADDR, &m_handle));
 }
 
 /**

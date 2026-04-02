@@ -19,7 +19,7 @@ static const char* TAG = "ESP_PCAL";
  */
 PCAL::PCAL(uint8_t addr, I2C &i2c)
 {
-  ESP_ERROR_CHECK(i2c.addDevice(addr, 400000, &m_devHandle));
+  ESP_ERROR_CHECK(i2c.addDevice(addr, &m_devHandle));
 
   m_blockedPins = 0;
 
