@@ -135,7 +135,7 @@ void I2S::sendDataI2S()
   m_i2s->conf.tx_start = 1;
 
   while (!m_i2s->int_raw.out_total_eof)
-    ;
+  ;
 
   SPH_SET;
 
@@ -161,11 +161,11 @@ void I2S::setI2S1pin(uint32_t pin, uint32_t function, uint32_t inv)
 {
   // Check if valid pin is selected
   if (pin > 39)
-    return;
+  return;
 
   // Wrong pin selected? Return!
   if (GPIO_PIN_MUX_REG[pin] == 0)
-    return;
+  return;
 
   // Setup GPIO Matrix for selected pin signal
   GPIO.func_out_sel_cfg[pin].func_sel = function; // Set the pin function
@@ -175,13 +175,13 @@ void I2S::setI2S1pin(uint32_t pin, uint32_t function, uint32_t inv)
   // Registers are different for GPIOs from 0 to 32 and from 32 to 40.
   if (pin < 32)
   {
-    // Enable GPIO pin (set it as output).
-    GPIO.enable_w1ts = ((uint32_t)1 << pin);
+  // Enable GPIO pin (set it as output).
+  GPIO.enable_w1ts = ((uint32_t)1 << pin);
   }
   else
   {
-    // Enable GPIO pin (set it as output).
-    GPIO.enable1_w1ts.data = ((uint32_t)1 << (pin - 32));
+  // Enable GPIO pin (set it as output).
+  GPIO.enable1_w1ts.data = ((uint32_t)1 << (pin - 32));
   }
 
   // Set the highest drive strength.

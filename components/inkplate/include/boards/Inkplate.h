@@ -15,15 +15,15 @@
 class Inkplate : public Graphics, public INKPLATE_BOARD_CLASS
 {
   public:
-    Inkplate();
+  Inkplate();
 
-    void    drawPixel(int16_t x, int16_t y, uint16_t color);
-    uint8_t getRotation() override;
+  void    drawPixel(int16_t x, int16_t y, uint16_t color);
+  uint8_t getRotation() override;
 
-    Image image;
-    WiFi  wifi;
+  Image image;
+  WiFi  wifi;
 
   private:
-    void writePixel(int16_t x, int16_t y, uint16_t color);
+  void writePixel(int16_t x, int16_t y, uint16_t color);
 };
 #endif

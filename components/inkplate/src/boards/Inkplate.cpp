@@ -8,7 +8,7 @@
  */
 Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_WIDTH, E_INK_HEIGHT), image(this)
 {
-    clearDisplay();
+  clearDisplay();
 }
 
 /**
@@ -20,7 +20,7 @@ Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_W
  */
 void Inkplate::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
-    writePixel(x, y, color);
+  writePixel(x, y, color);
 }
 
 /**
@@ -32,7 +32,7 @@ void Inkplate::drawPixel(int16_t x, int16_t y, uint16_t color)
  */
 void Inkplate::writePixel(int16_t x, int16_t y, uint16_t color)
 {
-    writePixelInternal(x, y, color);
+  writePixelInternal(x, y, color);
 }
 
 /**
@@ -42,5 +42,5 @@ void Inkplate::writePixel(int16_t x, int16_t y, uint16_t color)
  */
 uint8_t Inkplate::getRotation()
 {
-    return rotation;
+  return rotation;
 }

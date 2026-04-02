@@ -102,7 +102,7 @@ bool TPS::waitPowerGood(bool target)
 {
   int64_t timer = esp_timer_get_time();
   do {
-    esp_rom_delay_us(1000);
+  esp_rom_delay_us(1000);
   } while ((readPowerGood() == TPS_PWR_GOOD) != target && (esp_timer_get_time() - timer) < 250000LL);
 
   return (esp_timer_get_time() - timer) < 250000LL;

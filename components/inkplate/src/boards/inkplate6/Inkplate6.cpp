@@ -51,11 +51,11 @@ void Inkplate6::setDisplayMode(displayMode_t mode)
 {
   const char *name;
   if (mode == BLACK_AND_WHITE)
-    name = "Black and white";
+  name = "Black and white";
   else if (mode == GRAYSCALE)
-    name = "Grayscale";
+  name = "Grayscale";
   else
-    name = "Wrong display mode selected, defaulting to grayscale.";
+  name = "Wrong display mode selected, defaulting to grayscale.";
 
   ESP_LOGI(TAG, "Selected display mode: %s", name);
   m_displayMode = mode;
@@ -85,42 +85,42 @@ void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
   int16_t logW = (r == 1 || r == 3) ? E_INK_HEIGHT : E_INK_WIDTH;
   int16_t logH = (r == 1 || r == 3) ? E_INK_WIDTH  : E_INK_HEIGHT;
   if (x0 < 0 || y0 < 0 || x0 >= logW || y0 >= logH)
-    return;
+  return;
 
   // transform logical to physical coordinates
   switch (r)
   {
   case 1: // 90° left
-    _swap_int16_t(x0, y0);
-    x0 = E_INK_WIDTH - x0 - 1;
-    break;
+  _swap_int16_t(x0, y0);
+  x0 = E_INK_WIDTH - x0 - 1;
+  break;
   case 2: // 180°
-    x0 = E_INK_WIDTH  - x0 - 1;
-    y0 = E_INK_HEIGHT - y0 - 1;
-    break;
+  x0 = E_INK_WIDTH  - x0 - 1;
+  y0 = E_INK_HEIGHT - y0 - 1;
+  break;
   case 3: // 90° right
-    _swap_int16_t(x0, y0);
-    y0 = E_INK_HEIGHT - y0 - 1;
-    break;
+  _swap_int16_t(x0, y0);
+  y0 = E_INK_HEIGHT - y0 - 1;
+  break;
   default: // 0° — no transform
-    break;
+  break;
   }
 
   // write to buffers
   if (m_displayMode == BLACK_AND_WHITE)
   {
-    int x1 = x0 >> 3;
-    int x_sub = x0 & 7;
-    uint8_t temp = *(m_newFramebuffer + 100 * y0 + x1);
-    *(m_newFramebuffer + 100 * y0 + x1) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
+  int x1 = x0 >> 3;
+  int x_sub = x0 & 7;
+  uint8_t temp = *(m_newFramebuffer + 100 * y0 + x1);
+  *(m_newFramebuffer + 100 * y0 + x1) = (~pixelMaskLUT[x_sub] & temp) | (color ? pixelMaskLUT[x_sub] : 0);
   }
   else if (m_displayMode == GRAYSCALE)
   {
-    color &= 7;
-    int x1 = x0 >> 1;
-    int x_sub = x0 & 1;
-    uint8_t temp = *(m_framebufferColor + 400 * y0 + x1);
-    *(m_framebufferColor + 400 * y0 + x1) = (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
+  color &= 7;
+  int x1 = x0 >> 1;
+  int x_sub = x0 & 1;
+  uint8_t temp = *(m_framebufferColor + 400 * y0 + x1);
+  *(m_framebufferColor + 400 * y0 + x1) = (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
   }
 }
 
@@ -130,9 +130,9 @@ void Inkplate6::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 void Inkplate6::clearDisplay()
 {
   if (m_displayMode == BLACK_AND_WHITE)
-    memset(m_newFramebuffer,   0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
+  memset(m_newFramebuffer,   0x00, E_INK_WIDTH * E_INK_HEIGHT / 8);
   else if (m_displayMode == GRAYSCALE)
-    memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
+  memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
 
   ESP_LOGI(TAG, "Display cleared.");
 }
@@ -143,9 +143,9 @@ void Inkplate6::clearDisplay()
 void Inkplate6::fillDisplay()
 {
   if (m_displayMode == BLACK_AND_WHITE)
-    memset(m_newFramebuffer,   0xFF, E_INK_WIDTH * E_INK_HEIGHT / 8);
+  memset(m_newFramebuffer,   0xFF, E_INK_WIDTH * E_INK_HEIGHT / 8);
   else if (m_displayMode == GRAYSCALE)
-    memset(m_framebufferColor, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 2);
+  memset(m_framebufferColor, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 2);
 
   ESP_LOGI(TAG, "Display filled.");
 }
@@ -157,9 +157,9 @@ esp_err_t Inkplate6::display(bool leaveOn)
 {
   esp_err_t ret = ESP_OK;
   if (m_displayMode == BLACK_AND_WHITE)
-    ret = display1b(leaveOn);
+  ret = display1b(leaveOn);
   else if (m_displayMode == GRAYSCALE)
-    ret = display3b(leaveOn);
+  ret = display3b(leaveOn);
 
   ESP_LOGI(TAG, "Content displayed.");
   return ret;
@@ -186,24 +186,24 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
   // grayscale not supported
   if (m_displayMode == GRAYSCALE)
   {
-    ESP_LOGI(TAG, "Selected display mode does not support partial updating.");
-    return 0;
+  ESP_LOGI(TAG, "Selected display mode does not support partial updating.");
+  return 0;
   }
 
   if (m_blockPartial && !forced)
   {
-    display1b(leaveOn);
-    return 0;
+  display1b(leaveOn);
+  return 0;
   }
 
   if (m_partialUpdateCounter >= m_partialUpdateLimiter && m_partialUpdateLimiter != 0)
   {
-    ESP_LOGI(TAG, "Partial update limit reached, forcing full update.");
-    // force full update
-    display1b(leaveOn);
-    // reset the counter
-    m_partialUpdateCounter = 0;
-    return 0;
+  ESP_LOGI(TAG, "Partial update limit reached, forcing full update.");
+  // force full update
+  display1b(leaveOn);
+  // reset the counter
+  m_partialUpdateCounter = 0;
+  return 0;
   }
 
   uint16_t position = (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
@@ -223,52 +223,52 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
 
   for (int i = 0; i < E_INK_HEIGHT; i++)
   {
-    for (int j = 0; j < E_INK_WIDTH / 8; j++)
+  for (int j = 0; j < E_INK_WIDTH / 8; j++)
+  {
+    diffWhite = *(m_framebuffer + position) & ~*(m_newFramebuffer + position);
+    diffBlack = ~*(m_framebuffer + position) & *(m_newFramebuffer + position);
+    // count pixels turning from black to white as these are visible blur
+    if (diffWhite)
     {
-      diffWhite = *(m_framebuffer + position) & ~*(m_newFramebuffer + position);
-      diffBlack = ~*(m_framebuffer + position) & *(m_newFramebuffer + position);
-      // count pixels turning from black to white as these are visible blur
-      if (diffWhite)
-      {
-        for (int bv = 1; bv < 256; bv <<=1)
-        {
-          if (diffWhite & bv)
-            changeCount++;
-        }
-      }
-
-      position--;
-      *(m_waveformBuffer + n) = LUTW[diffWhite >> 4] & LUTB[diffBlack >> 4];
-      n--;
-      *(m_waveformBuffer + n) = LUTW[diffWhite & 0x0F] & LUTB[diffBlack & 0x0F];
-      n--;
+    for (int bv = 1; bv < 256; bv <<=1)
+    {
+      if (diffWhite & bv)
+      changeCount++;
     }
+    }
+
+    position--;
+    *(m_waveformBuffer + n) = LUTW[diffWhite >> 4] & LUTB[diffBlack >> 4];
+    n--;
+    *(m_waveformBuffer + n) = LUTW[diffWhite & 0x0F] & LUTB[diffBlack & 0x0F];
+    n--;
+  }
   }
 
   if (einkOn() != ESP_OK)
-    return 0;
+  return 0;
 
   uint8_t rep = 6;
 
   for (int k = 0; k < rep; k++)
   {
-    vscanStart();
-    n = (E_INK_WIDTH * E_INK_HEIGHT / 4) - 1;
+  vscanStart();
+  n = (E_INK_WIDTH * E_INK_HEIGHT / 4) - 1;
 
-    for (int i = 0; i < E_INK_HEIGHT; i++)
+  for (int i = 0; i < E_INK_HEIGHT; i++)
+  {
+    for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
     {
-      for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
-      {
-        m_dmaLineBuffer[j]     = *(m_waveformBuffer + n - 2);
-        m_dmaLineBuffer[j + 1] = *(m_waveformBuffer + n - 3);
-        m_dmaLineBuffer[j + 2] = *(m_waveformBuffer + n);
-        m_dmaLineBuffer[j + 3] = *(m_waveformBuffer + n - 1);
-        n -= 4;
-      }
-      sendDataI2S();
-      vscanEnd();
+    m_dmaLineBuffer[j]     = *(m_waveformBuffer + n - 2);
+    m_dmaLineBuffer[j + 1] = *(m_waveformBuffer + n - 3);
+    m_dmaLineBuffer[j + 2] = *(m_waveformBuffer + n);
+    m_dmaLineBuffer[j + 3] = *(m_waveformBuffer + n - 1);
+    n -= 4;
     }
-    esp_rom_delay_us(230);
+    sendDataI2S();
+    vscanEnd();
+  }
+  esp_rom_delay_us(230);
   }
 
   clean(2, 2);
@@ -276,12 +276,12 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
   vscanStart();
 
   if (einkOn() != ESP_OK)
-    einkOff();
+  einkOff();
 
   memcpy(m_framebuffer, m_newFramebuffer, E_INK_WIDTH * E_INK_HEIGHT / 8);
 
   if (m_partialUpdateLimiter != 0)
-    m_partialUpdateCounter++;
+  m_partialUpdateCounter++;
 
   return changeCount;
 }
@@ -297,7 +297,7 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
 esp_err_t Inkplate6::einkOn()
 {
   if (getPanelState())
-    return ESP_OK;
+  return ESP_OK;
 
   WAKEUP_SET;
   esp_rom_delay_us(5000);
@@ -318,8 +318,8 @@ esp_err_t Inkplate6::einkOn()
 
   if (!tps.waitPowerGood(true))
   {
-    einkOff();
-    return ESP_ERR_TIMEOUT;
+  einkOff();
+  return ESP_ERR_TIMEOUT;
   }
 
   ESP_LOGI(TAG, "Eink turned on.");
@@ -338,7 +338,7 @@ esp_err_t Inkplate6::einkOn()
 esp_err_t Inkplate6::einkOff()
 {
   if (!getPanelState())
-    return ESP_OK;
+  return ESP_OK;
 
   VCOM_CLEAR;
   OE_CLEAR;
@@ -376,7 +376,7 @@ void Inkplate6::setFullUpdateThreshold(uint16_t numberOfPartialUpdates)
   m_partialUpdateLimiter = numberOfPartialUpdates;
 
   if (numberOfPartialUpdates != 0)
-    m_blockPartial = true;
+  m_blockPartial = true;
 }
 
 /**
@@ -417,8 +417,8 @@ double Inkplate6::readBattery()
   adc_oneshot_read(adcHandle, ADC_CHANNEL_7, &raw);
   if (calibrated)
   {
-    adc_cali_raw_to_voltage(caliHandle, raw, &mv);
-    adc_cali_delete_scheme_line_fitting(caliHandle);
+  adc_cali_raw_to_voltage(caliHandle, raw, &mv);
+  adc_cali_delete_scheme_line_fitting(caliHandle);
   }
   adc_oneshot_del_unit(adcHandle);
 
@@ -500,11 +500,11 @@ void Inkplate6::calculateLUTs()
 {
   for (int j = 0; j < 9; ++j)
   {
-    for (int i = 0; i < 256; ++i)
-    {
-      m_glut [j * 256 + i]  = (waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j]);
-      m_glut2[j * 256 + i] = ((waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j])) << 4;
-    }
+  for (int i = 0; i < 256; ++i)
+  {
+    m_glut [j * 256 + i]  = (waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j]);
+    m_glut2[j * 256 + i] = ((waveform3Bit[i & 0x07][j] << 2) | (waveform3Bit[(i >> 4) & 0x07][j])) << 4;
+  }
   }
 }
 
@@ -519,8 +519,8 @@ esp_err_t Inkplate6::display3b(bool leaveOn)
   esp_err_t ret = einkOn();
   if (ret != ESP_OK)
   {
-    ESP_LOGI(TAG, "Display is not on!");
-    return ret;
+  ESP_LOGI(TAG, "Display is not on!");
+  return ret;
   }
 
   clean(0, 1);
@@ -535,27 +535,27 @@ esp_err_t Inkplate6::display3b(bool leaveOn)
 
   for (int k = 0; k < 9; ++k)
   {
-    uint8_t *dp = m_framebufferColor + E_INK_WIDTH * E_INK_HEIGHT / 2;
+  uint8_t *dp = m_framebufferColor + E_INK_WIDTH * E_INK_HEIGHT / 2;
 
-    vscanStart();
-    for (int i = 0; i < E_INK_HEIGHT; ++i)
-    {
-       for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
-       {
-          uint8_t p0, p1;
+  vscanStart();
+  for (int i = 0; i < E_INK_HEIGHT; ++i)
+  {
+     for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
+     {
+      uint8_t p0, p1;
 
-          p0 = *(--dp); p1 = *(--dp);
-          m_dmaLineBuffer[j + 2] = (m_glut2[k * 256 + p0] | m_glut[k * 256 + p1]);
-          p0 = *(--dp); p1 = *(--dp);
-          m_dmaLineBuffer[j + 3] = (m_glut2[k * 256 + p0] | m_glut[k * 256 + p1]);
-          p0 = *(--dp); p1 = *(--dp);
-          m_dmaLineBuffer[j]     = (m_glut2[k * 256 + p0] | m_glut[k * 256 + p1]);
-          p0 = *(--dp); p1 = *(--dp);
-          m_dmaLineBuffer[j + 1] = (m_glut2[k * 256 + p0] | m_glut[k * 256 + p1]);
-        }
-        sendDataI2S();
-        vscanEnd();
+      p0 = *(--dp); p1 = *(--dp);
+      m_dmaLineBuffer[j + 2] = (m_glut2[k * 256 + p0] | m_glut[k * 256 + p1]);
+      p0 = *(--dp); p1 = *(--dp);
+      m_dmaLineBuffer[j + 3] = (m_glut2[k * 256 + p0] | m_glut[k * 256 + p1]);
+      p0 = *(--dp); p1 = *(--dp);
+      m_dmaLineBuffer[j]     = (m_glut2[k * 256 + p0] | m_glut[k * 256 + p1]);
+      p0 = *(--dp); p1 = *(--dp);
+      m_dmaLineBuffer[j + 1] = (m_glut2[k * 256 + p0] | m_glut[k * 256 + p1]);
     }
+    sendDataI2S();
+    vscanEnd();
+  }
   esp_rom_delay_us(230);
   }
 
@@ -563,7 +563,7 @@ esp_err_t Inkplate6::display3b(bool leaveOn)
   vscanStart();
 
   if (!leaveOn)
-    einkOff();
+  einkOff();
 
   return ESP_OK;
 }
@@ -579,8 +579,8 @@ esp_err_t Inkplate6::display1b(bool leaveOn)
   esp_err_t ret = einkOn();
   if (ret != ESP_OK)
   {
-    ESP_LOGI(TAG, "Display is not on!");
-    return ret;
+  ESP_LOGI(TAG, "Display is not on!");
+  return ret;
   }
 
   clean(0, 1);
@@ -599,72 +599,72 @@ esp_err_t Inkplate6::display1b(bool leaveOn)
 
   for (int k = 0; k < rep; k++)
   {
-    uint8_t *memoryPtr = m_newFramebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
-    vscanStart();
+  uint8_t *memoryPtr = m_newFramebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+  vscanStart();
 
-    for (int i = 0; i < E_INK_HEIGHT; i++)
+  for (int i = 0; i < E_INK_HEIGHT; i++)
+  {
+    for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
     {
-      for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
-      {
-        uint8_t dram1 = *(memoryPtr);
-        uint8_t dram2 = *(memoryPtr - 1);
-        m_dmaLineBuffer[j]     = LUTB[(dram2 >> 4) & 0x0F];
-        m_dmaLineBuffer[j + 1] = LUTB[dram2 & 0x0F];
-        m_dmaLineBuffer[j + 2] = LUTB[(dram1 >> 4) & 0x0F];
-        m_dmaLineBuffer[j + 3] = LUTB[dram1 & 0x0F];
-        memoryPtr -= 2;
-      }
-      sendDataI2S();
-      vscanEnd();
+    uint8_t dram1 = *(memoryPtr);
+    uint8_t dram2 = *(memoryPtr - 1);
+    m_dmaLineBuffer[j]     = LUTB[(dram2 >> 4) & 0x0F];
+    m_dmaLineBuffer[j + 1] = LUTB[dram2 & 0x0F];
+    m_dmaLineBuffer[j + 2] = LUTB[(dram1 >> 4) & 0x0F];
+    m_dmaLineBuffer[j + 3] = LUTB[dram1 & 0x0F];
+    memoryPtr -= 2;
     }
-    esp_rom_delay_us(230);
+    sendDataI2S();
+    vscanEnd();
+  }
+  esp_rom_delay_us(230);
   }
 
   for (int k = 0; k < 1; ++k)
   {
-    uint8_t *memoryPtr = m_newFramebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
-    vscanStart();
+  uint8_t *memoryPtr = m_newFramebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
+  vscanStart();
 
-    for (int i = 0; i < E_INK_HEIGHT; i++)
+  for (int i = 0; i < E_INK_HEIGHT; i++)
+  {
+    for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
     {
-      for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
-      {
-        uint8_t dram1 = *(memoryPtr);
-        uint8_t dram2 = *(memoryPtr - 1);
-        m_dmaLineBuffer[j]     = LUT2[(dram2 >> 4) & 0x0F];
-        m_dmaLineBuffer[j + 1] = LUT2[dram2 & 0x0F];
-        m_dmaLineBuffer[j + 2] = LUT2[(dram1 >> 4) & 0x0F];
-        m_dmaLineBuffer[j + 3] = LUT2[dram1 & 0x0F];
-        memoryPtr -= 2;
-      }
-      sendDataI2S();
-      vscanEnd();
+    uint8_t dram1 = *(memoryPtr);
+    uint8_t dram2 = *(memoryPtr - 1);
+    m_dmaLineBuffer[j]     = LUT2[(dram2 >> 4) & 0x0F];
+    m_dmaLineBuffer[j + 1] = LUT2[dram2 & 0x0F];
+    m_dmaLineBuffer[j + 2] = LUT2[(dram1 >> 4) & 0x0F];
+    m_dmaLineBuffer[j + 3] = LUT2[dram1 & 0x0F];
+    memoryPtr -= 2;
     }
-    esp_rom_delay_us(230);
+    sendDataI2S();
+    vscanEnd();
+  }
+  esp_rom_delay_us(230);
   }
 
   for (int k = 0; k < 1; ++k)
   {
-    vscanStart();
+  vscanStart();
 
-    for (int i = 0; i < E_INK_HEIGHT; i++)
+  for (int i = 0; i < E_INK_HEIGHT; i++)
+  {
+    for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
     {
-      for (int j = 0; j < (E_INK_WIDTH / 4); j += 4)
-      {
-        m_dmaLineBuffer[j]     = 0;
-        m_dmaLineBuffer[j + 1] = 0;
-        m_dmaLineBuffer[j + 2] = 0;
-        m_dmaLineBuffer[j + 3] = 0;
-      }
-      sendDataI2S();
-      vscanEnd();
+    m_dmaLineBuffer[j]     = 0;
+    m_dmaLineBuffer[j + 1] = 0;
+    m_dmaLineBuffer[j + 2] = 0;
+    m_dmaLineBuffer[j + 3] = 0;
     }
-    esp_rom_delay_us(230);
+    sendDataI2S();
+    vscanEnd();
+  }
+  esp_rom_delay_us(230);
   }
 
   vscanStart();
   if (!leaveOn)
-    einkOff();
+  einkOff();
 
   m_blockPartial = false;
   return ESP_OK;
@@ -680,7 +680,7 @@ esp_err_t Inkplate6::display1b(bool leaveOn)
 void Inkplate6::gpioInit()
 {
   for (uint32_t i = 0; i < 256; ++i)
-    m_pinLUT[i] = ((i & 0x03) << 4) | (((i & 0x0C) >> 2) << 18) | (((i & 0x10) >> 4) << 23) | (((i & 0xE0) >> 5) << 25);
+  m_pinLUT[i] = ((i & 0x03) << 4) | (((i & 0x0C) >> 2) << 18) | (((i & 0x10) >> 4) << 23) | (((i & 0xE0) >> 5) << 25);
 
   gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_13, GPIO_MODE_INPUT);
@@ -731,16 +731,16 @@ void Inkplate6::clean(uint8_t c, uint8_t rep)
   einkOn();
   uint8_t data = 0;
   if (c == 0)
-    data = 0b10101010;
+  data = 0b10101010;
   else if (c == 1)
-    data = 0b01010101;
+  data = 0b01010101;
   else if (c == 2)
-    data = 0b00000000;
+  data = 0b00000000;
   else if (c == 3)
-    data = 0b11111111;
+  data = 0b11111111;
 
   for (int i = 0; i < (E_INK_WIDTH / 4); i++)
-    m_dmaLineBuffer[i] = data;
+  m_dmaLineBuffer[i] = data;
 
   m_dmaI2SDesc->size         = (E_INK_WIDTH / 4) + 16;
   m_dmaI2SDesc->length       = (E_INK_WIDTH / 4) + 16;
@@ -753,15 +753,15 @@ void Inkplate6::clean(uint8_t c, uint8_t rep)
 
   for (int k = 0; k < rep; ++k)
   {
-    vscanStart();
+  vscanStart();
 
-    for (int i = 0; i < E_INK_HEIGHT; ++i)
-    {
-      sendDataI2S();
-      vscanEnd();
-    }
+  for (int i = 0; i < E_INK_HEIGHT; ++i)
+  {
+    sendDataI2S();
+    vscanEnd();
+  }
 
-    esp_rom_delay_us(230);
+  esp_rom_delay_us(230);
   }
 }
 

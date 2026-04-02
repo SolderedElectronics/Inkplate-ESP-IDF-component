@@ -43,22 +43,22 @@ PCAL::PCAL(uint8_t addr, I2C &i2c)
 esp_err_t PCAL::setLevel(IOPin_t pin, uint8_t level)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   // check if pin is set as input
   uint8_t cfgReg, cfgBit;
   pinToRegBit(pin, PCAL6416A_CFGPORT0, cfgReg, cfgBit);
   if ((readPin(cfgReg) >> cfgBit) & 1)
-    return ESP_ERR_INVALID_STATE;
+  return ESP_ERR_INVALID_STATE;
 
   uint8_t reg, bit;
   pinToRegBit(pin, PCAL6416A_OUTPORT0, reg, bit);
 
   uint8_t val = readPin(reg);
   if (level)
-    val |= (1 << bit);
+  val |= (1 << bit);
   else
-    val &= ~(1 << bit);
+  val &= ~(1 << bit);
 
   return writePin(reg, val);
 }
@@ -76,7 +76,7 @@ esp_err_t PCAL::setLevel(IOPin_t pin, uint8_t level)
 int PCAL::getLevel(IOPin_t pin)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
   pinToRegBit(pin, PCAL6416A_INPORT0, reg, bit);
@@ -139,7 +139,7 @@ int PCAL::getPort(IOPort_t port)
 esp_err_t PCAL::setDirection(IOPin_t pin, IOMode_t mode)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
   pinToRegBit(pin, PCAL6416A_CFGPORT0, reg, bit);
@@ -147,9 +147,9 @@ esp_err_t PCAL::setDirection(IOPin_t pin, IOMode_t mode)
   // 1 = input, 0 = output
   uint8_t val = readPin(reg);
   if (mode == IO_MODE_INPUT)
-    val |= (1 << bit);
+  val |= (1 << bit);
   else
-    val &= ~(1 << bit);
+  val &= ~(1 << bit);
 
   return writePin(reg, val);
 }
@@ -170,7 +170,7 @@ esp_err_t PCAL::setDirection(IOPin_t pin, IOMode_t mode)
 esp_err_t PCAL::setPullMode(IOPin_t pin, IOPullMode_t pullMode)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   uint8_t enReg, selReg, bit;
   pinToRegBit(pin, PCAL6416A_PUPDEN_REG0,  enReg,  bit);
@@ -181,14 +181,14 @@ esp_err_t PCAL::setPullMode(IOPin_t pin, IOPullMode_t pullMode)
   enVal |= (1 << bit);
   esp_err_t ret = writePin(enReg, enVal);
   if (ret != ESP_OK)
-    return ret;
+  return ret;
 
   // select pull-up (1) or pull-down (0)
   uint8_t selVal = readPin(selReg);
   if (pullMode == IO_PULLUP)
-    selVal |= (1 << bit);
+  selVal |= (1 << bit);
   else
-    selVal &= ~(1 << bit);
+  selVal &= ~(1 << bit);
 
   return writePin(selReg, selVal);
 }
@@ -209,16 +209,16 @@ esp_err_t PCAL::setPullMode(IOPin_t pin, IOPullMode_t pullMode)
 esp_err_t PCAL::setPolarityInversion(IOPin_t pin, bool invert)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
   pinToRegBit(pin, PCAL6416A_POLINVPORT0, reg, bit);
 
   uint8_t val = readPin(reg);
   if (invert)
-    val |= (1 << bit);
+  val |= (1 << bit);
   else
-    val &= ~(1 << bit);
+  val &= ~(1 << bit);
 
   return writePin(reg, val);
 }
@@ -242,16 +242,16 @@ esp_err_t PCAL::setPolarityInversion(IOPin_t pin, bool invert)
 esp_err_t PCAL::setInputLatch(IOPin_t pin, bool latch)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
   pinToRegBit(pin, PCAL6416A_INLAT_REG0, reg, bit);
 
   uint8_t val = readPin(reg);
   if (latch)
-    val |= (1 << bit);
+  val |= (1 << bit);
   else
-    val &= ~(1 << bit);
+  val &= ~(1 << bit);
 
   return writePin(reg, val);
 }
@@ -274,9 +274,9 @@ esp_err_t PCAL::setOutputMode(IOPort_t port, IOOutputMode_t mode)
 
   uint8_t val = readPin(PCAL6416A_OUTPORT_CONF);
   if (mode == IO_OPEN_DRAIN)
-    val |= (1 << bit);
+  val |= (1 << bit);
   else
-    val &= ~(1 << bit);
+  val &= ~(1 << bit);
 
   return writePin(PCAL6416A_OUTPORT_CONF, val);
 }
@@ -300,7 +300,7 @@ esp_err_t PCAL::setOutputMode(IOPort_t port, IOOutputMode_t mode)
 esp_err_t PCAL::setDriveStrength(IOPin_t pin, IODriveStrength_t strength)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   // two registers per port (pins 0-3 in first, pins 4-7 in second)
   uint8_t pinIndex = pin % 8; // pin index within its port
@@ -328,7 +328,7 @@ esp_err_t PCAL::setDriveStrength(IOPin_t pin, IODriveStrength_t strength)
 esp_err_t PCAL::interruptEnable(IOPin_t pin)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
   pinToRegBit(pin, PCAL6416A_INTMSK_REG0, reg, bit);
@@ -353,7 +353,7 @@ esp_err_t PCAL::interruptEnable(IOPin_t pin)
 esp_err_t PCAL::interruptDisable(IOPin_t pin)
 {
   if (checkBlockedPins(pin))
-    return ESP_ERR_INVALID_ARG;
+  return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
   pinToRegBit(pin, PCAL6416A_INTMSK_REG0, reg, bit);

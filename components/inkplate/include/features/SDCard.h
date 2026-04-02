@@ -21,9 +21,9 @@ class SDCard
 public:
   SDCard(PCAL &expander);
 
-  esp_err_t   sdCardInit();
-  esp_err_t   sdCardSleep();
-  const char *getMountPoint();
+  esp_err_t    sdCardInit();
+  esp_err_t    sdCardSleep();
+  const char  *getMountPoint();
 
 private:
   PCAL         &m_expander;

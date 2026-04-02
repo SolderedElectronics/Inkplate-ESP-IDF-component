@@ -69,8 +69,8 @@ esp_err_t SDCard::sdCardSleep()
   esp_err_t ret = ESP_OK;
   if (m_card)
   {
-    ret    = esp_vfs_fat_sdcard_unmount(SD_MOUNT_POINT, m_card);
-    m_card = nullptr;
+  ret    = esp_vfs_fat_sdcard_unmount(SD_MOUNT_POINT, m_card);
+  m_card = nullptr;
   }
   spi_bus_free(SPI2_HOST);
 

@@ -10,23 +10,23 @@ class WiFi
 public:
   WiFi();
 
-  bool     waitForConnect(uint32_t timeoutMs = 10000);
-  void     setCurrentTime();
-  uint8_t *downloadFile(const char *url, int32_t *len);
-  uint8_t *downloadFileHTTPS(const char *url, int32_t *len);
+  bool        waitForConnect(uint32_t timeoutMs = 10000);
+  void        setCurrentTime();
+  uint8_t    *downloadFile(const char *url, int32_t *len);
+  uint8_t    *downloadFileHTTPS(const char *url, int32_t *len);
 
-  void setCertificate(const char *cert) { m_certificate = cert; }
+  void        setCertificate(const char *cert) { m_certificate = cert; }
 
-  bool isConnected() { return m_connected; }
-  bool isTimeSet()   { return m_timeSet; }
+  bool        isConnected() { return m_connected; }
+  bool        isTimeSet()   { return m_timeSet; }
 
 private:
   static void wifiEventHandler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
   static void ipEventHandler(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data);
 
-  static bool  m_connected;
-  bool         m_timeSet     = false;
-  const char  *m_certificate = nullptr;
+  static bool m_connected;
+  bool        m_timeSet     = false;
+  const char *m_certificate = nullptr;
 };
 
 #endif

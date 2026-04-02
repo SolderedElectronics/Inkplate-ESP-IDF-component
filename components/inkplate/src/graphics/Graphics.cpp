@@ -6,11 +6,11 @@
 
 #ifndef _swap_int16_t
 #define _swap_int16_t(a, b)                                                                                            \
-    {                                                                                                                  \
-        int16_t t = a;                                                                                                 \
-        a = b;                                                                                                         \
-        b = t;                                                                                                         \
-    }
+  {                                                                                                                  \
+    int16_t t = a;                                                                                                 \
+    a = b;                                                                                                         \
+    b = t;                                                                                                         \
+  }
 #endif
 
 /**
@@ -23,20 +23,20 @@
  */
 void Graphics::setRotation(uint8_t x)
 {
-    rotation = (x & 3);
-    switch (rotation)
-    {
-    case 0:
-    case 2:
-        _width = WIDTH;
-        _height = HEIGHT;
-        break;
-    case 1:
-    case 3:
-        _width = HEIGHT;
-        _height = WIDTH;
-        break;
-    }
+  rotation = (x & 3);
+  switch (rotation)
+  {
+  case 0:
+  case 2:
+    _width = WIDTH;
+    _height = HEIGHT;
+    break;
+  case 1:
+  case 3:
+    _width = HEIGHT;
+    _height = WIDTH;
+    break;
+  }
 }
 
 /**
@@ -46,7 +46,7 @@ void Graphics::setRotation(uint8_t x)
  */
 uint8_t Graphics::getRotation()
 {
-    return rotation;
+  return rotation;
 }
 
 /**
@@ -63,7 +63,7 @@ uint8_t Graphics::getRotation()
  */
 void Graphics::drawPixel(int16_t x0, int16_t y0, uint16_t color)
 {
-    writePixel(x0, y0, color); // Specified in boards folder
+  writePixel(x0, y0, color); // Specified in boards folder
 }
 
 void Graphics::startWrite()
@@ -87,9 +87,9 @@ void Graphics::startWrite()
  */
 void Graphics::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
 {
-    for (int i = 0; i < h; ++i)
-        for (int j = 0; j < w; ++j)
-            writePixel(x + j, y + i, color);
+  for (int i = 0; i < h; ++i)
+    for (int j = 0; j < w; ++j)
+      writePixel(x + j, y + i, color);
 }
 
 /**
@@ -107,8 +107,8 @@ void Graphics::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_
  */
 void Graphics::writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 {
-    for (int i = 0; i < h; ++i)
-        writePixel(x, y + i, color);
+  for (int i = 0; i < h; ++i)
+    writePixel(x, y + i, color);
 }
 
 /**
@@ -126,8 +126,8 @@ void Graphics::writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
  */
 void Graphics::writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 {
-    for (int j = 0; j < w; ++j)
-        writePixel(x + j, y, color);
+  for (int j = 0; j < w; ++j)
+    writePixel(x + j, y, color);
 }
 
 /**
@@ -146,44 +146,44 @@ void Graphics::writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
  */
 void Graphics::writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
 {
-    int16_t steep = abs(y1 - y0) > abs(x1 - x0);
+  int16_t steep = abs(y1 - y0) > abs(x1 - x0);
+  if (steep)
+  {
+    _swap_int16_t(x0, y0);
+    _swap_int16_t(x1, y1);
+  }
+
+  if (x0 > x1)
+  {
+    _swap_int16_t(x0, x1);
+    _swap_int16_t(y0, y1);
+  }
+
+  int16_t dx, dy;
+  dx = x1 - x0;
+  dy = abs(y1 - y0);
+
+  int16_t err = dx >> 1;
+  int16_t ystep;
+
+  if (y0 < y1)
+    ystep = 1;
+  else
+    ystep = -1;
+
+  for (; x0 <= x1; x0++)
+  {
     if (steep)
-    {
-        _swap_int16_t(x0, y0);
-        _swap_int16_t(x1, y1);
-    }
-
-    if (x0 > x1)
-    {
-        _swap_int16_t(x0, x1);
-        _swap_int16_t(y0, y1);
-    }
-
-    int16_t dx, dy;
-    dx = x1 - x0;
-    dy = abs(y1 - y0);
-
-    int16_t err = dx >> 1;
-    int16_t ystep;
-
-    if (y0 < y1)
-        ystep = 1;
+      writePixel(y0, x0, color);
     else
-        ystep = -1;
-
-    for (; x0 <= x1; x0++)
+      writePixel(x0, y0, color);
+    err -= dy;
+    if (err < 0)
     {
-        if (steep)
-            writePixel(y0, x0, color);
-        else
-            writePixel(x0, y0, color);
-        err -= dy;
-        if (err < 0)
-        {
-            y0 += ystep;
-            err += dx;
-        }
+      y0 += ystep;
+      err += dx;
     }
+  }
 }
 
 void Graphics::endWrite()
@@ -221,78 +221,78 @@ void Graphics::endWrite()
  *              Text is padded with spaces to keep a consistent line length.
  */
 void Graphics::drawTextBox(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const char *text,
-                           uint16_t textSizeMultiplier, const GFXfont *font, uint16_t verticalSpacing, bool showBorder,
-                           uint16_t fontSize)
+               uint16_t textSizeMultiplier, const GFXfont *font, uint16_t verticalSpacing, bool showBorder,
+               uint16_t fontSize)
 {
-    int16_t currentX = x0;
-    int16_t currentY = y0;
+  int16_t currentX = x0;
+  int16_t currentY = y0;
 
-    int16_t textLenght = strlen(text);
-    int offset = 0;
-    fontSize = (fontSize * 3) / 4; // 1pt = 4/3 px
-    int numOfCharactersPerLine = (x1 - x0) / (textSizeMultiplier * fontSize);
-    int16_t currentLineLenght = numOfCharactersPerLine;
-    this->setTextSize(textSizeMultiplier);
-    this->setFont(font);
-    if (showBorder)
+  int16_t textLenght = strlen(text);
+  int offset = 0;
+  fontSize = (fontSize * 3) / 4; // 1pt = 4/3 px
+  int numOfCharactersPerLine = (x1 - x0) / (textSizeMultiplier * fontSize);
+  int16_t currentLineLenght = numOfCharactersPerLine;
+  this->setTextSize(textSizeMultiplier);
+  this->setFont(font);
+  if (showBorder)
+  {
+    this->drawRect(x0, y0, (x1 - x0), (y1 - y0), 1);
+  }
+  if (verticalSpacing == 0)
+  {
+    verticalSpacing = textSizeMultiplier * fontSize + 6;
+  }
+  for (int i = y0; i < (y1 - verticalSpacing); i += verticalSpacing)
+  {
+    currentY = i;
+    this->setCursor(currentX, currentY);
+
+    int remainingLength = textLenght - offset;
+    int lineLength = (remainingLength < currentLineLenght) ? remainingLength : currentLineLenght;
+
+    // Temporary buffer to hold potential line
+    char *buffer = (char *)malloc((lineLength + 1) * sizeof(char));
+    memcpy(buffer, text + offset, lineLength);
+    buffer[lineLength] = '\0';
+
+    // Find the last space in buffer to wrap at word boundary
+    int lastSpaceIndex = -1;
+    for (int j = 0; j < lineLength; ++j)
     {
-        this->drawRect(x0, y0, (x1 - x0), (y1 - y0), 1);
+      if (buffer[j] == ' ')
+        lastSpaceIndex = j;
     }
-    if (verticalSpacing == 0)
+
+    // If a word gets cut, wrap to the next line
+    if ((offset + lineLength < textLenght) && (text[offset + lineLength] != ' ') && (lastSpaceIndex != -1) &&
+      ((i + verticalSpacing) < (y1 - verticalSpacing)))
     {
-        verticalSpacing = textSizeMultiplier * fontSize + 6;
+      lineLength = lastSpaceIndex + 1; // Include the space
     }
-    for (int i = y0; i < (y1 - verticalSpacing); i += verticalSpacing)
+
+    // Allocate space for actual line with null-terminator
+    char *textPart = (char *)malloc((currentLineLenght + 1) * sizeof(char));
+    memset(textPart, ' ', currentLineLenght);    // Fill with spaces
+    memcpy(textPart, text + offset, lineLength); // Copy valid part
+    textPart[currentLineLenght] = '\0';
+
+    // Ellipsis on final visible line
+    if ((i + verticalSpacing) >= (y1 - verticalSpacing) && (offset + lineLength < textLenght))
     {
-        currentY = i;
-        this->setCursor(currentX, currentY);
-
-        int remainingLength = textLenght - offset;
-        int lineLength = (remainingLength < currentLineLenght) ? remainingLength : currentLineLenght;
-
-        // Temporary buffer to hold potential line
-        char *buffer = (char *)malloc((lineLength + 1) * sizeof(char));
-        memcpy(buffer, text + offset, lineLength);
-        buffer[lineLength] = '\0';
-
-        // Find the last space in buffer to wrap at word boundary
-        int lastSpaceIndex = -1;
-        for (int j = 0; j < lineLength; ++j)
-        {
-            if (buffer[j] == ' ')
-                lastSpaceIndex = j;
-        }
-
-        // If a word gets cut, wrap to the next line
-        if ((offset + lineLength < textLenght) && (text[offset + lineLength] != ' ') && (lastSpaceIndex != -1) &&
-            ((i + verticalSpacing) < (y1 - verticalSpacing)))
-        {
-            lineLength = lastSpaceIndex + 1; // Include the space
-        }
-
-        // Allocate space for actual line with null-terminator
-        char *textPart = (char *)malloc((currentLineLenght + 1) * sizeof(char));
-        memset(textPart, ' ', currentLineLenght);    // Fill with spaces
-        memcpy(textPart, text + offset, lineLength); // Copy valid part
-        textPart[currentLineLenght] = '\0';
-
-        // Ellipsis on final visible line
-        if ((i + verticalSpacing) >= (y1 - verticalSpacing) && (offset + lineLength < textLenght))
-        {
 
 
-            textPart[currentLineLenght - 1] = '.';
-            textPart[currentLineLenght - 2] = '.';
-            textPart[currentLineLenght - 3] = '.';
-        }
-
-        this->print(textPart);
-
-        offset += lineLength;
-        free(buffer);
-        free(textPart);
-
-        if (offset >= textLenght)
-            return;
+      textPart[currentLineLenght - 1] = '.';
+      textPart[currentLineLenght - 2] = '.';
+      textPart[currentLineLenght - 3] = '.';
     }
+
+    this->print(textPart);
+
+    offset += lineLength;
+    free(buffer);
+    free(textPart);
+
+    if (offset >= textLenght)
+      return;
+  }
 }
