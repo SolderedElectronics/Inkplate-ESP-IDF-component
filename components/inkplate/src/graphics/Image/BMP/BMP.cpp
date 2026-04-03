@@ -4,6 +4,12 @@
 #include "Inkplate.h"
 #include "BMP.h"
 
+/**
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
 BMP::BMP(Inkplate *inkplate) : m_inkplate(inkplate)
 {
   memset(m_pixelBuffer, 0, sizeof(m_pixelBuffer));
@@ -13,13 +19,19 @@ BMP::BMP(Inkplate *inkplate) : m_inkplate(inkplate)
 /**
  * @brief  Draw a BMP image from a memory buffer.
  *
- * @param  buf     Pointer to the BMP file data.
- * @param  x       X position of the top-left corner on the display.
- * @param  y       Y position of the top-left corner on the display.
- * @param  invert  True to invert colours.
- * @param  dither  True to apply Floyd-Steinberg dithering.
+ * @param  uint8_t *buf
+ *         pointer to the BMP file data
+ * @param  int x
+ *         X position of the top-left corner on the display
+ * @param  int y
+ *         Y position of the top-left corner on the display
+ * @param  bool invert
+ *         true to invert colours
+ * @param  bool dither
+ *         true to apply dithering
  *
- * @return true on success, false if the colour depth is not supported.
+ * @return bool
+ *         true on success, false if the colour depth is not supported
  */
 bool BMP::draw(uint8_t *buf, int x, int y, bool invert, bool dither)
 {
@@ -42,12 +54,16 @@ bool BMP::draw(uint8_t *buf, int x, int y, bool invert, bool dither)
 }
 
 /**
+ * ============================================================
+ * Private functions
+ * ============================================================
+ */
+
+/**
  * @brief  Parse BMP header fields and build the palette for indexed modes.
  *
  * @note   For 1, 4 and 8 bpp BMPs the colour table starts at byte 54.
  *         Each entry is 4 bytes (B, G, R, reserved).
- *         m_palette stores packed 3-bit grayscale (two entries per byte).
- *         ditherPalette stores 8-bit luminance for dither error diffusion.
  */
 void BMP::readHeader(uint8_t *buf, bitmapHeader *header)
 {
@@ -69,7 +85,7 @@ void BMP::readHeader(uint8_t *buf, bitmapHeader *header)
       uint8_t r    = colorTable[i * 4 + 2];
       uint8_t gray = RGB3BIT(r, g, b);
 
-      // Pack two 3-bit grayscale values per byte: high nibble = even index
+      // pack two 3-bit grayscale values per byte: high nibble = even index
       if (i & 1)
         m_palette[i >> 1] |= gray;
       else
@@ -82,7 +98,9 @@ void BMP::readHeader(uint8_t *buf, bitmapHeader *header)
 }
 
 /**
- * @brief  Return true if the colour depth is one we can decode.
+ * @brief  Check if BMP header is valid.
+ *
+ * @return return true if the colour depth is one we can decode
  */
 bool BMP::isValid(bitmapHeader *header)
 {
@@ -92,11 +110,18 @@ bool BMP::isValid(bitmapHeader *header)
 }
 
 /**
- * @brief  Draw one decoded row to the display.
+ * @brief  Write one line of horizontal pixels.
  *
- * @note   BMP rows are stored bottom-up, so row i maps to display row (h - i - 1).
- *         When dither=true, pixels are passed through Floyd-Steinberg error diffusion
- *         instead of the direct RGB3BIT quantisation.
+ * @param  int16_t x
+ *         top left x image position
+ * @param  int16_t y
+ *         top left y image position
+ * @param  bitmapHeader *bmpHeader
+ *         bitmap header with image data
+ * @param  bool dither
+ *         1 if using dither, 0 if not
+ * @param  bool invert
+ *         1 if using invert, 0 if not
  */
 void BMP::drawLine(int16_t x, int16_t y, bitmapHeader *header, bool invert, bool dither)
 {

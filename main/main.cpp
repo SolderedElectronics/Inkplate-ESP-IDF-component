@@ -7,7 +7,7 @@
 static const char *TAG = "MAIN";
 
 // Image file on the SD card root (change extension to match your file)
-#define SD_IMAGE_PATH "https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Arduino-library/refs/heads/dev/examples/Inkplate6/Advanced/microSD/Inkplate6_microSD_Pictures/pyramid.jpg"
+#define SD_IMAGE_PATH "https://upload.wikimedia.org/wikipedia/commons/c/c2/Auckland_Skyline_800x600.jpg"
 
 extern "C"
 void app_main(void)

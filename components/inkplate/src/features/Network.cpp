@@ -18,6 +18,12 @@ static const char *TAG = "ESP_WIFI";
 bool WiFi::m_connected = false;
 
 /**
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
+/**
  * @brief Initialize WiFi in STA mode with credentials from menuconfig.
  *
  */
@@ -68,65 +74,6 @@ bool WiFi::waitForConnect(uint32_t timeoutMs)
   elapsed += 100;
   }
   return m_connected;
-}
-
-/**
- * @brief Set current time in CET timezone using SNTP.
- *
- */
-void WiFi::setCurrentTime()
-{
-  esp_sntp_stop();
-
-  esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
-  esp_sntp_setservername(0, "pool.ntp.org");
-  esp_sntp_init();
-
-  while (esp_sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET) {
-  ESP_LOGI(TAG, "Waiting for NTP sync...");
-  vTaskDelay(pdMS_TO_TICKS(2000));
-  }
-
-  setenv("TZ", "CST-2", 1);
-  tzset();
-
-  m_timeSet = true;
-}
-
-/**
- * @brief Handle IP events.
- */
-void WiFi::ipEventHandler(void *arg, esp_event_base_t event_base,
-              int32_t event_id, void *event_data)
-{
-  if (event_id == IP_EVENT_STA_GOT_IP)
-  {
-  ESP_LOGI(TAG, "IP acquired");
-  m_connected = true;
-  }
-  if (event_id == IP_EVENT_STA_LOST_IP)
-  {
-  ESP_LOGI(TAG, "IP lost");
-  m_connected = false;
-  }
-}
-
-/**
- * @brief Handle WiFi events such as starting and disconnecting.
- */
-void WiFi::wifiEventHandler(void *arg, esp_event_base_t event_base,
-              int32_t event_id, void *event_data)
-{
-  if (event_id == WIFI_EVENT_STA_START)
-  {
-  esp_wifi_connect();
-  }
-  else if (event_id == WIFI_EVENT_STA_DISCONNECTED)
-  {
-  ESP_LOGI(TAG, "Disconnected, retrying...");
-  m_connected = false;
-  esp_wifi_connect();
-  }
 }
 
 /**
@@ -269,4 +216,68 @@ uint8_t *WiFi::downloadFileHTTPS(const char *url, int32_t *len)
   *len = totalRead;
 
   return buffer;
+}
+
+/**
+ * @brief Set current time in CET timezone using SNTP.
+ *
+ */
+void WiFi::setCurrentTime()
+{
+  esp_sntp_stop();
+
+  esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
+  esp_sntp_setservername(0, "pool.ntp.org");
+  esp_sntp_init();
+
+  while (esp_sntp_get_sync_status() == SNTP_SYNC_STATUS_RESET) {
+  ESP_LOGI(TAG, "Waiting for NTP sync...");
+  vTaskDelay(pdMS_TO_TICKS(2000));
+  }
+
+  setenv("TZ", "CST-2", 1);
+  tzset();
+
+  m_timeSet = true;
+}
+/**
+ * ============================================================
+ * Private functions
+ * ============================================================
+ */
+
+/**
+ * @brief Handle IP events.
+ */
+void WiFi::ipEventHandler(void *arg, esp_event_base_t event_base,
+              int32_t event_id, void *event_data)
+{
+  if (event_id == IP_EVENT_STA_GOT_IP)
+  {
+  ESP_LOGI(TAG, "IP acquired");
+  m_connected = true;
+  }
+  if (event_id == IP_EVENT_STA_LOST_IP)
+  {
+  ESP_LOGI(TAG, "IP lost");
+  m_connected = false;
+  }
+}
+
+/**
+ * @brief Handle WiFi events such as starting and disconnecting.
+ */
+void WiFi::wifiEventHandler(void *arg, esp_event_base_t event_base,
+              int32_t event_id, void *event_data)
+{
+  if (event_id == WIFI_EVENT_STA_START)
+  {
+  esp_wifi_connect();
+  }
+  else if (event_id == WIFI_EVENT_STA_DISCONNECTED)
+  {
+  ESP_LOGI(TAG, "Disconnected, retrying...");
+  m_connected = false;
+  esp_wifi_connect();
+  }
 }

@@ -5,6 +5,12 @@
 #include "esp_rom_sys.h"
 
 /**
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
+/**
  * @brief  Store a reference to the IO expander used to control the SD power
  *         switch.
  *

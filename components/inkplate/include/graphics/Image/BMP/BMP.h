@@ -7,10 +7,10 @@
 #define BMP_MAX_WIDTH    800
 #define BMP_MAX_ROW_SIZE (BMP_MAX_WIDTH * 4) // 32bpp max
 
-// Row size in bytes, padded to a 4-byte boundary (BMP spec)
+// row size in bytes, padded to a 4-byte boundary (BMP spec)
 #define ROWSIZE(w, c)    ((((w) * (c) + 31) / 32) * 4)
 
-// Convert RGB to 3-bit grayscale (0-7) using luminance weights
+// convert RGB to 3-bit grayscale (0-7) using luminance weights
 #define RGB3BIT(r, g, b) ((uint8_t)(((uint32_t)(r) * 54 + (uint32_t)(g) * 183 + (uint32_t)(b) * 19) >> 13))
 
 struct bitmapHeader

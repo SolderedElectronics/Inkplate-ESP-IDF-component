@@ -4,6 +4,12 @@
 #include "esp_rom_sys.h"
 
 /**
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
+/**
  * @brief  Register the TPS65186 on the I2C bus.
  *
  * @param  i2c_master_bus_handle_t busHandle

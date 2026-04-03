@@ -3,37 +3,43 @@
 #include <math.h>
 
 /**
- * @brief       min checks which param have smaller value
+ * @brief min checks which param have smaller value
  */
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
 #endif
 
 /**
- * @brief       _swap_int16_t swaps two int16_t variables
+ * @brief _swap_int16_t swaps two int16_t variables
  */
 #ifndef _swap_int16_t
-#define _swap_int16_t(a, b)                                                                                            \
-  {                                                                                                                  \
-    int16_t t = a;                                                                                                 \
-    a = b;                                                                                                         \
-    b = t;                                                                                                         \
+#define _swap_int16_t(a, b) \
+  {                         \
+    int16_t t = a;          \
+    a = b;                  \
+    b = t;                  \
   }
 #endif
 
 /**
- * @brief       drawElipse draws empty elipse shape
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
+/**
+ * @brief drawElipse draws empty elipse shape
  *
- * @param       int rx
- *              x plane radius
- * @param       int ry
- *              y plane radius
- * @param       int xc
- *              x plane central point
- * @param       int yc
- *              y plane central point
- * @param       int c
- *              color
+ * @param int rx
+ *        x plane radius
+ * @param int ry
+ *        y plane radius
+ * @param int xc
+ *        x plane central point
+ * @param int yc
+ *        y plane central point
+ * @param int c
+ *        color
  */
 void Shapes::drawElipse(int rx, int ry, int xc, int yc, int c)
 {
@@ -94,18 +100,18 @@ void Shapes::drawElipse(int rx, int ry, int xc, int yc, int c)
 }
 
 /**
- * @brief       fillElipse draws filled elipse shape
+ * @brief fillElipse draws filled elipse shape
  *
- * @param       int rx
- *              x plane radius
- * @param       int ry
- *              y plane radius
- * @param       int xc
- *              x plane central point
- * @param       int yc
- *              y plane central point
- * @param       int c
- *              color
+ * @param int rx
+ *        x plane radius
+ * @param int ry
+ *        y plane radius
+ * @param int xc
+ *        x plane central point
+ * @param int yc
+ *        y plane central point
+ * @param int c
+ *        color
  */
 void Shapes::fillElipse(int rx, int ry, int xc, int yc, int c)
 {
@@ -136,20 +142,20 @@ void Shapes::fillElipse(int rx, int ry, int xc, int yc, int c)
 }
 
 /**
- * @brief       drawThickLine draws thick filled line
+ * @brief drawThickLine draws thick filled line
  *
- * @param       int x1
- *              x plane starting point
- * @param       int y1
- *              y plane starting point
- * @param       int x2
- *              x plane end point
- * @param       int y2
- *              y plane end point
- * @param       int color
- *              line color
- * @param       int thickness
- *              line thickness in pixels
+ * @param int x1
+ *        x plane starting point
+ * @param int y1
+ *        y plane starting point
+ * @param int x2
+ *        x plane end point
+ * @param int y2
+ *        y plane end point
+ * @param int color
+ *        line color
+ * @param int thickness
+ *        line thickness in pixels
  */
 void Shapes::drawThickLine(int x1, int y1, int x2, int y2, int color, float thickness)
 {
@@ -176,23 +182,24 @@ void Shapes::drawThickLine(int x1, int y1, int x2, int y2, int color, float thic
 }
 
 /**
- * @brief       drawGradientLine draws thick gradient line
+ * @brief drawGradientLine draws thick gradient line
  *
- * @param       int x1
- *              x plane starting point
- * @param       int y1
- *              y plane starting point
- * @param       int x2
- *              x plane end point
- * @param       int y2
- *              y plane end point
- * @param       int color1
- *              starting color for gradient line
- * @param       int color2
- *              ending color for gradient line
- * @param       int thickness
- *              line thickness in pixels
- * @note        color 1 should always be less than color 2
+ * @param int x1
+ *        x plane starting point
+ * @param int y1
+ *        y plane starting point
+ * @param int x2
+ *        x plane end point
+ * @param int y2
+ *        y plane end point
+ * @param int color1
+ *        starting color for gradient line
+ * @param int color2
+ *        ending color for gradient line
+ * @param int thickness
+ *        line thickness in pixels
+ *
+ * @note  color 1 should always be less than color 2
  */
 void Shapes::drawGradientLine(int x1, int y1, int x2, int y2, int color1, int color2, float thickness)
 {
@@ -213,21 +220,19 @@ void Shapes::drawGradientLine(int x1, int y1, int x2, int y2, int color1, int co
   }
 }
 
-#if defined(ARDUINO_INKPLATE2) || defined(ARDUINO_INKPLATE4) || defined(ARDUINO_INKPLATE7)
-
 /**
- * @brief       Draws text with prev. defined size with shadow
+ * @brief Draws text with prev. defined size with shadow
  *
- * @param       int x
- *              Text cursor for the X position
- * @param       int y
- *              Text cursor for the Y position
- * @param       const char *_text
- *              String that needs to be printed
- * @param       uint8_t _colorText
- *              Color of the text (INKPLATE2_BLACK or INKPLATE2_RED)
- * @param       uint8_t _colorShadow
- *              Color of the shadow "below" the text (INKPLATE2_BLACK or INKPLATE2_RED)
+ * @param int x
+ *        Text cursor for the X position
+ * @param int y
+ *        Text cursor for the Y position
+ * @param const char *_text
+ *        String that needs to be printed
+ * @param uint8_t _colorText
+ *        Color of the text (INKPLATE2_BLACK or INKPLATE2_RED)
+ * @param uint8_t _colorShadow
+ *        Color of the shadow "below" the text (INKPLATE2_BLACK or INKPLATE2_RED)
  */
 void Shapes::drawTextWithShadow(int x, int y, const char *_text, uint8_t _colorText, uint8_t _colorShadow)
 {
@@ -238,5 +243,3 @@ void Shapes::drawTextWithShadow(int x, int y, const char *_text, uint8_t _colorT
   setCursor(x, y);
   print(_text);
 }
-
-#endif

@@ -9,6 +9,12 @@ PNG     *PNG::m_instance   = nullptr;
 int64_t  PNG::m_lastYieldUs = 0;
 uint32_t PNG::m_lastDitherY = UINT32_MAX;
 
+/**
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
 PNG::PNG(Inkplate *inkplate) : m_inkplate(inkplate), m_x(0), m_y(0), m_invert(false), m_dither(false)
 {
 }
@@ -54,6 +60,12 @@ bool PNG::draw(uint8_t *buf, int32_t len, int x, int y, bool invert, bool dither
 
   return result >= 0;
 }
+
+/**
+ * ============================================================
+ * Private functions
+ * ============================================================
+ */
 
 /**
  * @brief  pngle draw callback — called once per pixel (or small block).

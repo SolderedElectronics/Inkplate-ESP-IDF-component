@@ -1,6 +1,12 @@
 #include "Inkplate.h"
 
 /**
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
+/**
  * @brief  Construct the Inkplate object.
  *
  * @note   Initialises Adafruit_GFX and Graphics with the panel dimensions,
@@ -24,6 +30,22 @@ void Inkplate::drawPixel(int16_t x, int16_t y, uint16_t color)
 }
 
 /**
+ * @brief  Return the current display rotation (0-3, matching Adafruit_GFX convention).
+ *
+ * @return uint8_t  Rotation index.
+ */
+uint8_t Inkplate::getRotation()
+{
+  return rotation;
+}
+
+/**
+ * ============================================================
+ * Private functions
+ * ============================================================
+ */
+
+/**
  * @brief  Write a single pixel to the frame buffer.
  *
  * @param  x      X coordinate.
@@ -33,14 +55,4 @@ void Inkplate::drawPixel(int16_t x, int16_t y, uint16_t color)
 void Inkplate::writePixel(int16_t x, int16_t y, uint16_t color)
 {
   writePixelInternal(x, y, color);
-}
-
-/**
- * @brief  Return the current display rotation (0-3, matching Adafruit_GFX convention).
- *
- * @return uint8_t  Rotation index.
- */
-uint8_t Inkplate::getRotation()
-{
-  return rotation;
 }

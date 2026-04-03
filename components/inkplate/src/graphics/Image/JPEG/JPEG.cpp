@@ -19,6 +19,13 @@ struct JpegSrc
   uint32_t       size;
 };
 
+
+/**
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
 JPEG::JPEG(Inkplate *inkplate) : m_inkplate(inkplate), m_x(0), m_y(0), m_invert(false), m_dither(false), m_lastYieldUs(0), m_lastMCUTop(-1)
 {
 }
@@ -73,6 +80,12 @@ bool JPEG::draw(uint8_t *buf, int32_t len, int x, int y, bool invert, bool dithe
   free(workspace);
   return res == JDR_OK;
 }
+
+/**
+ * ============================================================
+ * Private functions
+ * ============================================================
+ */
 
 /**
  * @brief  tjpgd input callback — feeds compressed data to the decoder.

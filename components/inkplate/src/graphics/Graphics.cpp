@@ -5,21 +5,21 @@
 #endif
 
 #ifndef _swap_int16_t
-#define _swap_int16_t(a, b)                                                                                            \
-  {                                                                                                                  \
-    int16_t t = a;                                                                                                 \
-    a = b;                                                                                                         \
-    b = t;                                                                                                         \
-  }
+#define _swap_int16_t(a, b) \
+{                           \
+  int16_t t = a;            \
+  a = b;                    \
+  b = t;                    \
+}
 #endif
 
 /**
- * @brief       setRotation function sets _width and _height modified by current
- * rotation
+ * @brief  setRotation function sets _width and _height modified by current
+ *         rotation
  *
- * @param       uint8_t x
- *              screen rotation 0 is normal, 1 is left, 2 is upsidedown and 3 is
- * right
+ * @param  uint8_t x
+ *         screen rotation 0 is normal, 1 is left, 2 is upsidedown and 3 is
+ *         right
  */
 void Graphics::setRotation(uint8_t x)
 {
@@ -40,9 +40,9 @@ void Graphics::setRotation(uint8_t x)
 }
 
 /**
- * @brief       getRotation gets screen rotation
+ * @brief  getRotation gets screen rotation
  *
- * @return      0 is normal, 1 is left, 2 is upsidedown and 3 is right
+ * @return 0 is normal, 1 is left, 2 is upsidedown and 3 is right
  */
 uint8_t Graphics::getRotation()
 {
@@ -50,40 +50,35 @@ uint8_t Graphics::getRotation()
 }
 
 /**
- * @brief       drawPixes function that calls drawPixes for different screen
- * sizes
+ * @brief  drawPixes function that calls drawPixes for different screen sizes
  *
- * @param       int16_t x0
- *              x position, will change depending on rotation
- * @param       int16_t y0
- *              y position, will change depending on rotation
+ * @param  int16_t x0
+ *         x position, will change depending on rotation
+ * @param  int16_t y0
+ *         y position, will change depending on rotation
  *
- * @param       uint16_t color
- *              pixel color, in 3bit mode have values in range 0-7
+ * @param  uint16_t color
+ *         pixel color, in 3bit mode have values in range 0-7
  */
 void Graphics::drawPixel(int16_t x0, int16_t y0, uint16_t color)
 {
   writePixel(x0, y0, color); // Specified in boards folder
 }
 
-void Graphics::startWrite()
-{
-}
-
 /**
- * @brief       writeFillRectangle function writes filled rectangle starting at
- * x,y position
+ * @brief  writeFillRectangle function writes filled rectangle starting at
+ *         x,y position
  *
- * @param       int16_t x
- *              upper left corner x position for rectangle
- * @param       int16_t y
- *              upper right corner y position for rectangle
- * @param       int16_t w
- *              rectangle width
- * @param       int16_t h
- *              rectangle height
- * @param       uint16_t color
- *              pixel color, in 3bit mode have values in range 0-7
+ * @param  int16_t x
+ *         upper left corner x position for rectangle
+ * @param  int16_t y
+ *         upper right corner y position for rectangle
+ * @param  int16_t w
+ *         rectangle width
+ * @param  int16_t h
+ *         rectangle height
+ * @param  uint16_t color
+ *         pixel color, in 3bit mode have values in range 0-7
  */
 void Graphics::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
 {
@@ -93,17 +88,16 @@ void Graphics::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_
 }
 
 /**
- * @brief       writeFastVLine function writes vertical line starting at x,y
- * position
+ * @brief  writeFastVLine function writes vertical line starting at x,y position
  *
- * @param       int16_t x
- *              starting x position for vertical line
- * @param       int16_t y
- *              starting y position for vertical line
- * @param       int16_t h
- *              vertical line height
- * @param       uint16_t color
- *              pixel color, in 3bit mode have values in range 0-7
+ * @param  int16_t x
+ *         starting x position for vertical line
+ * @param  int16_t y
+ *         starting y position for vertical line
+ * @param  int16_t h
+ *         vertical line height
+ * @param  uint16_t color
+ *         pixel color, in 3bit mode have values in range 0-7
  */
 void Graphics::writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 {
@@ -112,17 +106,16 @@ void Graphics::writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 }
 
 /**
- * @brief       writeFastHLine function writes horizontal line starting at x,y
- * position
+ * @brief  writeFastHLine function writes horizontal line starting at x,y position
  *
- * @param       int16_t x
- *              starting x position for horizontal line
- * @param       int16_t y
- *              starting y position for horizontal line
- * @param       int16_t w
- *              horizontal line width
- * @param       uint16_t color
- *              pixel color, in 3bit mode have values in range 0-7
+ * @param  int16_t x
+ *         starting x position for horizontal line
+ * @param  int16_t y
+ *         starting y position for horizontal line
+ * @param  int16_t w
+ *         horizontal line width
+ * @param  uint16_t color
+ *         pixel color, in 3bit mode have values in range 0-7
  */
 void Graphics::writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 {
@@ -131,18 +124,18 @@ void Graphics::writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color)
 }
 
 /**
- * @brief       writeLine function that writes line at the degree
+ * @brief  writeLine function that writes line at the degree
  *
- * @param       int16_t x0
- *              starting x position for line
- * @param       int16_t y0
- *              starting y position for line
- * @param       int16_t x1
- *              ending x position for line
- * @param       int16_t y1
- *              ending y position for line
- * @param       uint16_t color
- *              pixel color, in 3bit mode have values in range 0-7
+ * @param  int16_t x0
+ *         starting x position for line
+ * @param  int16_t y0
+ *         starting y position for line
+ * @param  int16_t x1
+ *         ending x position for line
+ * @param  int16_t y1
+ *         ending y position for line
+ * @param  uint16_t color
+ *         pixel color, in 3bit mode have values in range 0-7
  */
 void Graphics::writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color)
 {
@@ -192,33 +185,33 @@ void Graphics::endWrite()
 
 
 /**
- * @brief       Draws a text box with optional border and word-wrapped content
+ * @brief  Draws a text box with optional border and word-wrapped content
  *
- * @param       int16_t x0
- *              Top-left x-coordinate of the text box
- * @param       int16_t y0
- *              Top-left y-coordinate of the text box
- * @param       int16_t x1
- *              Bottom-right x-coordinate of the text box
- * @param       int16_t y1
- *              Bottom-right y-coordinate of the text box
- * @param       const char* text
- *              The null-terminated string to be rendered inside the box
- * @param       uint16_t textSizeMultiplier
- *              Size multiplier for the text
- * @param       const GFXfont* font
- *              Pointer to the font to use for rendering the text
- * @param       uint16_t verticalSpacing
- *              Vertical spacing (in pixels) between lines of text; if 0 or NULL, defaults to text height + padding
- * @param       bool showBorder
- *              Whether to draw a border around the text box
- * @param       uint16_t fontSize
- *              Font size in points (pt)
+ * @param  int16_t x0
+ *         Top-left x-coordinate of the text box
+ * @param  int16_t y0
+ *         Top-left y-coordinate of the text box
+ * @param  int16_t x1
+ *         Bottom-right x-coordinate of the text box
+ * @param  int16_t y1
+ *         Bottom-right y-coordinate of the text box
+ * @param  const char* text
+ *         The null-terminated string to be rendered inside the box
+ * @param  uint16_t textSizeMultiplier
+ *         Size multiplier for the text
+ * @param  const GFXfont* font
+ *         Pointer to the font to use for rendering the text
+ * @param  uint16_t verticalSpacing
+ *         Vertical spacing (in pixels) between lines of text; if 0 or NULL, defaults to text height + padding
+ * @param  bool showBorder
+ *         Whether to draw a border around the text box
+ * @param  uint16_t fontSize
+ *         Font size in points (pt)
  *
- * @details     This function renders a block of text inside the defined rectangular area.
- *              It automatically wraps words to the next line if they exceed the available width.
- *              If the text does not fit entirely, an ellipsis ("...") is added to the final visible line.
- *              Text is padded with spaces to keep a consistent line length.
+ * @note   This function renders a block of text inside the defined rectangular area.
+ *         It automatically wraps words to the next line if they exceed the available width.
+ *         If the text does not fit entirely, an ellipsis ("...") is added to the final visible line.
+ *         Text is padded with spaces to keep a consistent line length.
  */
 void Graphics::drawTextBox(int16_t x0, int16_t y0, int16_t x1, int16_t y1, const char *text,
                uint16_t textSizeMultiplier, const GFXfont *font, uint16_t verticalSpacing, bool showBorder,

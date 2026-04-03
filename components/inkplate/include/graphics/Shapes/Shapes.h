@@ -7,16 +7,12 @@
 #define maxVer 100
 #define maxHt  E_INK_HEIGHT
 
-/**
- * @brief       Shapes class is used to generate basic shapes
- */
 class Shapes : virtual public Adafruit_GFX
 {
   public:
   Shapes(int16_t w, int16_t h) : Adafruit_GFX(w, h){};
 
   virtual void drawPixel(int16_t x, int16_t y, uint16_t color) = 0;
-
 
   void drawElipse(int rx, int ry, int xc, int yc, int c);
   void fillElipse(int rx, int ry, int xc, int yc, int c);
@@ -25,9 +21,7 @@ class Shapes : virtual public Adafruit_GFX
   void drawThickLine(int x1, int y1, int x2, int y2, int color, float thickness);
   void drawGradientLine(int x1, int y1, int x2, int y2, int color1, int color2, float thickness = -1);
 
-#if defined(ARDUINO_INKPLATE2) || defined(ARDUINO_INKPLATE4) || defined(ARDUINO_INKPLATE7)
   void drawTextWithShadow(int x, int y, const char *_text, uint8_t _colorText, uint8_t _colorShadow);
-#endif
 
   private:
   struct EdgeBucket
@@ -61,5 +55,3 @@ class Shapes : virtual public Adafruit_GFX
 
   edgeTableTuple *edgeTable, activeEdgeTuple;
 };
-
-#endif

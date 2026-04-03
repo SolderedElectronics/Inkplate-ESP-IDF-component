@@ -6,10 +6,10 @@
 
 #include "esp32/rom/tjpgd.h"
 
-// Workspace size for the TJpgDec decompressor
+// workspace size for the TJpgDec decompressor
 #define TJPGD_WORKSPACE_SIZE 16688
 
-// Convert RGB to 3-bit grayscale (0-7) using luminance weights
+// convert RGB to 3-bit grayscale (0-7) using luminance weights
 #ifndef RGB3BIT
 #define RGB3BIT(r, g, b) ((uint8_t)(((uint32_t)(r) * 54 + (uint32_t)(g) * 183 + (uint32_t)(b) * 19) >> 13))
 #endif
