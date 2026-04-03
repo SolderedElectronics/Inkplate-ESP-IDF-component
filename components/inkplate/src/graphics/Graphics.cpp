@@ -179,11 +179,6 @@ void Graphics::writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_
   }
 }
 
-void Graphics::endWrite()
-{
-}
-
-
 /**
  * @brief  Draws a text box with optional border and word-wrapped content
  *

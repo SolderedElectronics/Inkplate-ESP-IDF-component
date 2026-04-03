@@ -25,10 +25,8 @@ public:
   bool      draw(const char *src, int x, int y, bool invert = false, bool dither = false);
 
   // called by format decoders via m_inkplate->image when dithering is enabled
-  uint8_t   ditherGetPixelBmp(uint32_t px, int i, int j, int w, bool paletted);
-  uint8_t   ditherGetPixelJpeg(uint8_t px, int i, int j, int x, int y, int w, int h);
+  uint8_t   getDitheredPixel(uint32_t px, int i, int j, int w, bool paletted);
   void      ditherSwap(int w);
-  void      ditherSwapBlockJpeg(int x);
 
 private:
   friend class BMP;
@@ -43,10 +41,7 @@ private:
 
   bool      m_dither;
   uint8_t  *m_ditherBuffer[2];
-  uint16_t  m_jpegDitherBuffer[18][18];
   uint8_t   m_ditherPalette[256];
-  int       m_blockW;
-  int       m_blockH;
 };
 
 #endif

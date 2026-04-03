@@ -18,7 +18,6 @@ public:
            uint16_t fontSize = 8);
 
 private:
-  void startWrite(void) override;
   void writePixel(int16_t x, int16_t y, uint16_t color) override = 0;
   void writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) override;
   void writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color) override;

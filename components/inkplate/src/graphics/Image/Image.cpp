@@ -18,8 +18,6 @@ Image::Image(Inkplate *inkplate)
 {
   m_dither           = false;
   m_ditherBuffer[0]  = m_ditherBuffer[1] = nullptr;
-  m_blockW           = m_blockH = -1;
-  memset(m_jpegDitherBuffer, 0, sizeof(m_jpegDitherBuffer));
   memset(m_ditherPalette, 0, sizeof(m_ditherPalette));
 }
 
@@ -37,7 +35,7 @@ Image::Image(Inkplate *inkplate)
  *
  * @return new pixel value (dithered pixel)
  */
-uint8_t Image::ditherGetPixelBmp(uint32_t px, int i, int j, int w, bool paletted)
+uint8_t Image::getDitheredPixel(uint32_t px, int i, int j, int w, bool paletted)
 {
   if (paletted)
     px = m_ditherPalette[px];
@@ -65,54 +63,6 @@ uint8_t Image::ditherGetPixelBmp(uint32_t px, int i, int j, int w, bool paletted
 }
 
 /**
- * @brief  Calculates dither for given pixel in jpeg images.
- *
- * @param  uint8_t px
- *         pixel value with color information
- * @param  int i
- *         ditherBuffer width plane position
- * @param  int j
- *         ditherBuffer height plane position
- * @param  int x
- *         x image starting position
- * @param  int y
- *         y image starting position
- * @param  int w
- *         image width
- * @param  int h
- *         image height
- *
- * @return new pixel value (dithered pixel)
- */
-uint8_t Image::ditherGetPixelJpeg(uint8_t px, int i, int j, int x, int y, int w, int h)
-{
-  if (m_blockW == -1)
-  {
-    m_blockW = w;
-    m_blockH = h;
-  }
-
-  if (m_inkplate->getDisplayMode() == BLACK_AND_WHITE)
-    px = (uint16_t)px >> 1;
-
-  // for the first row of a block, blend in errors carried from the previous block row
-  uint32_t sum = (uint32_t)px + m_jpegDitherBuffer[j + 1][i + 1] +
-                 (j ? 0 : (uint32_t)m_ditherBuffer[0][x + i]);
-  uint8_t oldPixel = sum > 0xFF ? 0xFF : (uint8_t)sum;
-
-  uint8_t newPixel   = oldPixel & (m_inkplate->getDisplayMode() == BLACK_AND_WHITE ? 0x80 : 0xE0);
-  uint8_t quantError = oldPixel - newPixel;
-
-  // distribute error within the block buffer (offsets +1 provide a 1-pixel border)
-  m_jpegDitherBuffer[j + 2][i + 1] += (quantError * 5) >> 4;
-  m_jpegDitherBuffer[j + 1][i + 2] += (quantError * 7) >> 4;
-  m_jpegDitherBuffer[j + 2][i + 2] += (quantError * 1) >> 4;
-  m_jpegDitherBuffer[j + 2][i    ] += (quantError * 3) >> 4;
-
-  return newPixel >> 5;
-}
-
-/**
  * @brief  Swaps ditherBuffer values.
  *
  * @param  int w
@@ -125,28 +75,6 @@ void Image::ditherSwap(int w)
     m_ditherBuffer[0][i] = m_ditherBuffer[1][i];
     m_ditherBuffer[1][i] = 0;
   }
-}
-
-/**
- * @brief  Swaps ditherBuffer values.
- *
- * @param  int x
- *         x plane image starting point
- */
-void Image::ditherSwapBlockJpeg(int x)
-{
-  for (int i = 0; i < 18; ++i)
-  {
-    if (x + i)
-      m_ditherBuffer[1][x + i - 1] += (uint8_t)m_jpegDitherBuffer[m_blockH + 1][i];
-    m_jpegDitherBuffer[i][1] = m_jpegDitherBuffer[i][m_blockW + 1];
-  }
-  for (int j = 0; j < 18; ++j)
-    for (int i = 0; i < 18; ++i)
-      if (i != 1)
-        m_jpegDitherBuffer[j][i] = 0;
-
-  m_jpegDitherBuffer[17][1] = 0;
 }
 
 /**
@@ -271,8 +199,6 @@ void Image::beginDither()
 {
   m_ditherBuffer[0] = (uint8_t *)calloc(BMP_MAX_WIDTH + 2, 1);
   m_ditherBuffer[1] = (uint8_t *)calloc(BMP_MAX_WIDTH + 2, 1);
-  memset(m_jpegDitherBuffer, 0, sizeof(m_jpegDitherBuffer));
-  m_blockW = m_blockH = -1;
 }
 
 /**

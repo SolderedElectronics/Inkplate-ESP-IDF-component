@@ -33,7 +33,9 @@ private:
   bool         m_invert;
   bool         m_dither;
   int64_t      m_lastYieldUs;
-  int          m_lastMCUTop;   // tracks MCU row changes for ditherSwap
+  uint8_t     *m_lineBuf;    // one MCU-row-height of luminance values (dither only)
+  int          m_lineBufH;   // MCU block height, set from first callback
+  int          m_lineBufY;   // current absolute Y offset in the image
   static JPEG *m_instance;
 };
 

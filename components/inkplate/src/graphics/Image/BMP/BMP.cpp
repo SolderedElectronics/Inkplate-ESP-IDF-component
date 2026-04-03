@@ -139,7 +139,7 @@ void BMP::drawLine(int16_t x, int16_t y, bitmapHeader *header, bool invert, bool
     case 1: {
       uint8_t bit = !!(m_pixelBuffer[j >> 3] & (1 << (7 - (j & 7))));
       if (dither)
-        val = m_inkplate->image.ditherGetPixelBmp(bit, j, 0, w, true);
+        val = m_inkplate->image.getDitheredPixel(bit, j, 0, w, true);
       else
         val = (invert ^ (m_palette[0] > m_palette[1])) ^ bit;
       break;
@@ -147,7 +147,7 @@ void BMP::drawLine(int16_t x, int16_t y, bitmapHeader *header, bool invert, bool
     case 4: {
       uint8_t px = (m_pixelBuffer[j >> 1] & (j & 1 ? 0x0F : 0xF0)) >> (j & 1 ? 0 : 4);
       if (dither)
-        val = m_inkplate->image.ditherGetPixelBmp(px, j, 0, w, true);
+        val = m_inkplate->image.getDitheredPixel(px, j, 0, w, true);
       else
         val = (m_palette[px >> 1] & (px & 1 ? 0x0F : 0xF0)) >> (px & 1 ? 0 : 4);
       break;
@@ -155,7 +155,7 @@ void BMP::drawLine(int16_t x, int16_t y, bitmapHeader *header, bool invert, bool
     case 8: {
       uint8_t px = m_pixelBuffer[j];
       if (dither)
-        val = m_inkplate->image.ditherGetPixelBmp(px, j, 0, w, true);
+        val = m_inkplate->image.getDitheredPixel(px, j, 0, w, true);
       else
         val = (m_palette[px >> 1] & (px & 1 ? 0x0F : 0xF0)) >> (px & 1 ? 0 : 4);
       break;
@@ -166,7 +166,7 @@ void BMP::drawLine(int16_t x, int16_t y, bitmapHeader *header, bool invert, bool
       uint8_t  g  = (px & 0x03E0) >> 2;
       uint8_t  b  = (px & 0x001F) << 3;
       if (dither)
-        val = m_inkplate->image.ditherGetPixelBmp(RGB8BIT(r, g, b), j, 0, w, false);
+        val = m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), j, 0, w, false);
       else
         val = RGB3BIT(r, g, b);
       break;
@@ -176,7 +176,7 @@ void BMP::drawLine(int16_t x, int16_t y, bitmapHeader *header, bool invert, bool
       uint8_t g = m_pixelBuffer[j * 3 + 1];
       uint8_t r = m_pixelBuffer[j * 3 + 2];
       if (dither)
-        val = m_inkplate->image.ditherGetPixelBmp(RGB8BIT(r, g, b), j, 0, w, false);
+        val = m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), j, 0, w, false);
       else
         val = RGB3BIT(r, g, b);
       break;
@@ -186,7 +186,7 @@ void BMP::drawLine(int16_t x, int16_t y, bitmapHeader *header, bool invert, bool
       uint8_t g = m_pixelBuffer[j * 4 + 1];
       uint8_t r = m_pixelBuffer[j * 4 + 2];
       if (dither)
-        val = m_inkplate->image.ditherGetPixelBmp(RGB8BIT(r, g, b), j, 0, w, false);
+        val = m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), j, 0, w, false);
       else
         val = RGB3BIT(r, g, b);
       break;

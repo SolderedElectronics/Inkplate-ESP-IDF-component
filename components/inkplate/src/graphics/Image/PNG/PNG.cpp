@@ -118,7 +118,7 @@ void PNG::drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint3
       m_instance->m_inkplate->image.ditherSwap(ihdr->width);
     m_lastDitherY = y;
 
-    val = m_instance->m_inkplate->image.ditherGetPixelBmp(RGB8BIT(r, g, b), x, 0, ihdr->width, false);
+    val = m_instance->m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), x, 0, ihdr->width, false);
   }
   else
   {
