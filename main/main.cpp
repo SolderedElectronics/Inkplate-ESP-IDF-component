@@ -6,7 +6,7 @@
 
 static const char *TAG = "MAIN";
 
-// Image file on the SD card root (change extension to match your file)
+
 #define IMAGE_PATH "https://upload.wikimedia.org/wikipedia/commons/c/c2/Auckland_Skyline_800x600.jpg"
 extern "C"
 void app_main(void)

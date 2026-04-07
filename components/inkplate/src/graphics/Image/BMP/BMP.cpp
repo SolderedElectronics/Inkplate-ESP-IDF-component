@@ -100,13 +100,14 @@ void BMP::readHeader(uint8_t *buf, bitmapHeader *header)
 /**
  * @brief  Check if BMP header is valid.
  *
- * @return return true if the colour depth is one we can decode
+ * @return bool
+ *         true if the colour depth is one we can decode
  */
 bool BMP::isValid(bitmapHeader *header)
 {
   return (header->color == 1  || header->color == 4  ||
-      header->color == 8  || header->color == 16 ||
-      header->color == 24 || header->color == 32);
+          header->color == 8  || header->color == 16 ||
+          header->color == 24 || header->color == 32);
 }
 
 /**

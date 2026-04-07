@@ -8,6 +8,9 @@
 #if CONFIG_INKPLATE_BOARD_INKPLATE6
   #include "inkplate6/Inkplate6.h"
   #define INKPLATE_BOARD_CLASS Inkplate6
+#elif CONFIG_INKPLATE_BOARD_INKPLATE10
+  #include "inkplate10/Inkplate10.h"
+  #define INKPLATE_BOARD_CLASS Inkplate10
 #else
   #error "No Inkplate board selected. Choose a board in menuconfig → Inkplate Board."
 #endif

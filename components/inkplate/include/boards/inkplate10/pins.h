@@ -1,5 +1,5 @@
-#ifndef _INKPLATE6_PINS_H_
-#define _INKPLATE6_PINS_H_
+#ifndef _INKPLATE10_PINS_H_
+#define _INKPLATE10_PINS_H_
 
 #include "soc/gpio_reg.h"
 #include "soc/gpio_struct.h"
