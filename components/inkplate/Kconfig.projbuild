@@ -10,6 +10,9 @@ choice INKPLATE_BOARD
     config INKPLATE_BOARD_INKPLATE10
         bool "Inkplate10"
 
+    config INKPLATE_BOARD_INKPLATE5
+        bool "Inkplate5"
+
 endchoice
 
 endmenu

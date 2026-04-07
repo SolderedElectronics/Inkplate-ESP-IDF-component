@@ -14,7 +14,7 @@ void app_main(void)
     Inkplate display;
 
     display.setDisplayMode(BLACK_AND_WHITE);
-    display.clearDisplay();
+    display.clearDisplay();     // Clear the frame buffer (does NOT clear the physical screen)
 
 
     if (!display.image.draw(IMAGE_PATH, 0,0, false, true))

@@ -2,6 +2,8 @@ if(CONFIG_INKPLATE_BOARD_INKPLATE6)
     set(BOARD_SRC "src/boards/inkplate6/Inkplate6.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE10)
     set(BOARD_SRC "src/boards/inkplate10/Inkplate10.cpp")
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE5)
+    set(BOARD_SRC "src/boards/inkplate5/Inkplate5.cpp")
 endif()
 
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"
@@ -22,7 +24,7 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                        REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer" "esp_adc"
                                 "esp_driver_spi" "fatfs" "sdmmc"
                                 "esp_wifi" "nvs_flash" "esp_http_client"
-                       INCLUDE_DIRS "include" "include/features" "include/boards" "include/boards/inkplate6" "include/boards/inkplate10"
+                       INCLUDE_DIRS "include" "include/features" "include/boards" "include/boards/inkplate5" "include/boards/inkplate6" "include/boards/inkplate10"
                                     "include/graphics" "include/graphics/Adafruit_GFX" "include/graphics/Shapes"
                                     "include/graphics/Image"
                                     "include/graphics/Image/BMP"
