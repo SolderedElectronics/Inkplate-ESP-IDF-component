@@ -39,6 +39,10 @@ public:
   void          cleanBurnIn(uint8_t cleanCycles, uint16_t cleanDelay);
   double        readBattery();
 
+  esp_err_t     setVCOM(double vcom);
+  double        getVCOM();
+  double        getStoredVCOM();
+
   RTC           rtc;
 
   esp_err_t     sdCardInit();

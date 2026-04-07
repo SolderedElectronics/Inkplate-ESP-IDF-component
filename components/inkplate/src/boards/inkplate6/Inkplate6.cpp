@@ -7,9 +7,14 @@
 #include "esp_adc/adc_cali_scheme.h"
 #include "string.h"
 #include "esp_log.h"
+#include "nvs_flash.h"
+#include "nvs.h"
 
 #include "Inkplate6.h"
 #include "I2C.h"
+
+#define NVS_NAMESPACE "inkplate"
+#define NVS_VCOM_KEY  "vcom"
 
 static const char* TAG = "ESP_INKPLATE6";
 
@@ -490,6 +495,80 @@ esp_err_t Inkplate6::sdCardInit()
 const char* Inkplate6::getMountPoint()
 {
   return sdCard.getMountPoint();
+}
+
+/**
+ * @brief  Program VCOM voltage into the PMIC and persist it in NVS.
+ *
+ * @param  double vcom
+ *         VCOM value in volts (must be in range -5.0 to 0.0).
+ *
+ * @return ESP_OK on success, ESP_ERR_INVALID_ARG if out of range,
+ *         ESP_FAIL if EEPROM write verification fails.
+ */
+esp_err_t Inkplate6::setVCOM(double vcom)
+{
+  if (vcom < -5.0 || vcom > 0.0)
+    return ESP_ERR_INVALID_ARG;
+
+  esp_err_t ret = einkOn();
+  if (ret != ESP_OK)
+    return ret;
+
+  ret = tps.writeVCOM(vcom, expander1);
+  einkOff();
+
+  if (ret != ESP_OK)
+    return ret;
+
+  nvs_handle_t nvs;
+  if (nvs_open(NVS_NAMESPACE, NVS_READWRITE, &nvs) == ESP_OK)
+  {
+    int32_t stored = (int32_t)(vcom * 100.0);
+    nvs_set_i32(nvs, NVS_VCOM_KEY, stored);
+    nvs_commit(nvs);
+    nvs_close(nvs);
+  }
+
+  return ESP_OK;
+}
+
+/**
+ * @brief  Read the VCOM voltage stored in NVS (set by a previous setVCOM call).
+ *
+ * @return VCOM in volts (negative), or 0.0 if not set.
+ */
+double Inkplate6::getVCOM()
+{
+  nvs_handle_t nvs;
+  if (nvs_open(NVS_NAMESPACE, NVS_READONLY, &nvs) != ESP_OK)
+    return 0.0;
+
+  int32_t stored = 0;
+  esp_err_t ret = nvs_get_i32(nvs, NVS_VCOM_KEY, &stored);
+  nvs_close(nvs);
+
+  if (ret != ESP_OK)
+    return 0.0;
+
+  return stored / 100.0;
+}
+
+/**
+ * @brief  Read the VCOM voltage currently programmed in the PMIC registers.
+ *
+ * @return VCOM in volts (negative).
+ *
+ * @note   Turns eink on briefly to read registers, then turns it off.
+ */
+double Inkplate6::getStoredVCOM()
+{
+  if (einkOn() != ESP_OK)
+    return 0.0;
+
+  double vcom = tps.readVCOM();
+  einkOff();
+  return vcom;
 }
 
 /**

@@ -5,12 +5,16 @@
 #include <stdint.h>
 
 #include "I2C.h"
+#include "PCAL.h"
 
 #define TPS_I2C_ADDR  0x48
 
 #define TPS_PWR_GOOD  0b11111010
 #define TPS_PWRUP_SEQ 0b11100100
 #define TPS_PWRDN_SEQ 0b00011011
+
+// IO expander pin wired to TPS65186 INT output
+#define TPS_INT_PIN   IO_NUM_A6
 
 class TPS
 {
@@ -24,6 +28,11 @@ public:
   esp_err_t setPowerDownSequence(uint8_t seq);
   uint8_t   readPowerGood();
   bool      waitPowerGood(bool target);
+
+  // VCOM programming — call with eink power already on
+  esp_err_t writeVCOM(double vcom, PCAL &expander);
+  // Read VCOM back from TPS65186 registers
+  double    readVCOM();
 
 private:
   esp_err_t writeReg(uint8_t reg, uint8_t val);

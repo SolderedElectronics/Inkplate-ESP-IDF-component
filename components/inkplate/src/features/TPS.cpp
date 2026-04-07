@@ -1,7 +1,10 @@
 #include "TPS.h"
 #include "esp_err.h"
+#include "esp_log.h"
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
+
+static const char *TAG = "TPS";
 
 /**
  * ============================================================
@@ -112,6 +115,80 @@ bool TPS::waitPowerGood(bool target)
   } while ((readPowerGood() == TPS_PWR_GOOD) != target && (esp_timer_get_time() - timer) < 250000LL);
 
   return (esp_timer_get_time() - timer) < 250000LL;
+}
+
+/**
+ * @brief  Program VCOM voltage into the TPS65186 internal EEPROM.
+ *
+ * @param  double vcom
+ *         VCOM value in volts (must be in range -5.0 to 0.0).
+ * @param  PCAL &expander
+ *         IO expander instance with TPS_INT_PIN connected to TPS65186 INT.
+ *
+ * @return ESP_OK on success, ESP_ERR_INVALID_ARG if out of range,
+ *         ESP_FAIL if readback verification fails.
+ *
+ * @note   Call with eink power already on (einkOn()).
+ */
+esp_err_t TPS::writeVCOM(double vcom, PCAL &expander)
+{
+  if (vcom < -5.0 || vcom > 0.0)
+    return ESP_ERR_INVALID_ARG;
+
+  // Configure INT pin as input with pull-up
+  expander.setDirection(TPS_INT_PIN, IO_MODE_INPUT);
+  expander.setPullMode(TPS_INT_PIN, IO_PULLUP);
+
+  // Convert to 9-bit raw value (abs * 100, e.g. -1.23V → 123)
+  int     raw    = abs((int)(vcom * 100.0)) & 0x1FF;
+  uint8_t vcomL  = (uint8_t)(raw & 0xFF);
+  uint8_t vcomMSB = (uint8_t)((raw >> 8) & 0x01);
+
+  // Write low 8 bits to REG_VCOM1 (0x03)
+  writeReg(0x03, vcomL);
+
+  // Read REG_VCOM2 (0x04), preserve reserved bits, set MSB, clear program bit
+  uint8_t r4 = readReg(0x04);
+  r4 &= ~((1 << 0) | (1 << 6));
+  r4 |= vcomMSB;
+  writeReg(0x04, r4);
+  esp_rom_delay_us(1000);
+
+  // Strobe EEPROM program bit (bit 6)
+  writeReg(0x04, r4 | (1 << 6));
+
+  // Wait for INT to go low (programming done), 1 s timeout
+  int64_t deadline = esp_timer_get_time() + 1000000LL;
+  while (expander.getLevel(TPS_INT_PIN) && esp_timer_get_time() < deadline)
+    esp_rom_delay_us(1000);
+
+  // Clear interrupt by reading INT1 register (0x07)
+  (void)readReg(0x07);
+
+  // Readback verification
+  uint8_t rdL  = readReg(0x03);
+  uint8_t rdH  = readReg(0x04) & 0x01;
+  int     check = ((int)rdH << 8) | rdL;
+
+  ESP_LOGI(TAG, "VCOM program: raw=%d readback=%d %s",
+           raw, check, (check == raw) ? "OK" : "FAIL");
+
+  return (check == raw) ? ESP_OK : ESP_FAIL;
+}
+
+/**
+ * @brief  Read the VCOM voltage currently stored in TPS65186 registers.
+ *
+ * @return VCOM in volts (negative, e.g. -1.23).
+ *
+ * @note   Call with eink power already on (einkOn()).
+ */
+double TPS::readVCOM()
+{
+  uint8_t vcomL = readReg(0x03);
+  uint8_t vcomH = readReg(0x04) & 0x01;
+  int raw = ((int)vcomH << 8) | vcomL;
+  return -(raw / 100.0);
 }
 
 /**
