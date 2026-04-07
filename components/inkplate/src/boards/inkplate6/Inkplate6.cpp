@@ -379,6 +379,37 @@ void Inkplate6::setFullUpdateThreshold(uint16_t numberOfPartialUpdates)
   m_blockPartial = true;
 }
 
+
+/**
+ * @brief   Cleans the screen of any potential burn in by writing a clear sequence to the panel.
+ *
+ * @param   uint8_t clearCycles
+ *          number of clear cycles
+ * @param   uint16_t cyclesDelay
+ *          delay between clear cycles (in milliseconds)
+ *
+ * @note    Cycles delay should not be smaller than 5 seconds
+ */
+void Inkplate6::cleanBurnIn(uint8_t clearCycles, uint16_t cyclesDelay)
+{
+  einkOn();
+
+  while (clearCycles)
+  {
+    clean(1, 21);
+    clean(2, 1);
+    clean(0, 12);
+    clean(2, 1);
+    clean(1, 21);
+    clean(2, 1);
+    clean(0, 12);
+    clean(2, 1);
+
+    esp_rom_delay_us(cyclesDelay * 1000);
+    clearCycles--;
+  }
+}
+
 /**
  * @brief  Read the battery voltage.
  *
@@ -429,16 +460,33 @@ double Inkplate6::readBattery()
   return (double(mv) * 2.0 / 1000.0);
 }
 
+/**
+ * @brief  Initialise the SD card.
+ *
+ * @return esp_err_t
+ *          ESP_OK on success, or an error code from the SPI/VFS driver
+ */
 esp_err_t Inkplate6::sdCardInit()
 {
   return sdCard.sdCardInit();
 }
 
-esp_err_t Inkplate6::sdCardSleep()
+/**
+ * @brief  Send SD card to sleep.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an error code if unmounting failed
+ */esp_err_t Inkplate6::sdCardSleep()
 {
   return sdCard.sdCardSleep();
 }
 
+/**
+ * @brief  Get the mount point string for constructing file paths.
+ *
+ * @return const char*
+ *         Mount point, e.g. "/sdcard".
+ */
 const char* Inkplate6::getMountPoint()
 {
   return sdCard.getMountPoint();

@@ -6,11 +6,12 @@
 
 static const char *TAG = "MAIN";
 
-
 #define IMAGE_PATH "https://upload.wikimedia.org/wikipedia/commons/c/c2/Auckland_Skyline_800x600.jpg"
+
 extern "C"
 void app_main(void)
 {
+    ESP_LOGI(TAG, "TEST");
     Inkplate display;
 
     display.setDisplayMode(BLACK_AND_WHITE);
@@ -20,5 +21,7 @@ void app_main(void)
     if (!display.image.draw(IMAGE_PATH, 0,0, false, true))
         ESP_LOGE(TAG, "Image draw failed");
 
+
     display.display();
+
 }

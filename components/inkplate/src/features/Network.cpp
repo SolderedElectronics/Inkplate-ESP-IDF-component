@@ -89,13 +89,15 @@ bool WiFi::waitForConnect(uint32_t timeoutMs)
  * @return uint8_t* pointer to allocated buffer, or NULL on failure.
  *         Caller is responsible for freeing the buffer.
  */
-uint8_t *WiFi::downloadFile(const char *url, int32_t *len)
+uint8_t* WiFi::downloadFile(const char *url, int32_t *len)
 {
   if (!waitForConnect())
   {
   ESP_LOGE(TAG, "No WiFi connection");
   return NULL;
   }
+
+  ESP_LOGI(TAG, "Downloading file via HTTPS");
 
   esp_http_client_config_t config = {};
   config.url         = url;
@@ -158,13 +160,15 @@ uint8_t *WiFi::downloadFile(const char *url, int32_t *len)
  * @return uint8_t* pointer to allocated buffer, or NULL on failure.
  *         Caller is responsible for freeing the buffer.
  */
-uint8_t *WiFi::downloadFileHTTPS(const char *url, int32_t *len)
+uint8_t* WiFi::downloadFileHTTPS(const char *url, int32_t *len)
 {
   if (!waitForConnect())
   {
   ESP_LOGE(TAG, "No WiFi connection");
   return NULL;
   }
+
+  ESP_LOGI(TAG, "Downloading file via HTTPS");
 
   esp_http_client_config_t config = {};
   config.url            = url;

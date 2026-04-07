@@ -28,55 +28,56 @@ public:
 
   void          setDisplayMode(displayMode_t mode);
   displayMode_t getDisplayMode() { return m_displayMode; }
-  void        writePixelInternal(int16_t x, int16_t y, uint16_t color);
-  void        clearDisplay();
-  void        fillDisplay();
-  esp_err_t   display(bool leaveOn = false);
-  uint32_t    partialUpdate(bool forced = false, bool leaveOn = false);
-  esp_err_t   einkOn();
-  esp_err_t   einkOff();
-  void        setFullUpdateThreshold(uint16_t numberOfPartialUpdates);
-  double      readBattery();
+  void          writePixelInternal(int16_t x, int16_t y, uint16_t color);
+  void          clearDisplay();
+  void          fillDisplay();
+  esp_err_t     display(bool leaveOn = false);
+  uint32_t      partialUpdate(bool forced = false, bool leaveOn = false);
+  esp_err_t     einkOn();
+  esp_err_t     einkOff();
+  void          setFullUpdateThreshold(uint16_t numberOfPartialUpdates);
+  void          cleanBurnIn(uint8_t cleanCycles, uint16_t cleanDelay);
+  double        readBattery();
 
-  RTC         rtc;
+  RTC           rtc;
 
-  esp_err_t   sdCardInit();
-  esp_err_t   sdCardSleep();
-  const char* getMountPoint();
+  esp_err_t     sdCardInit();
+  esp_err_t     sdCardSleep();
+  const char*   getMountPoint();
 
 private:
-  esp_err_t   initBuffers();
-  void        calculateLUTs();
-  esp_err_t   display3b(bool leaveOn);
-  esp_err_t   display1b(bool leaveOn);
-  void        gpioInit();
-  void        clean(uint8_t c, uint8_t rep);
-  esp_err_t   pmicBegin();
-  void        vscanStart();
-  void        vscanEnd();
-  void        pinsAsOutputs();
-  void        pinsZstate();
-  void        setPanelState(bool state);
-  bool        getPanelState();
+  esp_err_t     initBuffers();
+  void          calculateLUTs();
+  esp_err_t     display3b(bool leaveOn);
+  esp_err_t     display1b(bool leaveOn);
+  void          gpioInit();
+  void          clean(uint8_t c, uint8_t rep);
+  esp_err_t     pmicBegin();
+  void          vscanStart();
+  void          vscanEnd();
+  void          pinsAsOutputs();
+  void          pinsZstate();
+  void          setPanelState(bool state);
+  bool          getPanelState();
 
-  displayMode_t           m_displayMode  = GRAYSCALE;
+  displayMode_t m_displayMode  = GRAYSCALE;
 
-  uint8_t*                m_framebufferColor = nullptr;
-  uint8_t*                m_framebuffer      = nullptr;
+  uint8_t*      m_framebufferColor = nullptr;
+  uint8_t*      m_framebuffer      = nullptr;
   // buffer for partial updates
-  uint8_t*                m_newFramebuffer   = nullptr;
+  uint8_t*      m_newFramebuffer   = nullptr;
   // holds the pre-computed waveform data ready to send to the display
-  uint8_t*                m_waveformBuffer   = nullptr;
+  uint8_t*      m_waveformBuffer   = nullptr;
 
-  uint16_t                m_partialUpdateLimiter = 10;
-  uint16_t                m_partialUpdateCounter = 0;
-  bool                    m_blockPartial = true;
+  uint16_t      m_partialUpdateLimiter = 10;
+  uint16_t      m_partialUpdateCounter = 0;
+  bool          m_blockPartial = true;
 
-  uint8_t*                m_glut    = nullptr;
-  uint8_t*                m_glut2   = nullptr;
-  uint32_t*               m_pinLUT  = nullptr;
+  uint8_t*      m_glut    = nullptr;
+  uint8_t*      m_glut2   = nullptr;
+  uint32_t*     m_pinLUT  = nullptr;
 
-  bool                    m_panelState = false;
+  bool          m_panelState = false;
 
 };
 

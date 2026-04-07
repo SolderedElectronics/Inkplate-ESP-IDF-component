@@ -1,12 +1,14 @@
 #ifndef _INKPLATE_BOARDS_H_
 #define _INKPLATE_BOARDS_H_
 
-#ifndef E_INK_WIDTH
-#define E_INK_WIDTH  800
-#endif
+#include "sdkconfig.h"
 
-#ifndef E_INK_HEIGHT
-#define E_INK_HEIGHT 600
+#if CONFIG_INKPLATE_BOARD_INKPLATE6
+  #include "inkplate6/Inkplate6.h"
+#elif CONFIG_INKPLATE_BOARD_INKPLATE10
+  #include "inkplate10/Inkplate10.h"
+#else
+  #error "No Inkplate board selected. Choose a board in menuconfig -> Inkplate Board."
 #endif
 
 #endif

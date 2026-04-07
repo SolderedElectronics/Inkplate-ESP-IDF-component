@@ -56,4 +56,7 @@ extern PCAL expander1;
 #define LE_SET       do { GPIO.out_w1ts = LE; } while(0)
 #define LE_CLEAR     do { GPIO.out_w1tc = LE; } while(0)
 
+
+#define DATA 0x0E8C0030
+
 #endif
