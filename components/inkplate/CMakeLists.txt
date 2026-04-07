@@ -1,8 +1,14 @@
+if(CONFIG_INKPLATE_BOARD_INKPLATE6)
+    set(BOARD_SRC "src/boards/inkplate6/Inkplate6.cpp")
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE10)
+    set(BOARD_SRC "src/boards/inkplate10/Inkplate10.cpp")
+endif()
+
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"
                              "src/features/Network.cpp"
                              "src/features/SDCard.cpp"
-                             "src/boards/inkplate6/Inkplate6.cpp"
-                             "src/boards/inkplate10/Inkplate10.cpp"
+                             "src/boards/BoardCommon.cpp"
+                             "${BOARD_SRC}"
                              "src/boards/Inkplate.cpp"
                              "src/graphics/Graphics.cpp"
                              "src/graphics/Image/Image.cpp"

@@ -6,42 +6,19 @@
 
 static const char *TAG = "MAIN";
 
-static void displayTestImage(Inkplate &display)
-{
-    display.clearDisplay();
-
-    double vcom = display.getVCOM();
-    ESP_LOGI(TAG, "displayTestImage getVCOM() = %.2f", vcom);
-
-    char buf[32];
-    snprintf(buf, sizeof(buf), "Stored VCOM: %.2f V", vcom);
-
-    display.setTextSize(2);
-    display.setCursor(5, 5);
-    display.print(buf);
-
-    for (int i = 0; i < 8; i++)
-    {
-        int x = (display.width() / 8) * i;
-        display.fillRect(x, 40, display.width() / 8, display.height() - 40, i);
-    }
-
-    display.display(true);
-}
-
+// Image file on the SD card root (change extension to match your file)
+#define IMAGE_PATH "https://upload.wikimedia.org/wikipedia/commons/c/c2/Auckland_Skyline_800x600.jpg"
 extern "C"
 void app_main(void)
 {
     Inkplate display;
 
-    display.setDisplayMode(GRAYSCALE);
+    display.setDisplayMode(BLACK_AND_WHITE);
+    display.clearDisplay();
 
-    ESP_LOGI(TAG, "getVCOM before setVCOM: %.2f", display.getVCOM());
 
-    esp_err_t ret = display.setVCOM(-2.4);
-    ESP_LOGI(TAG, "setVCOM returned: %s", esp_err_to_name(ret));
+    if (!display.image.draw(IMAGE_PATH, 0,0, false, true))
+        ESP_LOGE(TAG, "Image draw failed");
 
-    ESP_LOGI(TAG, "getVCOM after setVCOM: %.2f", display.getVCOM());
-
-    displayTestImage(display);
+    display.display();
 }
