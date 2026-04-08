@@ -25,11 +25,13 @@ class Inkplate10 : public BoardCommon
 public:
   Inkplate10();
 
-  uint32_t partialUpdate(bool forced = false, bool leaveOn = false);
+  uint32_t  partialUpdate(bool forced = false, bool leaveOn = false);
+  esp_err_t einkOn() override;
+  esp_err_t einkOff() override;
 
   esp_err_t setWaveform(uint8_t waveformNumber, bool burnToEEPROM = false);
-  esp_err_t getWaveformFromEEPROM(struct waveformData *_w);
-  esp_err_t changeWaveform(uint8_t *_wf);
+  esp_err_t getWaveformFromEEPROM(struct waveformData *waveformData);
+  esp_err_t changeWaveform(uint8_t *waveform);
 
 private:
   esp_err_t initBuffers();
@@ -41,11 +43,9 @@ private:
   void      clean(uint8_t c, uint8_t rep);
   void      pinsAsOutputs();
   void      pinsZstate();
-  void      einkOnBoardInit();
-  void      einkOffClearPins();
 
-  uint8_t   calculateChecksum(struct waveformData _w);
-  esp_err_t burnWaveformToEEPROM(struct waveformData _w);
+  uint8_t   calculateChecksum(struct waveformData waveformData);
+  esp_err_t burnWaveformToEEPROM(struct waveformData waveformData);
 
   uint32_t* m_glut   = nullptr;
   uint32_t* m_glut2  = nullptr;

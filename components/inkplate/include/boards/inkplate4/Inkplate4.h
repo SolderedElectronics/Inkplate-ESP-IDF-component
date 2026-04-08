@@ -1,5 +1,5 @@
-#ifndef _INKPLATE_6_H_
-#define _INKPLATE_6_H_
+#ifndef _INKPLATE_4_H_
+#define _INKPLATE_4_H_
 
 #include "BoardCommon.h"
 #include "pins.h"
@@ -8,13 +8,13 @@
 
 #include "../../graphics/GraphicsDefs.h"
 
-#define E_INK_WIDTH  800
-#define E_INK_HEIGHT 600
+#define E_INK_WIDTH  400
+#define E_INK_HEIGHT 300
 
-class Inkplate6 : public BoardCommon
+class Inkplate4 : public BoardCommon
 {
 public:
-  Inkplate6();
+  Inkplate4();
 
   uint32_t  partialUpdate(bool forced = false, bool leaveOn = false);
   esp_err_t einkOn() override;

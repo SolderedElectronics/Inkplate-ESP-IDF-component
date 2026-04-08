@@ -19,8 +19,7 @@ public:
   void          fillDisplay();
   void          writePixelInternal(int16_t x, int16_t y, uint16_t color);
   esp_err_t     display(bool leaveOn = false);
-  esp_err_t     einkOn();
-  esp_err_t     einkOff();
+  void          blockGpioPins();
   void          setFullUpdateThreshold(uint16_t numberOfPartialUpdates);
   void          cleanBurnIn(uint8_t cleanCycles, uint16_t cleanDelay);
   double        readBattery();
@@ -28,6 +27,7 @@ public:
   esp_err_t     setVCOM(double vcom);
   double        getVCOM();
   double        getStoredVCOM();
+  int8_t        readTemperature();
 
   RTC           rtc;
 
@@ -46,10 +46,6 @@ protected:
   virtual void      pinsZstate() = 0;
   virtual esp_err_t initBuffers() = 0;
   virtual void      calculateLUTs() = 0;
-
-  // small pin-level differences in einkOn/einkOff, overridden per board
-  virtual void einkOnBoardInit() {}
-  virtual void einkOffClearPins() = 0;
 
   // shared low-level helpers
   void      vscanStart();

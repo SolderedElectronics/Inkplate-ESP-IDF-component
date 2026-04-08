@@ -87,6 +87,7 @@ public:
   PCAL(uint8_t addr, I2C &i2c);
 
   esp_err_t setLevel(IOPin_t pin, uint8_t level);
+  esp_err_t setLevelForce(IOPin_t pin, uint8_t level);
   int       getLevel(IOPin_t pin);
 
   esp_err_t setPort(IOPort_t port, uint8_t value);

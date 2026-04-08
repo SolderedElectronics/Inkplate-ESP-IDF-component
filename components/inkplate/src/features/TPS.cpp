@@ -179,7 +179,8 @@ esp_err_t TPS::writeVCOM(double vcom, PCAL &expander)
 /**
  * @brief  Read the VCOM voltage currently stored in TPS65186 registers.
  *
- * @return VCOM in volts (negative, e.g. -1.23).
+ * @return double
+ *         VCOM in volts (negative, e.g. -1.23).
  *
  * @note   Call with eink power already on (einkOn()).
  */
@@ -190,6 +191,27 @@ double TPS::readVCOM()
   int raw = ((int)vcomH << 8) | vcomL;
   return -(raw / 100.0);
 }
+
+/**
+ * @brief  Read the on-chip thermistor temperature.
+ *
+ * @return int8_t
+ *         Temperature in degrees Celsius.
+ *
+ * @note   Call with eink power already on (einkOn()).
+ */
+int8_t TPS::readTemperature()
+{
+  writeReg(0x0D, 0x80);        // trigger thermistor ADC conversion (bit 7 = CONV)
+  esp_rom_delay_us(5000);      // ~5 ms for conversion to complete
+  return (int8_t)readReg(0x00); // TMST_VALUE register
+}
+
+/**
+ * ============================================================
+ * Private functions
+ * ============================================================
+ */
 
 /**
  * @brief  Writes to register using I2C.

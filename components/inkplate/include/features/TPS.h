@@ -34,6 +34,9 @@ public:
   // Read VCOM back from TPS65186 registers
   double    readVCOM();
 
+  // Temperature sensor — eink panel must be powered on
+  int8_t    readTemperature();
+
 private:
   esp_err_t writeReg(uint8_t reg, uint8_t val);
   uint8_t   readReg(uint8_t reg);

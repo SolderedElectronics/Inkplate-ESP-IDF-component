@@ -15,6 +15,9 @@
 #elif CONFIG_INKPLATE_BOARD_INKPLATE5
   #include "inkplate5/Inkplate5.h"
   #define INKPLATE_BOARD_CLASS Inkplate5
+#elif CONFIG_INKPLATE_BOARD_INKPLATE4
+  #include "inkplate4/Inkplate4.h"
+  #define INKPLATE_BOARD_CLASS Inkplate4
 #else
   #error "No Inkplate board selected. Choose a board in menuconfig -> Inkplate Board."
 #endif

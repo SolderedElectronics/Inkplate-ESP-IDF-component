@@ -43,7 +43,7 @@ PCAL::PCAL(uint8_t addr, I2C &i2c)
 esp_err_t PCAL::setLevel(IOPin_t pin, uint8_t level)
 {
   if (checkBlockedPins(pin))
-  return ESP_ERR_INVALID_ARG;
+    return ESP_ERR_INVALID_ARG;
 
   // check if pin is set as input
   uint8_t cfgReg, cfgBit;
@@ -59,6 +59,40 @@ esp_err_t PCAL::setLevel(IOPin_t pin, uint8_t level)
   val |= (1 << bit);
   else
   val &= ~(1 << bit);
+
+  return writePin(reg, val);
+}
+
+/**
+ * @brief  Set output level of a pin, bypassing the blocked-pin guard.
+ *
+ * @param  IOPin_t pin
+ *         pin to set
+ * @param  uint8_t level
+ *         0 for low, non-zero for high
+ *
+ * @return esp_err_t
+ *         ESP_OK if no error occurred
+ *         ESP_ERR_INVALID_STATE if pin is configured as input
+ *
+ * @note   For internal driver use only — does not check m_blockedPins.
+ */
+esp_err_t PCAL::setLevelForce(IOPin_t pin, uint8_t level)
+{
+  // check if pin is set as input
+  uint8_t cfgReg, cfgBit;
+  pinToRegBit(pin, PCAL6416A_CFGPORT0, cfgReg, cfgBit);
+  if ((readPin(cfgReg) >> cfgBit) & 1)
+    return ESP_ERR_INVALID_STATE;
+
+  uint8_t reg, bit;
+  pinToRegBit(pin, PCAL6416A_OUTPORT0, reg, bit);
+
+  uint8_t val = readPin(reg);
+  if (level)
+    val |= (1 << bit);
+  else
+    val &= ~(1 << bit);
 
   return writePin(reg, val);
 }

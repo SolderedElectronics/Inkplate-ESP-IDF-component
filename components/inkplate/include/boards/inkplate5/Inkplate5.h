@@ -16,7 +16,9 @@ class Inkplate5 : public BoardCommon
 public:
   Inkplate5();
 
-  uint32_t partialUpdate(bool forced = false, bool leaveOn = false);
+  uint32_t  partialUpdate(bool forced = false, bool leaveOn = false);
+  esp_err_t einkOn() override;
+  esp_err_t einkOff() override;
 
 private:
   esp_err_t initBuffers();
@@ -27,7 +29,6 @@ private:
   void      clean(uint8_t c, uint8_t rep);
   void      pinsAsOutputs();
   void      pinsZstate();
-  void      einkOffClearPins();
 
   uint32_t* m_glut   = nullptr;
   uint32_t* m_glut2  = nullptr;

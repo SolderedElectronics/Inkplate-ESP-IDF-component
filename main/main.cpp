@@ -18,9 +18,12 @@ void app_main(void)
 
     display.image.draw(IMAGE_PATH, 0,0, false, true);
 
+    int temperature = display.readTemperature();
+
     display.setTextSize(5);
     display.setCursor(900, 300);
-    display.print(32);
+    display.print(temperature);
+    display.print(" C");
 
     display.display();
 }

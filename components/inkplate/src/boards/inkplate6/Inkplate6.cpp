@@ -6,9 +6,11 @@
 #include "esp_log.h"
 
 #include "Inkplate6.h"
+#include "TPS.h"
 
 // Peripherals defined in BoardCommon.cpp
 extern PCAL   expander2;
+extern TPS    tps;
 
 static const char *TAG = "INKPLATE6";
 
@@ -34,9 +36,86 @@ Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12)
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
   gpioInit();
+  //blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
 
   ESP_LOGI(TAG, "Initialization finished!");
+}
+
+/**
+ * @brief  Power on the e-ink panel and assert all required control signals.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, ESP_ERR_TIMEOUT if the PMIC does not reach
+ *         power-good within 250 ms.
+ */
+esp_err_t Inkplate6::einkOn()
+{
+  if (getPanelState())
+    return ESP_OK;
+
+  WAKEUP_SET;
+  esp_rom_delay_us(5000);
+
+  tps.enableRails();
+  tps.setPowerUpSequence(TPS_PWRUP_SEQ);
+  tps.setPowerDownSequence(TPS_PWRDN_SEQ);
+
+  pinsAsOutputs();
+  LE_CLEAR;
+
+  SPH_SET;
+  GMOD_SET;
+  SPV_SET;
+  CKV_CLEAR;
+  OE_CLEAR;
+  PWRUP_SET;
+  setPanelState(true);
+
+  if (!tps.waitPowerGood(true))
+  {
+    einkOff();
+    return ESP_ERR_TIMEOUT;
+  }
+
+  ESP_LOGI(TAG, "Eink turned on.");
+
+  VCOM_SET;
+  OE_SET;
+  return ESP_OK;
+}
+
+/**
+ * @brief  Power off the e-ink panel and tri-state all data lines.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or a TPS driver error code.
+ */
+esp_err_t Inkplate6::einkOff()
+{
+  if (!getPanelState())
+    return ESP_OK;
+
+  VCOM_CLEAR;
+  OE_CLEAR;
+  GMOD_CLEAR;
+  LE_CLEAR;
+
+  CKV_CLEAR;
+  SPH_CLEAR;
+  SPV_CLEAR;
+  PWRUP_CLEAR;
+
+  tps.waitPowerGood(false);
+
+  WAKEUP_CLEAR;
+  esp_err_t ret = tps.disableRails();
+
+  pinsZstate();
+  setPanelState(false);
+
+  ESP_LOGI(TAG, "Eink turned off.");
+  return ret;
 }
 
 /**
@@ -514,12 +593,3 @@ void Inkplate6::pinsZstate()
   gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 }
 
-/**
- * @brief  Board-specific cleanup called at the end of einkOff().
- *
- * @note   Clears the LE line to avoid residual current through the panel.
- */
-void Inkplate6::einkOffClearPins()
-{
-  LE_CLEAR;
-}

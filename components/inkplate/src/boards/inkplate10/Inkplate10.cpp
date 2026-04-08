@@ -6,9 +6,11 @@
 #include "nvs.h"
 
 #include "Inkplate10.h"
+#include "TPS.h"
 
 // Peripherals defined in BoardCommon.cpp
 extern PCAL   expander2;
+extern TPS    tps;
 
 static const char *TAG = "INKPLATE10";
 
@@ -57,9 +59,87 @@ Inkplate10::Inkplate10() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 12, 9)
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
   gpioInit();
+  //blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
 
   ESP_LOGI(TAG, "Initialization finished!");
+}
+
+/**
+ * @brief  Power on the e-ink panel and assert all required control signals.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, ESP_ERR_TIMEOUT if the PMIC does not reach
+ *         power-good within 250 ms.
+ */
+esp_err_t Inkplate10::einkOn()
+{
+  if (getPanelState())
+    return ESP_OK;
+
+  WAKEUP_SET;
+  esp_rom_delay_us(5000);
+
+  tps.enableRails();
+  tps.setPowerUpSequence(TPS_PWRUP_SEQ);
+  tps.setPowerDownSequence(TPS_PWRDN_SEQ);
+
+  pinsAsOutputs();
+  LE_CLEAR;
+  CL_CLEAR;
+
+  SPH_SET;
+  GMOD_SET;
+  SPV_SET;
+  CKV_CLEAR;
+  OE_CLEAR;
+  PWRUP_SET;
+  setPanelState(true);
+
+  if (!tps.waitPowerGood(true))
+  {
+    einkOff();
+    return ESP_ERR_TIMEOUT;
+  }
+
+  ESP_LOGI(TAG, "Eink turned on.");
+
+  VCOM_SET;
+  OE_SET;
+  return ESP_OK;
+}
+
+/**
+ * @brief  Power off the e-ink panel and tri-state all data lines.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or a TPS driver error code.
+ */
+esp_err_t Inkplate10::einkOff()
+{
+  if (!getPanelState())
+    return ESP_OK;
+
+  VCOM_CLEAR;
+  OE_CLEAR;
+  GMOD_CLEAR;
+  GPIO.out &= ~(DATA | LE | CL);
+
+  CKV_CLEAR;
+  SPH_CLEAR;
+  SPV_CLEAR;
+  PWRUP_CLEAR;
+
+  tps.waitPowerGood(false);
+
+  WAKEUP_CLEAR;
+  esp_err_t ret = tps.disableRails();
+
+  pinsZstate();
+  setPanelState(false);
+
+  ESP_LOGI(TAG, "Eink turned off.");
+  return ret;
 }
 
 /**
@@ -545,36 +625,16 @@ void Inkplate10::pinsZstate()
 }
 
 /**
- * @brief  Board-specific setup called at the end of einkOn().
- *
- * @note   Clears the CL line to ensure a defined state before the first scan.
- */
-void Inkplate10::einkOnBoardInit()
-{
-  CL_CLEAR;
-}
-
-/**
- * @brief  Board-specific cleanup called at the end of einkOff().
- *
- * @note   Clears the DATA, LE and CL lines to avoid residual current through the panel.
- */
-void Inkplate10::einkOffClearPins()
-{
-  GPIO.out &= ~(DATA | LE | CL);
-}
-
-/**
  * @brief  Calculate checksum of waveform data (sum of all bytes except the last one, mod 256).
  */
-uint8_t Inkplate10::calculateChecksum(struct waveformData _w)
+uint8_t Inkplate10::calculateChecksum(struct waveformData waveformData)
 {
-  uint8_t  *_d   = (uint8_t *)&_w;
-  uint16_t  _sum = 0;
-  int       _n   = sizeof(struct waveformData) - 1;
-  for (int i = 0; i < _n; i++)
-    _sum += _d[i];
-  return _sum % 256;
+  uint8_t  *d   = (uint8_t *)&waveformData;
+  uint16_t  sum = 0;
+  int       n   = sizeof(struct waveformData) - 1;
+  for (int i = 0; i < n; i++)
+    sum += d[i];
+  return sum % 256;
 }
 
 /**
@@ -584,7 +644,7 @@ uint8_t Inkplate10::calculateChecksum(struct waveformData _w)
  *         ESP_OK on success
  *         NVS error code on failure
  */
-esp_err_t Inkplate10::burnWaveformToEEPROM(struct waveformData _w)
+esp_err_t Inkplate10::burnWaveformToEEPROM(struct waveformData waveformData)
 {
   nvs_handle_t handle;
   esp_err_t    ret;
@@ -593,7 +653,7 @@ esp_err_t Inkplate10::burnWaveformToEEPROM(struct waveformData _w)
   if (ret != ESP_OK)
     return ret;
 
-  ret = nvs_set_blob(handle, "waveform", &_w, sizeof(struct waveformData));
+  ret = nvs_set_blob(handle, "waveform", &waveformData, sizeof(struct waveformData));
   if (ret == ESP_OK)
     ret = nvs_commit(handle);
 
@@ -611,11 +671,11 @@ esp_err_t Inkplate10::burnWaveformToEEPROM(struct waveformData _w)
  *         ESP_OK on success
  *         ESP_ERR_INVALID_ARG if _wf is null
  */
-esp_err_t Inkplate10::changeWaveform(uint8_t *_wf)
+esp_err_t Inkplate10::changeWaveform(uint8_t *waveform)
 {
-  if (!_wf)
+  if (!waveform)
     return ESP_ERR_INVALID_ARG;
-  memcpy(waveform3Bit, _wf, sizeof(waveform3Bit));
+  memcpy(waveform3Bit, waveform, sizeof(waveform3Bit));
   calculateLUTs();
   return ESP_OK;
 }
@@ -628,7 +688,7 @@ esp_err_t Inkplate10::changeWaveform(uint8_t *_wf)
  *         ESP_ERR_INVALID_CRC if the checksum does not match
  *         NVS error code if the read failed
  */
-esp_err_t Inkplate10::getWaveformFromEEPROM(struct waveformData *_w)
+esp_err_t Inkplate10::getWaveformFromEEPROM(struct waveformData *waveformData)
 {
   nvs_handle_t handle;
   esp_err_t    ret;
@@ -638,12 +698,12 @@ esp_err_t Inkplate10::getWaveformFromEEPROM(struct waveformData *_w)
     return ret;
 
   size_t size = sizeof(struct waveformData);
-  ret = nvs_get_blob(handle, "waveform", _w, &size);
+  ret = nvs_get_blob(handle, "waveform", waveformData, &size);
   nvs_close(handle);
   if (ret != ESP_OK)
     return ret;
 
-  return (calculateChecksum(*_w) == _w->checksum) ? ESP_OK : ESP_ERR_INVALID_CRC;
+  return (calculateChecksum(*waveformData) == waveformData->checksum) ? ESP_OK : ESP_ERR_INVALID_CRC;
 }
 
 /**
