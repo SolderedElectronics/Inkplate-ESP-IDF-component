@@ -18,7 +18,16 @@ static const uint8_t waveform3Bit[8][9] =
    {0, 0, 0, 0, 1, 1, 2, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 0, 0}};
 
 /**
+ * ============================================================
+ * Public functions
+ * ============================================================
+ */
+
+/**
  * @brief  Inkplate6 constructor.
+ *
+ * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
+ *         initialises GPIO and the PMIC.
  */
 Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12)
 {
@@ -27,11 +36,19 @@ Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12)
   gpioInit();
   ESP_ERROR_CHECK(pmicBegin());
 
-  ESP_LOGI(TAG, "Inkplate6 initialization finished!");
+  ESP_LOGI(TAG, "Initialization finished!");
 }
 
 /**
  * @brief  Send only the changed pixels to the display (1-bit mode only).
+ *
+ * @param  bool forced
+ *         If true, bypasses the partial update block flag
+ * @param  bool leaveOn
+ *         If true, leaves the e-ink panel powered on after the update
+ *
+ * @return uint32_t
+ *         Number of pixels that changed; 0 if a full update was performed instead
  */
 uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
 {
@@ -128,10 +145,18 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
   return changeCount;
 }
 
-// ---------------------------------------------------------------------------
-// Private
-// ---------------------------------------------------------------------------
+/**
+ * ============================================================
+ * Private functions
+ * ============================================================
+ */
 
+/**
+ * @brief  Allocate all framebuffers, DMA buffers, and LUT arrays.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, ESP_ERR_NO_MEM if any allocation fails
+ */
 esp_err_t Inkplate6::initBuffers()
 {
   m_framebufferColor = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM);
@@ -168,6 +193,11 @@ esp_err_t Inkplate6::initBuffers()
   return ESP_OK;
 }
 
+/**
+ * @brief  Pre-compute m_glut and m_glut2 waveform lookup tables from waveform3Bit.
+ *
+ * @note   Must be called after any change to waveform3Bit.
+ */
 void Inkplate6::calculateLUTs()
 {
   for (int j = 0; j < 9; ++j)
@@ -178,6 +208,15 @@ void Inkplate6::calculateLUTs()
     }
 }
 
+/**
+ * @brief  Push the 3-bit grayscale framebuffer to the display.
+ *
+ * @param  bool leaveOn
+ *         If true, leaves the e-ink panel powered on after the update
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an error code if einkOn() failed
+ */
 esp_err_t Inkplate6::display3b(bool leaveOn)
 {
   esp_err_t ret = einkOn();
@@ -231,6 +270,15 @@ esp_err_t Inkplate6::display3b(bool leaveOn)
   return ESP_OK;
 }
 
+/**
+ * @brief  Push the 1-bit black-and-white framebuffer to the display.
+ *
+ * @param  bool leaveOn
+ *         If true, leaves the e-ink panel powered on after the update
+ *
+ * @return esp_err_t
+ *         ESP_OK on success, or an error code if einkOn() failed
+ */
 esp_err_t Inkplate6::display1b(bool leaveOn)
 {
   esp_err_t ret = einkOn();
@@ -323,6 +371,12 @@ esp_err_t Inkplate6::display1b(bool leaveOn)
   return ESP_OK;
 }
 
+/**
+ * @brief  Configure all GPIO pins, IO expander pins, and the pixel-to-GPIO LUT.
+ *
+ * @note   SPI pins are set as inputs to reduce deep-sleep current. Unused expander
+ *         pins are driven low to avoid floating states.
+ */
 void Inkplate6::gpioInit()
 {
   for (uint32_t i = 0; i < 256; ++i)
@@ -362,6 +416,14 @@ void Inkplate6::gpioInit()
   pinsAsOutputs();
 }
 
+/**
+ * @brief  Send a solid waveform pattern to the display for cleaning.
+ *
+ * @param  uint8_t c
+ *         Pattern: 0 = discharge (0xAA), 1 = charge (0x55), 2 = blank (0x00), 3 = full (0xFF)
+ * @param  uint8_t rep
+ *         Number of times to repeat the pattern across the full frame
+ */
 void Inkplate6::clean(uint8_t c, uint8_t rep)
 {
   einkOn();
@@ -395,6 +457,11 @@ void Inkplate6::clean(uint8_t c, uint8_t rep)
   }
 }
 
+/**
+ * @brief  Set all EPD data and control pins as outputs and route them through I2S.
+ *
+ * @note   Called when powering the panel on to restore drive strength after pinsZstate().
+ */
 void Inkplate6::pinsAsOutputs()
 {
   gpio_set_direction(GPIO_NUM_0,  GPIO_MODE_OUTPUT);
@@ -419,6 +486,11 @@ void Inkplate6::pinsAsOutputs()
   m_i2s->conf1.tx_stop_en = 1;
 }
 
+/**
+ * @brief  Set all EPD data and control pins as inputs (high-impedance / tri-state).
+ *
+ * @note   Called when powering the panel off to reduce current draw.
+ */
 void Inkplate6::pinsZstate()
 {
   m_i2s->conf1.tx_stop_en = 0;
@@ -442,6 +514,11 @@ void Inkplate6::pinsZstate()
   gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 }
 
+/**
+ * @brief  Board-specific cleanup called at the end of einkOff().
+ *
+ * @note   Clears the LE line to avoid residual current through the panel.
+ */
 void Inkplate6::einkOffClearPins()
 {
   LE_CLEAR;

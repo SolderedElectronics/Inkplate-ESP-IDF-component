@@ -16,9 +16,11 @@ void app_main(void)
     display.setDisplayMode(BLACK_AND_WHITE);
     display.clearDisplay();     // Clear the frame buffer (does NOT clear the physical screen)
 
+    display.image.draw(IMAGE_PATH, 0,0, false, true);
 
-    if (!display.image.draw(IMAGE_PATH, 0,0, false, true))
-        ESP_LOGE(TAG, "Image draw failed");
+    display.setTextSize(5);
+    display.setCursor(900, 300);
+    display.print(32);
 
     display.display();
 }

@@ -11,12 +11,25 @@
 #define E_INK_WIDTH  1200
 #define E_INK_HEIGHT 825
 
+#define INKPLATE10_WAVEFORM1 1
+
+struct waveformData
+{
+  uint8_t waveformId;
+  uint8_t waveform[8][9];
+  uint8_t checksum;
+};
+
 class Inkplate10 : public BoardCommon
 {
 public:
   Inkplate10();
 
   uint32_t partialUpdate(bool forced = false, bool leaveOn = false);
+
+  esp_err_t setWaveform(uint8_t waveformNumber, bool burnToEEPROM = false);
+  esp_err_t getWaveformFromEEPROM(struct waveformData *_w);
+  esp_err_t changeWaveform(uint8_t *_wf);
 
 private:
   esp_err_t initBuffers();
@@ -30,6 +43,9 @@ private:
   void      pinsZstate();
   void      einkOnBoardInit();
   void      einkOffClearPins();
+
+  uint8_t   calculateChecksum(struct waveformData _w);
+  esp_err_t burnWaveformToEEPROM(struct waveformData _w);
 
   uint32_t* m_glut   = nullptr;
   uint32_t* m_glut2  = nullptr;

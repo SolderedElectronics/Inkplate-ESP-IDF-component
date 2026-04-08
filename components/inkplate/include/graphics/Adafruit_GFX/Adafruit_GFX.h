@@ -87,6 +87,11 @@ class Adafruit_GFX
     void setTextSize(uint8_t sx, uint8_t sy);
     void setFont(const GFXfont *f = NULL);
     void print(const char *s);
+    void print(int n,          int base = 10);
+    void print(long n,         int base = 10);
+    void print(unsigned int n, int base = 10);
+    void print(unsigned long n,int base = 10);
+    void print(double n,       int digits = 2);
 
     /**********************************************************************/
     /*!

@@ -38,7 +38,9 @@ static const char *TAG = "INKPLATE";
 
 I2C     i2c;
 PCAL    expander1(IO_INT_ADDR, i2c);
-// PCAL    expander2(IO_EXT_ADDR, i2c);
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE5
+PCAL    expander2(IO_EXT_ADDR, i2c);
+#endif
 TPS     tps(i2c);
 SDCard  sdCard(expander1);
 

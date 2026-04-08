@@ -33,6 +33,7 @@ POSSIBILITY OF SUCH DAMAGE.
 
 #include "Adafruit_GFX.h"
 #include "glcdfont.c"
+#include "stdio.h"
 
 // Many (but maybe not all) non-AVR board installs define macros
 // for compatibility with existing PROGMEM-reading AVR code.
@@ -1167,6 +1168,48 @@ void Adafruit_GFX::drawRGBBitmap(int16_t x, int16_t y, uint16_t *bitmap, uint8_t
 void Adafruit_GFX::print(const char *s) {
     for(; *s != '\0'; s++)
         write(*s);
+}
+
+void Adafruit_GFX::print(int n, int base) {
+    char buf[16];
+    if      (base == 16) snprintf(buf, sizeof(buf), "%x",  n);
+    else if (base == 8)  snprintf(buf, sizeof(buf), "%o",  n);
+    else if (base == 2)  { char *p = buf; if (n < 0) { *p++ = '-'; n = -n; } itoa(n, p, 2); }
+    else                 snprintf(buf, sizeof(buf), "%d",  n);
+    print(buf);
+}
+
+void Adafruit_GFX::print(long n, int base) {
+    char buf[24];
+    if      (base == 16) snprintf(buf, sizeof(buf), "%lx", n);
+    else if (base == 8)  snprintf(buf, sizeof(buf), "%lo", n);
+    else if (base == 2)  { char *p = buf; if (n < 0) { *p++ = '-'; n = -n; } itoa((int)n, p, 2); }
+    else                 snprintf(buf, sizeof(buf), "%ld", n);
+    print(buf);
+}
+
+void Adafruit_GFX::print(unsigned int n, int base) {
+    char buf[16];
+    if      (base == 16) snprintf(buf, sizeof(buf), "%x",  n);
+    else if (base == 8)  snprintf(buf, sizeof(buf), "%o",  n);
+    else if (base == 2)  itoa(n, buf, 2);
+    else                 snprintf(buf, sizeof(buf), "%u",  n);
+    print(buf);
+}
+
+void Adafruit_GFX::print(unsigned long n, int base) {
+    char buf[24];
+    if      (base == 16) snprintf(buf, sizeof(buf), "%lx", n);
+    else if (base == 8)  snprintf(buf, sizeof(buf), "%lo", n);
+    else if (base == 2)  itoa((int)n, buf, 2);
+    else                 snprintf(buf, sizeof(buf), "%lu", n);
+    print(buf);
+}
+
+void Adafruit_GFX::print(double n, int digits) {
+    char buf[32];
+    snprintf(buf, sizeof(buf), "%.*f", digits, n);
+    print(buf);
 }
 
 // Draw a character

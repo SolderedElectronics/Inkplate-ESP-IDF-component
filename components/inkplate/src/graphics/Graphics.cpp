@@ -1,4 +1,7 @@
 #include "Graphics.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_timer.h"
 
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
@@ -82,9 +85,19 @@ void Graphics::drawPixel(int16_t x0, int16_t y0, uint16_t color)
  */
 void Graphics::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color)
 {
+  static int64_t lastYield = 0;
   for (int i = 0; i < h; ++i)
+  {
     for (int j = 0; j < w; ++j)
       writePixel(x + j, y + i, color);
+    // Yield to watchdog at most once per second
+    int64_t now = esp_timer_get_time();
+    if (now - lastYield > 1000000LL)
+    {
+      vTaskDelay(1);
+      lastYield = now;
+    }
+  }
 }
 
 /**
@@ -101,8 +114,18 @@ void Graphics::writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_
  */
 void Graphics::writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color)
 {
+  static int64_t lastYield = 0;
   for (int i = 0; i < h; ++i)
+  {
     writePixel(x, y + i, color);
+    // Yield to watchdog at most once per second
+    int64_t now = esp_timer_get_time();
+    if (now - lastYield > 1000000LL)
+    {
+      vTaskDelay(1);
+      lastYield = now;
+    }
+  }
 }
 
 /**
