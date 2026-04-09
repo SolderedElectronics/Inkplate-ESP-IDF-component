@@ -11,7 +11,7 @@ extern PCAL expander1;
 #define IO_EXT_ADDR  0x21
 
 // pin on the internal io expander which controls MOSFET for turning on and off the SD card
-#define SD_PMOS_PIN  IO_NUM_B2
+#define SD_PMOS_PIN  IO_NUM_B3
 
 // enables the GPIO0/CL level shifter
 #define GPIO0_ENABLE IO_NUM_B0
