@@ -26,35 +26,59 @@ bool WiFi::m_connected = false;
 /**
  * @brief Initialize WiFi in STA mode with credentials from menuconfig.
  *
+ * @return ESP_OK on success, or an esp_err_t error code.
  */
-WiFi::WiFi()
+esp_err_t WiFi::begin()
 {
-  ESP_ERROR_CHECK(nvs_flash_init());
-  ESP_ERROR_CHECK(esp_netif_init());
-  ESP_ERROR_CHECK(esp_event_loop_create_default());
+  esp_err_t ret;
+
+  ret = nvs_flash_init();
+  if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
+  {
+    ESP_ERROR_CHECK(nvs_flash_erase());
+    ret = nvs_flash_init();
+  }
+  if (ret != ESP_OK) return ret;
+
+  ret = esp_netif_init();
+  if (ret != ESP_OK) return ret;
+
+  ret = esp_event_loop_create_default();
+  if (ret != ESP_OK) return ret;
 
   esp_netif_create_default_wifi_sta();
 
   wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+  ret = esp_wifi_init(&cfg);
+  if (ret != ESP_OK) return ret;
 
-  ESP_ERROR_CHECK(esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiEventHandler, NULL, NULL));
-  ESP_ERROR_CHECK(esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &ipEventHandler, NULL, NULL));
+  ret = esp_event_handler_instance_register(WIFI_EVENT, ESP_EVENT_ANY_ID, &wifiEventHandler, NULL, NULL);
+  if (ret != ESP_OK) return ret;
 
-  if (strlen(CONFIG_WIFI_SSID) == 0) {
-  ESP_LOGE(TAG, "WiFi SSID not set. Run menuconfig.");
-  return;
+  ret = esp_event_handler_instance_register(IP_EVENT, ESP_EVENT_ANY_ID, &ipEventHandler, NULL, NULL);
+  if (ret != ESP_OK) return ret;
+
+  if (strlen(CONFIG_WIFI_SSID) == 0)
+  {
+    ESP_LOGE(TAG, "WiFi SSID not set. Run menuconfig.");
+    return ESP_ERR_INVALID_ARG;
   }
 
   wifi_config_t wifi_config = {};
   memcpy(wifi_config.sta.ssid,     CONFIG_WIFI_SSID,     sizeof(CONFIG_WIFI_SSID));
   memcpy(wifi_config.sta.password, CONFIG_WIFI_PASSWORD, sizeof(CONFIG_WIFI_PASSWORD));
 
-  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
-  ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wifi_config));
-  ESP_ERROR_CHECK(esp_wifi_start());
+  ret = esp_wifi_set_mode(WIFI_MODE_STA);
+  if (ret != ESP_OK) return ret;
+
+  ret = esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
+  if (ret != ESP_OK) return ret;
+
+  ret = esp_wifi_start();
+  if (ret != ESP_OK) return ret;
 
   ESP_LOGI(TAG, "WiFi initialization finished!");
+  return ESP_OK;
 }
 
 /**

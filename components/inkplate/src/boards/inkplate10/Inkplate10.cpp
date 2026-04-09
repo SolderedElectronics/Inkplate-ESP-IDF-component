@@ -7,10 +7,12 @@
 
 #include "Inkplate10.h"
 #include "TPS.h"
+#include "I2C.h"
 
 // Peripherals defined in BoardCommon.cpp
 extern PCAL   expander2;
 extern TPS    tps;
+extern I2C    i2c;
 
 static const char *TAG = "INKPLATE10";
 
@@ -61,6 +63,7 @@ Inkplate10::Inkplate10() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 12, 9)
   gpioInit();
   //blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
+  rtc.begin(i2c.getBusHandle());
 
   ESP_LOGI(TAG, "Initialization finished!");
 }
@@ -548,14 +551,14 @@ void Inkplate10::clean(uint8_t c, uint8_t rep)
   else if (c == 2) data = 0B00000000;
   else if (c == 3) data = 0B11111111;
 
-  uint32_t _send = m_pinLUT[data];
+  uint32_t send = m_pinLUT[data];
   for (int k = 0; k < rep; ++k)
   {
     vscanStart();
     for (int i = 0; i < E_INK_HEIGHT; ++i)
     {
-      hscanStart(_send);
-      GPIO.out_w1ts = _send | CL;
+      hscanStart(send);
+      GPIO.out_w1ts = send | CL;
       GPIO.out_w1tc = CL;
       for (int j = 0; j < ((E_INK_WIDTH / 8) - 1); ++j)
       {

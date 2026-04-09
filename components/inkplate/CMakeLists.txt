@@ -16,14 +16,14 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
         "src/features/LSM6DS3/LSM6DS3.cpp"
         "src/features/LSM6DS3/libs/SparkFunLSM6DS3.cpp")
     set(SENSOR_INCLUDES
-        "src/features/APDS9960"
-        "src/features/APDS9960/libs"
-        "src/features/BME680"
-        "src/features/BME680/libs"
-        "src/features/BQ27441"
-        "src/features/BQ27441/libs"
-        "src/features/LSM6DS3"
-        "src/features/LSM6DS3/libs")
+        "include/features/APDS9960"
+        "include/features/APDS9960/libs"
+        "include/features/BME680"
+        "include/features/BME680/libs"
+        "include/features/BQ27441"
+        "include/features/BQ27441/libs"
+        "include/features/LSM6DS3"
+        "include/features/LSM6DS3/libs")
 endif()
 
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"

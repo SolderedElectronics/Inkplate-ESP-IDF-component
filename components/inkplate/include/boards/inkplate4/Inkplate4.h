@@ -8,13 +8,14 @@
 
 #include "../../graphics/GraphicsDefs.h"
 
+#include "RTC.h"
 #include "APDS9960.h"
 #include "BQ27441.h"
 #include "LSM6DS3.h"
 #include "BME680.h"
 
-#define E_INK_WIDTH  400
-#define E_INK_HEIGHT 300
+#define E_INK_WIDTH  600
+#define E_INK_HEIGHT 600
 
 class Inkplate4 : public BoardCommon
 {
@@ -25,6 +26,7 @@ public:
   esp_err_t einkOn() override;
   esp_err_t einkOff() override;
 
+  RTC       rtc;
   APDS9960  apds;
   BQ_27441   bq;
   Soldered_LSM6DS3 lsm;
@@ -35,6 +37,7 @@ private:
   void      calculateLUTs();
   esp_err_t display3b(bool leaveOn);
   esp_err_t display1b(bool leaveOn);
+  void      hscanStart(uint32_t data);
   void      gpioInit();
   void      clean(uint8_t c, uint8_t rep);
   void      pinsAsOutputs();

@@ -5,6 +5,7 @@
 #include "pins.h"
 #include "esp_err.h"
 #include "esp_rom_sys.h"
+#include "RTC.h"
 
 #include "../../graphics/GraphicsDefs.h"
 
@@ -19,6 +20,8 @@ public:
   uint32_t  partialUpdate(bool forced = false, bool leaveOn = false);
   esp_err_t einkOn() override;
   esp_err_t einkOff() override;
+
+  RTC rtc;
 
 private:
   esp_err_t initBuffers();

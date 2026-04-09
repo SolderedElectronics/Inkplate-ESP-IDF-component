@@ -2,7 +2,6 @@
 #define _BOARD_COMMON_H_
 
 #include "BoardBase.h"
-#include "RTC.h"
 #include "esp_err.h"
 #include "esp_rom_sys.h"
 #include <stdint.h>
@@ -28,8 +27,6 @@ public:
   double        getVCOM();
   double        getStoredVCOM();
   int8_t        readTemperature();
-
-  RTC           rtc;
 
   esp_err_t     sdCardInit();
   esp_err_t     sdCardSleep();

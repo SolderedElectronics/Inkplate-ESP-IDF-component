@@ -7,9 +7,11 @@
 
 #include "Inkplate5.h"
 #include "TPS.h"
+#include "I2C.h"
 
 // Peripherals defined in BoardCommon.cpp
 extern TPS tps;
+extern I2C i2c;
 
 static const char *TAG = "INKPLATE5";
 
@@ -37,6 +39,7 @@ Inkplate5::Inkplate5() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12)
   gpioInit();
   //blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
+  rtc.begin(i2c.getBusHandle());
 
   ESP_LOGI(TAG, "Initialization finished!");
 }

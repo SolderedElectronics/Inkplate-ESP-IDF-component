@@ -69,8 +69,7 @@ SDCard  sdCard(expander1);
 
 BoardCommon::BoardCommon(uint16_t einkWidth, uint16_t einkHeight,
                          uint8_t cleanCycles1, uint8_t cleanCycles0)
-  : rtc(i2c),
-    m_einkWidth(einkWidth),
+  : m_einkWidth(einkWidth),
     m_einkHeight(einkHeight),
     m_cleanCycles1(cleanCycles1),
     m_cleanCycles0(cleanCycles0)

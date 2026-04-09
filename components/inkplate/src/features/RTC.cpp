@@ -1,6 +1,7 @@
 #include "time.h"
 #include "esp_log.h"
 #include "esp_check.h"
+#include "driver/i2c_master.h"
 
 #include "rtc.h"
 
@@ -13,20 +14,32 @@ static const char* TAG = "ESP_RTC";
  */
 
 /**
- * @brief  RTC constructor.
+ * @brief  Add the RTC to the shared I2C bus and initialise it.
  *
- * @note   Sets I2C port properties.
+ * @param  i2c_master_bus_handle_t bus_handle
+ *         Handle to the shared I2C master bus.
+ *
+ * @return esp_err_t
+ *         ESP_OK on success.
  */
-RTC::RTC(I2C &i2c)
+esp_err_t RTC::begin(i2c_master_bus_handle_t bus_handle)
 {
-  ESP_ERROR_CHECK(i2c.addDevice(RTC_I2C_ADDR, &m_devHandle));
+  i2c_device_config_t dev_cfg = {};
+  dev_cfg.dev_addr_length     = I2C_ADDR_BIT_LEN_7;
+  dev_cfg.device_address      = RTC_I2C_ADDR;
+  dev_cfg.scl_speed_hz        = 400000;
 
-  uint8_t data[2] = { RTC_RAM, RTC_NOT_SET };
-  ESP_ERROR_CHECK(i2c_master_transmit(m_devHandle, data, sizeof(data), -1));
+  esp_err_t ret = i2c_master_bus_add_device(bus_handle, &dev_cfg, &m_devHandle);
+  if (ret != ESP_OK)
+    return ret;
 
   m_hourFormat = RTC_FORMAT_24H;
 
-  ESP_LOGI(TAG, "I2C initilization finished!"); 
+  uint8_t data[2] = { RTC_RAM, RTC_NOT_SET };
+  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+
+  ESP_LOGI(TAG, "I2C initilization finished!");
+  return ret;
 }
 
 /**

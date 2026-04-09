@@ -8,7 +8,8 @@
 class WiFi
 {
 public:
-  WiFi();
+  WiFi() = default;
+  esp_err_t   begin();
   bool        waitForConnect(uint32_t timeoutMs = 10000);
   void        setCurrentTime();
   uint8_t    *downloadFile(const char *url, int32_t *len);

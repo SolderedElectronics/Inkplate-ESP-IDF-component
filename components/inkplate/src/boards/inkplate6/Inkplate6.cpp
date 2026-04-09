@@ -11,6 +11,7 @@
 // Peripherals defined in BoardCommon.cpp
 extern PCAL   expander2;
 extern TPS    tps;
+extern I2C    i2c;
 
 static const char *TAG = "INKPLATE6";
 
@@ -38,6 +39,7 @@ Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12)
   gpioInit();
   //blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
+  rtc.begin(i2c.getBusHandle());
 
   ESP_LOGI(TAG, "Initialization finished!");
 }

@@ -3,8 +3,7 @@
 
 #include "time.h"
 #include "esp_check.h"
-
-#include "I2C.h"
+#include "driver/i2c_master.h"
 
 #define RTC_I2C_ADDR       0x51
 
@@ -69,7 +68,8 @@ typedef enum
 class RTC
 {
 public:
-  RTC(I2C &i2c);
+  RTC() = default;
+  esp_err_t begin(i2c_master_bus_handle_t bus_handle);
 
   // time setting
   esp_err_t setTime(tm  time);
