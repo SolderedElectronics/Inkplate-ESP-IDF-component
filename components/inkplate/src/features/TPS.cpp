@@ -136,8 +136,8 @@ esp_err_t TPS::writeVCOM(double vcom, PCAL &expander)
     return ESP_ERR_INVALID_ARG;
 
   // Configure INT pin as input with pull-up
-  expander.setDirection(TPS_INT_PIN, IO_MODE_INPUT);
-  expander.setPullMode(TPS_INT_PIN, IO_PULLUP);
+  expander.setDirection(TPS_INT_PIN, IO_MODE_INPUT, true);
+  expander.setPullMode(TPS_INT_PIN, IO_PULLUP, true);
 
   // Convert to 9-bit raw value (abs * 100, e.g. -1.23V → 123)
   int     raw    = abs((int)(vcom * 100.0)) & 0x1FF;
@@ -159,7 +159,7 @@ esp_err_t TPS::writeVCOM(double vcom, PCAL &expander)
 
   // Wait for INT to go low (programming done), 1 s timeout
   int64_t deadline = esp_timer_get_time() + 1000000LL;
-  while (expander.getLevel(TPS_INT_PIN) && esp_timer_get_time() < deadline)
+  while (expander.getLevel(TPS_INT_PIN, true) && esp_timer_get_time() < deadline)
     esp_rom_delay_us(1000);
 
   // Clear interrupt by reading INT1 register (0x07)

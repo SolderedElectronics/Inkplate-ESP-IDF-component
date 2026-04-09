@@ -2,19 +2,18 @@ menu "Inkplate Board"
 
 choice INKPLATE_BOARD
     prompt "Board"
-    default INKPLATE_BOARD_INKPLATE6
+
+    config INKPLATE_BOARD_INKPLATE4
+        bool "Inkplate4"
+
+    config INKPLATE_BOARD_INKPLATE5
+        bool "Inkplate5"
 
     config INKPLATE_BOARD_INKPLATE6
         bool "Inkplate6"
 
     config INKPLATE_BOARD_INKPLATE10
         bool "Inkplate10"
-
-    config INKPLATE_BOARD_INKPLATE5
-        bool "Inkplate5"
-
-    config INKPLATE_BOARD_INKPLATE4
-        bool "Inkplate4"
 
 endchoice
 

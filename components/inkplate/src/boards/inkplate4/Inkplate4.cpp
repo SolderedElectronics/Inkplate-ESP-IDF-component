@@ -36,7 +36,7 @@ Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0)
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
   gpioInit();
-  // blockGpioPins();
+  blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
 
   i2c_master_bus_handle_t bus = i2c.getBusHandle();
@@ -486,12 +486,12 @@ void Inkplate4::gpioInit()
   gpio_set_direction(GPIO_NUM_2,  GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_33, GPIO_MODE_OUTPUT);
-  expander1.setDirection(OE,     IO_MODE_OUTPUT);
-  expander1.setDirection(GMOD,   IO_MODE_OUTPUT);
-  expander1.setDirection(SPV,    IO_MODE_OUTPUT);
-  expander1.setDirection(WAKEUP, IO_MODE_OUTPUT);
-  expander1.setDirection(PWRUP,  IO_MODE_OUTPUT);
-  expander1.setDirection(VCOM,   IO_MODE_OUTPUT);
+  expander1.setDirection(OE,     IO_MODE_OUTPUT, true);
+  expander1.setDirection(GMOD,   IO_MODE_OUTPUT, true);
+  expander1.setDirection(SPV,    IO_MODE_OUTPUT, true);
+  expander1.setDirection(WAKEUP, IO_MODE_OUTPUT, true);
+  expander1.setDirection(PWRUP,  IO_MODE_OUTPUT, true);
+  expander1.setDirection(VCOM,   IO_MODE_OUTPUT, true);
 
   gpio_set_direction(GPIO_NUM_4,  GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_5,  GPIO_MODE_OUTPUT);
@@ -502,10 +502,10 @@ void Inkplate4::gpioInit()
   gpio_set_direction(GPIO_NUM_26, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
 
-  expander1.setDirection(GPIO0_ENABLE, IO_MODE_OUTPUT);
-  expander1.setLevel(GPIO0_ENABLE, 1);
+  expander1.setDirection(GPIO0_ENABLE, IO_MODE_OUTPUT, true);
+  expander1.setLevel(GPIO0_ENABLE, 1, true);
 
-  expander1.setDirection(SD_PMOS_PIN, IO_MODE_INPUT);
+  expander1.setDirection(SD_PMOS_PIN, IO_MODE_INPUT, true);
 
   expander2.setPort(IO_PORT_0, 0x00);
   expander2.setPort(IO_PORT_1, 0x00);
@@ -568,9 +568,9 @@ void Inkplate4::pinsAsOutputs()
   gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_33, GPIO_MODE_OUTPUT);
 
-  expander1.setDirection(IO_NUM_A0, IO_MODE_OUTPUT);
-  expander1.setDirection(IO_NUM_A1, IO_MODE_OUTPUT);
-  expander1.setDirection(IO_NUM_A2, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_A0, IO_MODE_OUTPUT, true);
+  expander1.setDirection(IO_NUM_A1, IO_MODE_OUTPUT, true);
+  expander1.setDirection(IO_NUM_A2, IO_MODE_OUTPUT, true);
 
   gpio_set_direction(GPIO_NUM_4,  GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_5,  GPIO_MODE_OUTPUT);
@@ -593,9 +593,9 @@ void Inkplate4::pinsZstate()
   gpio_set_direction(GPIO_NUM_32, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_33, GPIO_MODE_INPUT);
 
-  expander1.setDirection(IO_NUM_A0, IO_MODE_INPUT);
-  expander1.setDirection(IO_NUM_A1, IO_MODE_INPUT);
-  expander1.setDirection(IO_NUM_A2, IO_MODE_INPUT);
+  expander1.setDirection(IO_NUM_A0, IO_MODE_INPUT, true);
+  expander1.setDirection(IO_NUM_A1, IO_MODE_INPUT, true);
+  expander1.setDirection(IO_NUM_A2, IO_MODE_INPUT, true);
 
   gpio_set_direction(GPIO_NUM_0,  GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_4,  GPIO_MODE_INPUT);

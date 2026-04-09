@@ -61,7 +61,7 @@ Inkplate10::Inkplate10() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 12, 9)
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
   gpioInit();
-  //blockGpioPins();
+  blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
   rtc.begin(i2c.getBusHandle());
 
@@ -477,33 +477,33 @@ void Inkplate10::hscanStart(uint32_t data)
  */
 void Inkplate10::gpioInit()
 {
-  expander1.setLevel(IO_NUM_B1, 0);
+  expander1.setLevel(IO_NUM_B1, 0, true);
 
-  expander1.setDirection(VCOM,         IO_MODE_OUTPUT);
-  expander1.setDirection(PWRUP,        IO_MODE_OUTPUT);
-  expander1.setDirection(WAKEUP,       IO_MODE_OUTPUT);
-  expander1.setDirection(GPIO0_ENABLE, IO_MODE_OUTPUT);
-  expander1.setLevel(GPIO0_ENABLE, 1);
+  expander1.setDirection(VCOM,         IO_MODE_OUTPUT, true);
+  expander1.setDirection(PWRUP,        IO_MODE_OUTPUT, true);
+  expander1.setDirection(WAKEUP,       IO_MODE_OUTPUT, true);
+  expander1.setDirection(GPIO0_ENABLE, IO_MODE_OUTPUT, true);
+  expander1.setLevel(GPIO0_ENABLE, 1, true);
 
-  expander1.setDirection(IO_NUM_B6, IO_MODE_OUTPUT);
-  expander1.setDirection(IO_NUM_B7, IO_MODE_OUTPUT);
-  expander1.setLevel(IO_NUM_B6, 0);
-  expander1.setLevel(IO_NUM_B7, 0);
+  expander1.setDirection(IO_NUM_B6, IO_MODE_OUTPUT, true);
+  expander1.setDirection(IO_NUM_B7, IO_MODE_OUTPUT, true);
+  expander1.setLevel(IO_NUM_B6, 0, true);
+  expander1.setLevel(IO_NUM_B7, 0, true);
 
   gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_13, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_15, GPIO_MODE_INPUT);
 
-  expander1.setDirection(SD_PMOS_PIN, IO_MODE_INPUT);
+  expander1.setDirection(SD_PMOS_PIN, IO_MODE_INPUT, true);
 
   gpio_set_direction(GPIO_NUM_0,  GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_2,  GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_33, GPIO_MODE_OUTPUT);
-  expander1.setDirection(OE,   IO_MODE_OUTPUT);
-  expander1.setDirection(GMOD, IO_MODE_OUTPUT);
-  expander1.setDirection(SPV,  IO_MODE_OUTPUT);
+  expander1.setDirection(OE,   IO_MODE_OUTPUT, true);
+  expander1.setDirection(GMOD, IO_MODE_OUTPUT, true);
+  expander1.setDirection(SPV,  IO_MODE_OUTPUT, true);
 
   gpio_set_direction(GPIO_NUM_4,  GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_5,  GPIO_MODE_OUTPUT);
@@ -514,15 +514,15 @@ void Inkplate10::gpioInit()
   gpio_set_direction(GPIO_NUM_26, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
 
-  expander1.setDirection(IO_NUM_B2, IO_MODE_OUTPUT);
-  expander1.setDirection(IO_NUM_B3, IO_MODE_OUTPUT);
-  expander1.setDirection(IO_NUM_B4, IO_MODE_OUTPUT);
-  expander1.setLevel(IO_NUM_B2, 0);
-  expander1.setLevel(IO_NUM_B3, 0);
-  expander1.setLevel(IO_NUM_B4, 0);
+  expander1.setDirection(IO_NUM_B2, IO_MODE_OUTPUT, true);
+  expander1.setDirection(IO_NUM_B3, IO_MODE_OUTPUT, true);
+  expander1.setDirection(IO_NUM_B4, IO_MODE_OUTPUT, true);
+  expander1.setLevel(IO_NUM_B2, 0, true);
+  expander1.setLevel(IO_NUM_B3, 0, true);
+  expander1.setLevel(IO_NUM_B4, 0, true);
 
-  expander1.setDirection(IO_NUM_B1, IO_MODE_OUTPUT);
-  expander1.setLevel(IO_NUM_B1, 0);
+  expander1.setDirection(IO_NUM_B1, IO_MODE_OUTPUT, true);
+  expander1.setLevel(IO_NUM_B1, 0, true);
 
   for (uint32_t i = 0; i < 256; ++i)
     m_pinLUT[i] = ((i & 0x03) << 4) | (((i & 0x0C) >> 2) << 18) |
@@ -587,9 +587,9 @@ void Inkplate10::pinsAsOutputs()
   gpio_set_direction(GPIO_NUM_32, GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_33, GPIO_MODE_OUTPUT);
 
-  expander1.setDirection(OE,   IO_MODE_OUTPUT);
-  expander1.setDirection(GMOD, IO_MODE_OUTPUT);
-  expander1.setDirection(SPV,  IO_MODE_OUTPUT);
+  expander1.setDirection(OE,   IO_MODE_OUTPUT, true);
+  expander1.setDirection(GMOD, IO_MODE_OUTPUT, true);
+  expander1.setDirection(SPV,  IO_MODE_OUTPUT, true);
 
   gpio_set_direction(GPIO_NUM_4,  GPIO_MODE_OUTPUT);
   gpio_set_direction(GPIO_NUM_5,  GPIO_MODE_OUTPUT);
@@ -612,9 +612,9 @@ void Inkplate10::pinsZstate()
   gpio_set_direction(GPIO_NUM_32, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_33, GPIO_MODE_INPUT);
 
-  expander1.setDirection(OE,   IO_MODE_INPUT);
-  expander1.setDirection(GMOD, IO_MODE_INPUT);
-  expander1.setDirection(SPV,  IO_MODE_INPUT);
+  expander1.setDirection(OE,   IO_MODE_INPUT, true);
+  expander1.setDirection(GMOD, IO_MODE_INPUT, true);
+  expander1.setDirection(SPV,  IO_MODE_INPUT, true);
 
   gpio_set_direction(GPIO_NUM_0,  GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_4,  GPIO_MODE_INPUT);

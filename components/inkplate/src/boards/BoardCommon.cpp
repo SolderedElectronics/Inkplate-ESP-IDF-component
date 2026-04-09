@@ -267,7 +267,7 @@ void BoardCommon::cleanBurnIn(uint8_t clearCycles, uint16_t cyclesDelay)
  */
 double BoardCommon::readBattery()
 {
-  expander1.setLevel(IO_NUM_B1, 1);
+  expander1.setLevel(IO_NUM_B1, 1, true);
   esp_rom_delay_us(5000);
 
   adc_oneshot_unit_handle_t adcHandle;
@@ -296,7 +296,7 @@ double BoardCommon::readBattery()
   }
   adc_oneshot_del_unit(adcHandle);
 
-  expander1.setLevel(IO_NUM_B1, 0);
+  expander1.setLevel(IO_NUM_B1, 0, true);
 
   return (double(mv) * 2.0 / 1000.0);
 }

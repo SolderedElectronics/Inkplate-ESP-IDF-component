@@ -43,8 +43,8 @@ private:
   void      pinsAsOutputs();
   void      pinsZstate();
 
-  uint32_t*  m_glut   = nullptr;
-  uint32_t*  m_glut2  = nullptr;
+  uint32_t* m_glut   = nullptr;
+  uint32_t* m_glut2  = nullptr;
   uint32_t* m_pinLUT = nullptr;
 };
 

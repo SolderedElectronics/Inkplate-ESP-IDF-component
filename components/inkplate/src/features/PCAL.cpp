@@ -40,9 +40,9 @@ PCAL::PCAL(uint8_t addr, I2C &i2c)
  *         ESP_ERR_INVALID_ARG if pin is blocked
  *         ESP_ERR_INVALID_STATE if pin is configured as input
  */
-esp_err_t PCAL::setLevel(IOPin_t pin, uint8_t level)
+esp_err_t PCAL::setLevel(IOPin_t pin, uint8_t level, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
     return ESP_ERR_INVALID_ARG;
 
   // check if pin is set as input
@@ -64,40 +64,6 @@ esp_err_t PCAL::setLevel(IOPin_t pin, uint8_t level)
 }
 
 /**
- * @brief  Set output level of a pin, bypassing the blocked-pin guard.
- *
- * @param  IOPin_t pin
- *         pin to set
- * @param  uint8_t level
- *         0 for low, non-zero for high
- *
- * @return esp_err_t
- *         ESP_OK if no error occurred
- *         ESP_ERR_INVALID_STATE if pin is configured as input
- *
- * @note   For internal driver use only — does not check m_blockedPins.
- */
-esp_err_t PCAL::setLevelForce(IOPin_t pin, uint8_t level)
-{
-  // check if pin is set as input
-  uint8_t cfgReg, cfgBit;
-  pinToRegBit(pin, PCAL6416A_CFGPORT0, cfgReg, cfgBit);
-  if ((readPin(cfgReg) >> cfgBit) & 1)
-    return ESP_ERR_INVALID_STATE;
-
-  uint8_t reg, bit;
-  pinToRegBit(pin, PCAL6416A_OUTPORT0, reg, bit);
-
-  uint8_t val = readPin(reg);
-  if (level)
-    val |= (1 << bit);
-  else
-    val &= ~(1 << bit);
-
-  return writePin(reg, val);
-}
-
-/**
  * @brief  Get the output level of a pin.
  *
  * @param  IOPin_t pin
@@ -107,9 +73,9 @@ esp_err_t PCAL::setLevelForce(IOPin_t pin, uint8_t level)
  *         pin level
  *         ESP_ERR_INVALID_ARG if pin is blocked
  */
-int PCAL::getLevel(IOPin_t pin)
+int PCAL::getLevel(IOPin_t pin, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
   return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
@@ -170,9 +136,9 @@ int PCAL::getPort(IOPort_t port)
  *         ESP_OK if no error occured
  *         ESP_ERR_INVALID_ARG if pin is blocked
  */
-esp_err_t PCAL::setDirection(IOPin_t pin, IOMode_t mode)
+esp_err_t PCAL::setDirection(IOPin_t pin, IOMode_t mode, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
   return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
@@ -201,9 +167,9 @@ esp_err_t PCAL::setDirection(IOPin_t pin, IOMode_t mode)
  *         ESP_OK if no error occured
  *         ESP_ERR_INVALID_ARG if pin is blocked
  */
-esp_err_t PCAL::setPullMode(IOPin_t pin, IOPullMode_t pullMode)
+esp_err_t PCAL::setPullMode(IOPin_t pin, IOPullMode_t pullMode, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
   return ESP_ERR_INVALID_ARG;
 
   uint8_t enReg, selReg, bit;
@@ -240,9 +206,9 @@ esp_err_t PCAL::setPullMode(IOPin_t pin, IOPullMode_t pullMode)
  *         ESP_OK if no error occured
  *         ESP_ERR_INVALID_ARG if pin is blocked
  */
-esp_err_t PCAL::setPolarityInversion(IOPin_t pin, bool invert)
+esp_err_t PCAL::setPolarityInversion(IOPin_t pin, bool invert, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
   return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
@@ -273,9 +239,9 @@ esp_err_t PCAL::setPolarityInversion(IOPin_t pin, bool invert)
  *         ESP_OK if no error occured
  *         ESP_ERR_INVALID_ARG if pin is blocked
  */
-esp_err_t PCAL::setInputLatch(IOPin_t pin, bool latch)
+esp_err_t PCAL::setInputLatch(IOPin_t pin, bool latch, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
   return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
@@ -331,9 +297,9 @@ esp_err_t PCAL::setOutputMode(IOPort_t port, IOOutputMode_t mode)
  * @note   Each pin occupies 2 bits in one of four drive strength registers
  *         (REG00–REG11). Port 0 uses 0x40/0x41, port 1 uses 0x42/0x43.
  */
-esp_err_t PCAL::setDriveStrength(IOPin_t pin, IODriveStrength_t strength)
+esp_err_t PCAL::setDriveStrength(IOPin_t pin, IODriveStrength_t strength, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
   return ESP_ERR_INVALID_ARG;
 
   // two registers per port (pins 0-3 in first, pins 4-7 in second)
@@ -359,9 +325,9 @@ esp_err_t PCAL::setDriveStrength(IOPin_t pin, IODriveStrength_t strength)
  *         ESP_OK if no error occured
  *         ESP_ERR_INVALID_ARG if pin is blocked
  */
-esp_err_t PCAL::interruptEnable(IOPin_t pin)
+esp_err_t PCAL::interruptEnable(IOPin_t pin, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
   return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;
@@ -384,9 +350,9 @@ esp_err_t PCAL::interruptEnable(IOPin_t pin)
  *         ESP_OK if no error occured
  *         ESP_ERR_INVALID_ARG if pin is blocked
  */
-esp_err_t PCAL::interruptDisable(IOPin_t pin)
+esp_err_t PCAL::interruptDisable(IOPin_t pin, bool bypass)
 {
-  if (checkBlockedPins(pin))
+  if (!bypass && checkBlockedPins(pin))
   return ESP_ERR_INVALID_ARG;
 
   uint8_t reg, bit;

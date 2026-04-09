@@ -29,8 +29,8 @@ SDCard::SDCard(PCAL &expander) : m_expander(expander)
  */
 esp_err_t SDCard::sdCardInit()
 {
-  m_expander.setDirection(SD_PMOS_PIN, IO_MODE_OUTPUT);
-  m_expander.setLevel(SD_PMOS_PIN, 0);
+  m_expander.setDirection(SD_PMOS_PIN, IO_MODE_OUTPUT, true);
+  m_expander.setLevel(SD_PMOS_PIN, 0, true);
   esp_rom_delay_us(50000);
 
   spi_bus_config_t busCfg = {};
@@ -84,7 +84,7 @@ esp_err_t SDCard::sdCardSleep()
   gpio_set_direction(GPIO_NUM_13, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_15, GPIO_MODE_INPUT);
-  m_expander.setDirection(SD_PMOS_PIN, IO_MODE_INPUT);
+  m_expander.setDirection(SD_PMOS_PIN, IO_MODE_INPUT, true);
 
   return ret;
 }

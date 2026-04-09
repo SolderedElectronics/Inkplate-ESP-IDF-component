@@ -86,23 +86,22 @@ class PCAL
 public:
   PCAL(uint8_t addr, I2C &i2c);
 
-  esp_err_t setLevel(IOPin_t pin, uint8_t level);
-  esp_err_t setLevelForce(IOPin_t pin, uint8_t level);
-  int       getLevel(IOPin_t pin);
+  esp_err_t setLevel(IOPin_t pin, uint8_t level, bool bypass = false);
+  int       getLevel(IOPin_t pin, bool bypass = false);
 
   esp_err_t setPort(IOPort_t port, uint8_t value);
   int       getPort(IOPort_t port);
 
   esp_err_t setPortDirection(IOPort_t port, uint8_t mask);
-  esp_err_t setDirection(IOPin_t pin, IOMode_t mode);
-  esp_err_t setPullMode(IOPin_t pin, IOPullMode_t pullMode);
-  esp_err_t setPolarityInversion(IOPin_t pin, bool invert);
-  esp_err_t setInputLatch(IOPin_t pin, bool latch);
+  esp_err_t setDirection(IOPin_t pin, IOMode_t mode, bool bypass = false);
+  esp_err_t setPullMode(IOPin_t pin, IOPullMode_t pullMode, bool bypass = false);
+  esp_err_t setPolarityInversion(IOPin_t pin, bool invert, bool bypass = false);
+  esp_err_t setInputLatch(IOPin_t pin, bool latch, bool bypass = false);
   esp_err_t setOutputMode(IOPort_t port, IOOutputMode_t mode);
-  esp_err_t setDriveStrength(IOPin_t pin, IODriveStrength_t strength);
+  esp_err_t setDriveStrength(IOPin_t pin, IODriveStrength_t strength, bool bypass = false);
 
-  esp_err_t interruptEnable(IOPin_t pin);
-  esp_err_t interruptDisable(IOPin_t pin);
+  esp_err_t interruptEnable(IOPin_t pin, bool bypass = false);
+  esp_err_t interruptDisable(IOPin_t pin, bool bypass = false);
   bool      getInterrupt(IOPin_t pin);
 
   esp_err_t blockPin(IOPin_t pin);

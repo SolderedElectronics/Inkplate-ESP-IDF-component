@@ -16,28 +16,28 @@ extern PCAL expander1;
 #define GPIO0_ENABLE IO_NUM_B0
 
 #define WAKEUP       IO_NUM_A3
-#define WAKEUP_SET   do { expander1.setLevel(WAKEUP, 1); } while(0)
-#define WAKEUP_CLEAR do { expander1.setLevel(WAKEUP, 0); } while(0)
+#define WAKEUP_SET   do { expander1.setLevel(WAKEUP, 1, true); } while(0)
+#define WAKEUP_CLEAR do { expander1.setLevel(WAKEUP, 0, true); } while(0)
 
 #define PWRUP        IO_NUM_A4
-#define PWRUP_SET    do { expander1.setLevel(PWRUP, 1); } while(0)
-#define PWRUP_CLEAR  do { expander1.setLevel(PWRUP, 0); } while(0)
+#define PWRUP_SET    do { expander1.setLevel(PWRUP, 1, true); } while(0)
+#define PWRUP_CLEAR  do { expander1.setLevel(PWRUP, 0, true); } while(0)
 
 #define VCOM         IO_NUM_A5
-#define VCOM_SET     do { expander1.setLevel(VCOM, 1); } while(0)
-#define VCOM_CLEAR   do { expander1.setLevel(VCOM, 0); } while(0)
+#define VCOM_SET     do { expander1.setLevel(VCOM, 1, true); } while(0)
+#define VCOM_CLEAR   do { expander1.setLevel(VCOM, 0, true); } while(0)
 
 #define OE           IO_NUM_A0
-#define OE_SET       do { expander1.setLevel(OE, 1); } while(0)
-#define OE_CLEAR     do { expander1.setLevel(OE, 0); } while(0)
+#define OE_SET       do { expander1.setLevel(OE, 1, true); } while(0)
+#define OE_CLEAR     do { expander1.setLevel(OE, 0, true); } while(0)
 
 #define GMOD         IO_NUM_A1
-#define GMOD_SET     do { expander1.setLevel(GMOD, 1); } while(0)
-#define GMOD_CLEAR   do { expander1.setLevel(GMOD, 0); } while(0)
+#define GMOD_SET     do { expander1.setLevel(GMOD, 1, true); } while(0)
+#define GMOD_CLEAR   do { expander1.setLevel(GMOD, 0, true); } while(0)
 
 #define SPV          IO_NUM_A2
-#define SPV_SET      do { expander1.setLevel(SPV, 1); } while(0)
-#define SPV_CLEAR    do { expander1.setLevel(SPV, 0); } while(0)
+#define SPV_SET      do { expander1.setLevel(SPV, 1, true); } while(0)
+#define SPV_CLEAR    do { expander1.setLevel(SPV, 0, true); } while(0)
 
 #define CL           0x01
 #define CL_SET       do { GPIO.out_w1ts = CL; } while(0)
