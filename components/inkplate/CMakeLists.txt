@@ -4,6 +4,26 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE10)
     set(BOARD_SRC "src/boards/inkplate10/Inkplate10.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE5)
     set(BOARD_SRC "src/boards/inkplate5/Inkplate5.cpp")
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
+    set(BOARD_SRC "src/boards/inkplate4/Inkplate4.cpp")
+    set(SENSOR_SRCS
+        "src/features/APDS9960/APDS9960.cpp"
+        "src/features/APDS9960/libs/SparkFunAPDS9960.cpp"
+        "src/features/BME680/BME680.cpp"
+        "src/features/BME680/libs/ZanshinBME680.cpp"
+        "src/features/BQ27441/BQ27441.cpp"
+        "src/features/BQ27441/libs/SparkFunBQ27441.cpp"
+        "src/features/LSM6DS3/LSM6DS3.cpp"
+        "src/features/LSM6DS3/libs/SparkFunLSM6DS3.cpp")
+    set(SENSOR_INCLUDES
+        "src/features/APDS9960"
+        "src/features/APDS9960/libs"
+        "src/features/BME680"
+        "src/features/BME680/libs"
+        "src/features/BQ27441"
+        "src/features/BQ27441/libs"
+        "src/features/LSM6DS3"
+        "src/features/LSM6DS3/libs")
 endif()
 
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"
@@ -11,6 +31,7 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                              "src/features/SDCard.cpp"
                              "src/boards/BoardCommon.cpp"
                              "${BOARD_SRC}"
+                             ${SENSOR_SRCS}
                              "src/boards/Inkplate.cpp"
                              "src/graphics/Graphics.cpp"
                              "src/graphics/Image/Image.cpp"
@@ -25,9 +46,11 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                                 "esp_driver_spi" "fatfs" "sdmmc"
                                 "esp_wifi" "nvs_flash" "esp_http_client"
                        INCLUDE_DIRS "include" "include/features" "include/boards" "include/boards/inkplate5" "include/boards/inkplate6" "include/boards/inkplate10"
+                                    "include/boards/inkplate4"
                                     "include/graphics" "include/graphics/Adafruit_GFX" "include/graphics/Shapes"
                                     "include/graphics/Image"
                                     "include/graphics/Image/BMP"
                                     "include/graphics/Image/JPEG"
                                     "include/graphics/Image/PNG"
-                                    "include/graphics/pngle")
+                                    "include/graphics/pngle"
+                                    ${SENSOR_INCLUDES})

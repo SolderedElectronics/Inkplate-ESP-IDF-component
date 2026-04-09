@@ -8,6 +8,11 @@
 
 #include "../../graphics/GraphicsDefs.h"
 
+#include "APDS9960.h"
+#include "BQ27441.h"
+#include "LSM6DS3.h"
+#include "BME680.h"
+
 #define E_INK_WIDTH  400
 #define E_INK_HEIGHT 300
 
@@ -20,6 +25,11 @@ public:
   esp_err_t einkOn() override;
   esp_err_t einkOff() override;
 
+  APDS9960  apds;
+  BQ_27441   bq;
+  Soldered_LSM6DS3 lsm;
+  BME680 bme;
+
 private:
   esp_err_t initBuffers();
   void      calculateLUTs();
@@ -30,8 +40,8 @@ private:
   void      pinsAsOutputs();
   void      pinsZstate();
 
-  uint8_t*  m_glut   = nullptr;
-  uint8_t*  m_glut2  = nullptr;
+  uint32_t*  m_glut   = nullptr;
+  uint32_t*  m_glut2  = nullptr;
   uint32_t* m_pinLUT = nullptr;
 };
 
