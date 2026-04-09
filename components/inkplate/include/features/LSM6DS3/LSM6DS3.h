@@ -1,14 +1,14 @@
 #ifndef __LSM6DS3_SOLDERED_H__
 #define __LSM6DS3_SOLDERED_H__
 
-#include "libs/SparkFunLSM6DS3.h"
+#include "libs/LSM6DS3Driver.h"
 #include "driver/i2c_master.h"
 #include "esp_err.h"
 
-class Soldered_LSM6DS3 : public LSM6DS3
+class LSM6DS3 : public LSM6DS3Driver
 {
   public:
-    Soldered_LSM6DS3() = default;
+    LSM6DS3() = default;
 
     // Initializes the I2C bus and device, then configures the sensor.
     // Call once before reading data.

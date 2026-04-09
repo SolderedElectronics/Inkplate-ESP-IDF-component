@@ -8,13 +8,13 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
     set(BOARD_SRC "src/boards/inkplate4/Inkplate4.cpp")
     set(SENSOR_SRCS
         "src/features/APDS9960/APDS9960.cpp"
-        "src/features/APDS9960/libs/SparkFunAPDS9960.cpp"
+        "src/features/APDS9960/libs/APDS9960Driver.cpp"
         "src/features/BME680/BME680.cpp"
-        "src/features/BME680/libs/ZanshinBME680.cpp"
+        "src/features/BME680/libs/BME680Driver.cpp"
         "src/features/BQ27441/BQ27441.cpp"
-        "src/features/BQ27441/libs/SparkFunBQ27441.cpp"
+        "src/features/BQ27441/libs/BQ27441Driver.cpp"
         "src/features/LSM6DS3/LSM6DS3.cpp"
-        "src/features/LSM6DS3/libs/SparkFunLSM6DS3.cpp")
+        "src/features/LSM6DS3/libs/LSM6DS3Driver.cpp")
     set(SENSOR_INCLUDES
         "include/features/APDS9960"
         "include/features/APDS9960/libs"

@@ -1,5 +1,5 @@
 /******************************************************************************
-SparkFunBQ27441.cpp
+BQ27441Driver.cpp
 BQ27441 Arduino Library Main Source File
 Jim Lindblom @ SparkFun Electronics
 May 9, 2016
@@ -21,7 +21,7 @@ Arduino Uno (any 'duino should do)
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/i2c_master.h"
-#include "SparkFunBQ27441.h"
+#include "BQ27441Driver.h"
 #include "BQ27441_Definitions.h"
 
 #ifndef constrain
@@ -32,12 +32,12 @@ Arduino Uno (any 'duino should do)
  ************************** Initialization Functions *************************
  *****************************************************************************/
 // Initializes class variables
-BQ27441::BQ27441() : _deviceAddress(BQ72441_I2C_ADDRESS), _sealFlag(false), _userConfigControl(false), _i2c_handle(NULL)
+BQ27441Driver::BQ27441Driver() : _deviceAddress(BQ72441_I2C_ADDRESS), _sealFlag(false), _userConfigControl(false), _i2c_handle(NULL)
 {
 }
 
 // Initializes I2C and verifies communication with the BQ27441.
-bool BQ27441::begin(i2c_master_dev_handle_t dev_handle)
+bool BQ27441Driver::begin(i2c_master_dev_handle_t dev_handle)
 {
     _i2c_handle = dev_handle;
 
@@ -52,7 +52,7 @@ bool BQ27441::begin(i2c_master_dev_handle_t dev_handle)
 }
 
 // Configures the design capacity of the connected battery.
-bool BQ27441::setCapacity(uint16_t capacity)
+bool BQ27441Driver::setCapacity(uint16_t capacity)
 {
     // Write to STATE subclass (82) of BQ27441 extended memory.
     // Offset 0x0A (10)
@@ -65,7 +65,7 @@ bool BQ27441::setCapacity(uint16_t capacity)
 }
 
 // Configures the design energy of the connected battery.
-bool BQ27441::setDesignEnergy(uint16_t energy)
+bool BQ27441Driver::setDesignEnergy(uint16_t energy)
 {
     // Write to STATE subclass (82) of BQ27441 extended memory.
     // Offset 0x0C (12)
@@ -78,7 +78,7 @@ bool BQ27441::setDesignEnergy(uint16_t energy)
 }
 
 // Configures the terminate voltage.
-bool BQ27441::setTerminateVoltage(uint16_t voltage)
+bool BQ27441Driver::setTerminateVoltage(uint16_t voltage)
 {
     // Write to STATE subclass (82) of BQ27441 extended memory.
     // Offset 0x0F (16)
@@ -97,7 +97,7 @@ bool BQ27441::setTerminateVoltage(uint16_t voltage)
 }
 
 // Configures taper rate of connected battery.
-bool BQ27441::setTaperRate(uint16_t rate)
+bool BQ27441Driver::setTaperRate(uint16_t rate)
 {
     // Write to STATE subclass (82) of BQ27441 extended memory.
     // Offset 0x1B (27)
@@ -117,13 +117,13 @@ bool BQ27441::setTaperRate(uint16_t rate)
  *****************************************************************************/
 
 // Reads and returns the battery voltage
-uint16_t BQ27441::voltage(void)
+uint16_t BQ27441Driver::voltage(void)
 {
     return readWord(BQ27441_COMMAND_VOLTAGE);
 }
 
 // Reads and returns the specified current measurement
-int16_t BQ27441::current(current_measure type)
+int16_t BQ27441Driver::current(current_measure type)
 {
     int16_t current = 0;
     switch (type)
@@ -143,7 +143,7 @@ int16_t BQ27441::current(current_measure type)
 }
 
 // Reads and returns the specified capacity measurement
-uint16_t BQ27441::capacity(capacity_measure type)
+uint16_t BQ27441Driver::capacity(capacity_measure type)
 {
     uint16_t capacity = 0;
     switch (type)
@@ -180,13 +180,13 @@ uint16_t BQ27441::capacity(capacity_measure type)
 }
 
 // Reads and returns measured average power
-int16_t BQ27441::power(void)
+int16_t BQ27441Driver::power(void)
 {
     return (int16_t)readWord(BQ27441_COMMAND_AVG_POWER);
 }
 
 // Reads and returns specified state of charge measurement
-uint16_t BQ27441::soc(soc_measure type)
+uint16_t BQ27441Driver::soc(soc_measure type)
 {
     uint16_t socRet = 0;
     switch (type)
@@ -203,7 +203,7 @@ uint16_t BQ27441::soc(soc_measure type)
 }
 
 // Reads and returns specified state of health measurement
-uint8_t BQ27441::soh(soh_measure type)
+uint8_t BQ27441Driver::soh(soh_measure type)
 {
     uint16_t sohRaw = readWord(BQ27441_COMMAND_SOH);
     uint8_t sohStatus = sohRaw >> 8;
@@ -216,7 +216,7 @@ uint8_t BQ27441::soh(soh_measure type)
 }
 
 // Reads and returns specified temperature measurement
-uint16_t BQ27441::temperature(temp_measure type)
+uint16_t BQ27441Driver::temperature(temp_measure type)
 {
     uint16_t temp = 0;
     switch (type)
@@ -235,7 +235,7 @@ uint16_t BQ27441::temperature(temp_measure type)
  ************************** GPOUT Control Functions **************************
  *****************************************************************************/
 // Get GPOUT polarity setting (active-high or active-low)
-bool BQ27441::GPOUTPolarity(void)
+bool BQ27441Driver::GPOUTPolarity(void)
 {
     uint16_t opConfigRegister = opConfig();
 
@@ -243,7 +243,7 @@ bool BQ27441::GPOUTPolarity(void)
 }
 
 // Set GPOUT polarity to active-high or active-low
-bool BQ27441::setGPOUTPolarity(bool activeHigh)
+bool BQ27441Driver::setGPOUTPolarity(bool activeHigh)
 {
     uint16_t oldOpConfig = opConfig();
 
@@ -262,7 +262,7 @@ bool BQ27441::setGPOUTPolarity(bool activeHigh)
 }
 
 // Get GPOUT function (BAT_LOW or SOC_INT)
-bool BQ27441::GPOUTFunction(void)
+bool BQ27441Driver::GPOUTFunction(void)
 {
     uint16_t opConfigRegister = opConfig();
 
@@ -270,7 +270,7 @@ bool BQ27441::GPOUTFunction(void)
 }
 
 // Set GPOUT function to BAT_LOW or SOC_INT
-bool BQ27441::setGPOUTFunction(gpout_function function)
+bool BQ27441Driver::setGPOUTFunction(gpout_function function)
 {
     uint16_t oldOpConfig = opConfig();
 
@@ -291,19 +291,19 @@ bool BQ27441::setGPOUTFunction(gpout_function function)
 }
 
 // Get SOC1_Set Threshold - threshold to set the alert flag
-uint8_t BQ27441::SOC1SetThreshold(void)
+uint8_t BQ27441Driver::SOC1SetThreshold(void)
 {
     return readExtendedData(BQ27441_ID_DISCHARGE, 0);
 }
 
 // Get SOC1_Clear Threshold - threshold to clear the alert flag
-uint8_t BQ27441::SOC1ClearThreshold(void)
+uint8_t BQ27441Driver::SOC1ClearThreshold(void)
 {
     return readExtendedData(BQ27441_ID_DISCHARGE, 1);
 }
 
 // Set the SOC1 set and clear thresholds to a percentage
-bool BQ27441::setSOC1Thresholds(uint8_t set, uint8_t clear)
+bool BQ27441Driver::setSOC1Thresholds(uint8_t set, uint8_t clear)
 {
     uint8_t thresholds[2];
     thresholds[0] = constrain(set, 0, 100);
@@ -312,19 +312,19 @@ bool BQ27441::setSOC1Thresholds(uint8_t set, uint8_t clear)
 }
 
 // Get SOCF_Set Threshold - threshold to set the alert flag
-uint8_t BQ27441::SOCFSetThreshold(void)
+uint8_t BQ27441Driver::SOCFSetThreshold(void)
 {
     return readExtendedData(BQ27441_ID_DISCHARGE, 2);
 }
 
 // Get SOCF_Clear Threshold - threshold to clear the alert flag
-uint8_t BQ27441::SOCFClearThreshold(void)
+uint8_t BQ27441Driver::SOCFClearThreshold(void)
 {
     return readExtendedData(BQ27441_ID_DISCHARGE, 3);
 }
 
 // Set the SOCF set and clear thresholds to a percentage
-bool BQ27441::setSOCFThresholds(uint8_t set, uint8_t clear)
+bool BQ27441Driver::setSOCFThresholds(uint8_t set, uint8_t clear)
 {
     uint8_t thresholds[2];
     thresholds[0] = constrain(set, 0, 100);
@@ -333,7 +333,7 @@ bool BQ27441::setSOCFThresholds(uint8_t set, uint8_t clear)
 }
 
 // Check if the SOC1 flag is set
-bool BQ27441::socFlag(void)
+bool BQ27441Driver::socFlag(void)
 {
     uint16_t flagState = flags();
 
@@ -341,7 +341,7 @@ bool BQ27441::socFlag(void)
 }
 
 // Check if the SOCF flag is set
-bool BQ27441::socfFlag(void)
+bool BQ27441Driver::socfFlag(void)
 {
     uint16_t flagState = flags();
 
@@ -349,7 +349,7 @@ bool BQ27441::socfFlag(void)
 }
 
 // Check if the ITPOR flag is set
-bool BQ27441::itporFlag(void)
+bool BQ27441Driver::itporFlag(void)
 {
     uint16_t flagState = flags();
 
@@ -357,7 +357,7 @@ bool BQ27441::itporFlag(void)
 }
 
 // Check if the FC flag is set
-bool BQ27441::fcFlag(void)
+bool BQ27441Driver::fcFlag(void)
 {
     uint16_t flagState = flags();
 
@@ -365,7 +365,7 @@ bool BQ27441::fcFlag(void)
 }
 
 // Check if the CHG flag is set
-bool BQ27441::chgFlag(void)
+bool BQ27441Driver::chgFlag(void)
 {
     uint16_t flagState = flags();
 
@@ -373,7 +373,7 @@ bool BQ27441::chgFlag(void)
 }
 
 // Check if the DSG flag is set
-bool BQ27441::dsgFlag(void)
+bool BQ27441Driver::dsgFlag(void)
 {
     uint16_t flagState = flags();
 
@@ -381,20 +381,20 @@ bool BQ27441::dsgFlag(void)
 }
 
 // Get the SOC_INT interval delta
-uint8_t BQ27441::sociDelta(void)
+uint8_t BQ27441Driver::sociDelta(void)
 {
     return readExtendedData(BQ27441_ID_STATE, 26);
 }
 
 // Set the SOC_INT interval delta to a value between 1 and 100
-bool BQ27441::setSOCIDelta(uint8_t delta)
+bool BQ27441Driver::setSOCIDelta(uint8_t delta)
 {
     uint8_t soci = constrain(delta, 0, 100);
     return writeExtendedData(BQ27441_ID_STATE, 26, &soci, 1);
 }
 
 // Pulse the GPOUT pin - must be in SOC_INT mode
-bool BQ27441::pulseGPOUT(void)
+bool BQ27441Driver::pulseGPOUT(void)
 {
     return executeControlWord(BQ27441_CONTROL_PULSE_SOC_INT);
 }
@@ -404,14 +404,14 @@ bool BQ27441::pulseGPOUT(void)
  *****************************************************************************/
 
 // Read the device type - should be 0x0421
-uint16_t BQ27441::deviceType(void)
+uint16_t BQ27441Driver::deviceType(void)
 {
     return readControlWord(BQ27441_CONTROL_DEVICE_TYPE);
 }
 
 // Enter configuration mode - set userControl if calling from an Arduino sketch
 // and you want control over when to exitConfig
-bool BQ27441::enterConfig(bool userControl)
+bool BQ27441Driver::enterConfig(bool userControl)
 {
     if (userControl)
         _userConfigControl = true;
@@ -436,7 +436,7 @@ bool BQ27441::enterConfig(bool userControl)
 }
 
 // Exit configuration mode with the option to perform a resimulation
-bool BQ27441::exitConfig(bool resim)
+bool BQ27441Driver::exitConfig(bool resim)
 {
     // There are two methods for exiting config mode:
     //    1. Execute the EXIT_CFGUPDATE command
@@ -468,19 +468,19 @@ bool BQ27441::exitConfig(bool resim)
 }
 
 // Read the flags() command
-uint16_t BQ27441::flags(void)
+uint16_t BQ27441Driver::flags(void)
 {
     return readWord(BQ27441_COMMAND_FLAGS);
 }
 
 // Read the CONTROL_STATUS subcommand of control()
-uint16_t BQ27441::status(void)
+uint16_t BQ27441Driver::status(void)
 {
     return readControlWord(BQ27441_CONTROL_STATUS);
 }
 
 // Added by Soldered Electronics.
-void BQ27441::shutdown()
+void BQ27441Driver::shutdown()
 {
     readControlWord(BQ27441_CONTROL_SHUTDOWN_ENABLE);
     readControlWord(BQ27441_CONTROL_SHUTDOWN);
@@ -489,20 +489,20 @@ void BQ27441::shutdown()
 /***************************** Private Functions *****************************/
 
 // Check if the BQ27441-G1A is sealed or not.
-bool BQ27441::sealed(void)
+bool BQ27441Driver::sealed(void)
 {
     uint16_t stat = status();
     return stat & BQ27441_STATUS_SS;
 }
 
 // Seal the BQ27441-G1A
-bool BQ27441::seal(void)
+bool BQ27441Driver::seal(void)
 {
     return readControlWord(BQ27441_CONTROL_SEALED);
 }
 
 // UNseal the BQ27441-G1A
-bool BQ27441::unseal(void)
+bool BQ27441Driver::unseal(void)
 {
     // To unseal the BQ27441, write the key to the control
     // command. Then immediately write the same key to control again.
@@ -514,13 +514,13 @@ bool BQ27441::unseal(void)
 }
 
 // Read the 16-bit opConfig register from extended data
-uint16_t BQ27441::opConfig(void)
+uint16_t BQ27441Driver::opConfig(void)
 {
     return readWord(BQ27441_EXTENDED_OPCONFIG);
 }
 
 // Write the 16-bit opConfig register in extended data
-bool BQ27441::writeOpConfig(uint16_t value)
+bool BQ27441Driver::writeOpConfig(uint16_t value)
 {
     uint8_t opConfigMSB = value >> 8;
     uint8_t opConfigLSB = value & 0x00FF;
@@ -531,13 +531,13 @@ bool BQ27441::writeOpConfig(uint16_t value)
 }
 
 // Issue a soft-reset to the BQ27441-G1A
-bool BQ27441::softReset(void)
+bool BQ27441Driver::softReset(void)
 {
     return executeControlWord(BQ27441_CONTROL_SOFT_RESET);
 }
 
 // Read a 16-bit command word from the BQ27441-G1A
-uint16_t BQ27441::readWord(uint16_t subAddress)
+uint16_t BQ27441Driver::readWord(uint16_t subAddress)
 {
     uint8_t data[2];
     i2cReadBytes(subAddress, data, 2);
@@ -545,7 +545,7 @@ uint16_t BQ27441::readWord(uint16_t subAddress)
 }
 
 // Read a 16-bit subcommand() from the BQ27441-G1A's control()
-uint16_t BQ27441::readControlWord(uint16_t function)
+uint16_t BQ27441Driver::readControlWord(uint16_t function)
 {
     uint8_t subCommandMSB = (function >> 8);
     uint8_t subCommandLSB = (function & 0x00FF);
@@ -563,7 +563,7 @@ uint16_t BQ27441::readControlWord(uint16_t function)
 }
 
 // Execute a subcommand() from the BQ27441-G1A's control()
-bool BQ27441::executeControlWord(uint16_t function)
+bool BQ27441Driver::executeControlWord(uint16_t function)
 {
     uint8_t subCommandMSB = (function >> 8);
     uint8_t subCommandLSB = (function & 0x00FF);
@@ -581,26 +581,26 @@ bool BQ27441::executeControlWord(uint16_t function)
  *****************************************************************************/
 
 // Issue a BlockDataControl() command to enable BlockData access
-bool BQ27441::blockDataControl(void)
+bool BQ27441Driver::blockDataControl(void)
 {
     uint8_t enableByte = 0x00;
     return i2cWriteBytes(BQ27441_EXTENDED_CONTROL, &enableByte, 1);
 }
 
 // Issue a DataClass() command to set the data class to be accessed
-bool BQ27441::blockDataClass(uint8_t id)
+bool BQ27441Driver::blockDataClass(uint8_t id)
 {
     return i2cWriteBytes(BQ27441_EXTENDED_DATACLASS, &id, 1);
 }
 
 // Issue a DataBlock() command to set the data block to be accessed
-bool BQ27441::blockDataOffset(uint8_t offset)
+bool BQ27441Driver::blockDataOffset(uint8_t offset)
 {
     return i2cWriteBytes(BQ27441_EXTENDED_DATABLOCK, &offset, 1);
 }
 
 // Read the current checksum using BlockDataCheckSum()
-uint8_t BQ27441::blockDataChecksum(void)
+uint8_t BQ27441Driver::blockDataChecksum(void)
 {
     uint8_t csum;
     i2cReadBytes(BQ27441_EXTENDED_CHECKSUM, &csum, 1);
@@ -608,7 +608,7 @@ uint8_t BQ27441::blockDataChecksum(void)
 }
 
 // Use BlockData() to read a byte from the loaded extended data
-uint8_t BQ27441::readBlockData(uint8_t offset)
+uint8_t BQ27441Driver::readBlockData(uint8_t offset)
 {
     uint8_t ret;
     uint8_t address = offset + BQ27441_EXTENDED_BLOCKDATA;
@@ -617,7 +617,7 @@ uint8_t BQ27441::readBlockData(uint8_t offset)
 }
 
 // Use BlockData() to write a byte to an offset of the loaded data
-bool BQ27441::writeBlockData(uint8_t offset, uint8_t data)
+bool BQ27441Driver::writeBlockData(uint8_t offset, uint8_t data)
 {
     uint8_t address = offset + BQ27441_EXTENDED_BLOCKDATA;
     return i2cWriteBytes(address, &data, 1);
@@ -625,7 +625,7 @@ bool BQ27441::writeBlockData(uint8_t offset, uint8_t data)
 
 // Read all 32 bytes of the loaded extended data and compute a
 // checksum based on the values.
-uint8_t BQ27441::computeBlockChecksum(void)
+uint8_t BQ27441Driver::computeBlockChecksum(void)
 {
     uint8_t data[32];
     i2cReadBytes(BQ27441_EXTENDED_BLOCKDATA, data, 32);
@@ -641,13 +641,13 @@ uint8_t BQ27441::computeBlockChecksum(void)
 }
 
 // Use the BlockDataCheckSum() command to write a checksum value
-bool BQ27441::writeBlockChecksum(uint8_t csum)
+bool BQ27441Driver::writeBlockChecksum(uint8_t csum)
 {
     return i2cWriteBytes(BQ27441_EXTENDED_CHECKSUM, &csum, 1);
 }
 
 // Read a byte from extended data specifying a class ID and position offset
-uint8_t BQ27441::readExtendedData(uint8_t classID, uint8_t offset)
+uint8_t BQ27441Driver::readExtendedData(uint8_t classID, uint8_t offset)
 {
     uint8_t retData = 0;
     if (!_userConfigControl)
@@ -674,7 +674,7 @@ uint8_t BQ27441::readExtendedData(uint8_t classID, uint8_t offset)
 
 // Write a specified number of bytes to extended data specifying a
 // class ID, position offset.
-bool BQ27441::writeExtendedData(uint8_t classID, uint8_t offset, uint8_t *data, uint8_t len)
+bool BQ27441Driver::writeExtendedData(uint8_t classID, uint8_t offset, uint8_t *data, uint8_t len)
 {
     if (len > 32)
         return false;
@@ -714,14 +714,14 @@ bool BQ27441::writeExtendedData(uint8_t classID, uint8_t offset, uint8_t *data, 
  *****************************************************************************/
 
 // Read a specified number of bytes over I2C at a given subAddress
-int16_t BQ27441::i2cReadBytes(uint8_t subAddress, uint8_t *dest, uint8_t count)
+int16_t BQ27441Driver::i2cReadBytes(uint8_t subAddress, uint8_t *dest, uint8_t count)
 {
     esp_err_t ret = i2c_master_transmit_receive(_i2c_handle, &subAddress, 1, dest, count, BQ72441_I2C_TIMEOUT);
     return (ret == ESP_OK) ? BQ72441_I2C_TIMEOUT : 0;
 }
 
 // Write a specified number of bytes over I2C to a given subAddress
-uint16_t BQ27441::i2cWriteBytes(uint8_t subAddress, uint8_t *src, uint8_t count)
+uint16_t BQ27441Driver::i2cWriteBytes(uint8_t subAddress, uint8_t *src, uint8_t count)
 {
     // Pack register address + data into a single buffer (max 33 bytes: 1 addr + 32 data)
     uint8_t buf[33];
@@ -731,4 +731,4 @@ uint16_t BQ27441::i2cWriteBytes(uint8_t subAddress, uint8_t *src, uint8_t count)
     return (ret == ESP_OK) ? 1 : 0;
 }
 
-BQ27441 lipo; // Use lipo.[] to interact with the library in an Arduino sketch
+// BQ27441Driver lipo; // Use lipo.[] to interact with the library in an Arduino sketch

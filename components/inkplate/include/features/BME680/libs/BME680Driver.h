@@ -40,8 +40,8 @@ Written by Arnd <Arnd@Zanduino.Com> at https://www.github.com/SV-Zanshin
 #include <stdint.h>
 #include <string.h>
 
-#ifndef BME680_h
-#define BME680_h
+#ifndef BME680Driver_h
+#define BME680Driver_h
 
 #define CONCAT_BYTES(msb, lsb) (((uint16_t)msb << 8) | (uint16_t)lsb) ///< combine msb & lsb bytes
 #ifndef _BV
@@ -96,11 +96,11 @@ enum iirFilterTypes
     UnknownIIR
 };
 
-class BME680_Class
+class BME680Driver
 {
   public:
-    BME680_Class();
-    ~BME680_Class();
+    BME680Driver();
+    ~BME680Driver();
     bool begin(i2c_master_bus_handle_t busHandle, uint8_t i2cAddress = 0);
     uint8_t setOversampling(const uint8_t sensor,
                             const uint8_t sampling = UINT8_MAX) const;
@@ -177,6 +177,6 @@ class BME680_Class
     uint16_t _H1 = 0, _H2 = 0, _T1 = 0, _P1 = 0;
     int16_t  _G2 = 0, _T2 = 0, _P2 = 0, _P4 = 0, _P5 = 0, _P8 = 0, _P9 = 0;
     int32_t  _tfine = 0, _Temperature = 0, _Pressure = 0, _Humidity = 0, _Gas = 0;
-}; // of BME680_Class definition
+}; // of BME680Driver definition
 
 #endif

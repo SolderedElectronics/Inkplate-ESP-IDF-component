@@ -5,7 +5,7 @@
     See the main library header file for all details
 */
 
-#include "ZanshinBME680.h"
+#include "BME680Driver.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
@@ -81,14 +81,14 @@ const uint8_t BME680_ADDR_RES_HEAT_VAL_ADDR{0x00};
 const uint8_t BME680_ADDR_RANGE_SW_ERR_ADDR{0x04};
 const uint8_t BME680_RSERROR_MSK{0xF0};
 
-BME680_Class::BME680_Class()
+BME680Driver::BME680Driver()
 {
     /*!
      * @brief   Class constructor — all members are zero-initialised in declarations
      */
 } // of class constructor
 
-BME680_Class::~BME680_Class()
+BME680Driver::~BME680Driver()
 {
     /*!
      * @brief   Class destructor — release the I2C device handle if held
@@ -100,7 +100,7 @@ BME680_Class::~BME680_Class()
     }
 } // of class destructor
 
-bool BME680_Class::begin(i2c_master_bus_handle_t busHandle, const uint8_t i2cAddress)
+bool BME680Driver::begin(i2c_master_bus_handle_t busHandle, const uint8_t i2cAddress)
 {
     /*!
     @brief   Initialise communications with the BME680 over I2C
@@ -145,7 +145,7 @@ bool BME680_Class::begin(i2c_master_bus_handle_t busHandle, const uint8_t i2cAdd
     return false;
 } // of method begin()
 
-bool BME680_Class::commonInitialization()
+bool BME680Driver::commonInitialization()
 {
     /*!
     @brief   Common BME680 initialisation function
@@ -177,7 +177,7 @@ bool BME680_Class::commonInitialization()
     return false;
 } // of method commonInitialization()
 
-uint8_t BME680_Class::readByte(const uint8_t addr) const
+uint8_t BME680Driver::readByte(const uint8_t addr) const
 {
     /*!
     @brief   Read a single byte from the given register address
@@ -188,7 +188,7 @@ uint8_t BME680_Class::readByte(const uint8_t addr) const
     return returnValue;
 } // of method readByte()
 
-void BME680_Class::reset()
+void BME680Driver::reset()
 {
     /*!
      * @brief   Performs a device soft reset then re-initialises the chip registers
@@ -198,7 +198,7 @@ void BME680_Class::reset()
     commonInitialization();
 } // of method reset()
 
-void BME680_Class::getCalibration()
+void BME680Driver::getCalibration()
 {
     /*!
     @brief    Reads calibration registers into class variables
@@ -246,7 +246,7 @@ void BME680_Class::getCalibration()
     _rng_sw_err = ((int8_t)temp_var & (int8_t)BME680_RSERROR_MSK) / 16;
 } // of method getCalibration()
 
-uint8_t BME680_Class::setOversampling(const uint8_t sensor, const uint8_t sampling) const
+uint8_t BME680Driver::setOversampling(const uint8_t sensor, const uint8_t sampling) const
 {
     /*!
     @brief   Set the oversampling mode for a sensor
@@ -312,7 +312,7 @@ uint8_t BME680_Class::setOversampling(const uint8_t sensor, const uint8_t sampli
     return returnValue;
 } // of method setOversampling()
 
-uint8_t BME680_Class::setIIRFilter(const uint8_t iirFilterSetting) const
+uint8_t BME680Driver::setIIRFilter(const uint8_t iirFilterSetting) const
 {
     /*!
      @brief   Set or return the current IIR filter setting
@@ -330,7 +330,7 @@ uint8_t BME680_Class::setIIRFilter(const uint8_t iirFilterSetting) const
     return returnValue;
 } // of method setIIRFilter()
 
-uint8_t BME680_Class::getSensorData(int32_t &temp, int32_t &hum, int32_t &press, int32_t &gas,
+uint8_t BME680Driver::getSensorData(int32_t &temp, int32_t &hum, int32_t &press, int32_t &gas,
                                     const bool waitSwitch)
 {
     /*!
@@ -344,12 +344,12 @@ uint8_t BME680_Class::getSensorData(int32_t &temp, int32_t &hum, int32_t &press,
     return status;
 } // of method getSensorData()
 
-uint8_t BME680_Class::getI2CAddress() const
+uint8_t BME680Driver::getI2CAddress() const
 {
     return _I2CAddress;
 } // of method getI2CAddress()
 
-uint8_t BME680_Class::readSensors(const bool waitSwitch)
+uint8_t BME680Driver::readSensors(const bool waitSwitch)
 {
     /*!
      @brief   Reads all 4 sensor values and converts them to metric units
@@ -446,7 +446,7 @@ uint8_t BME680_Class::readSensors(const bool waitSwitch)
     return (buff[14] & 0x30); // non-zero if gas or heat stabilisation is invalid
 } // of method readSensors()
 
-void BME680_Class::waitForReadings() const
+void BME680Driver::waitForReadings() const
 {
     /*!
      @brief   Blocks until any active measurement has completed.
@@ -461,7 +461,7 @@ void BME680_Class::waitForReadings() const
     }
 } // of method waitForReadings()
 
-bool BME680_Class::setGas(uint16_t GasTemp, uint16_t GasMillis) const
+bool BME680Driver::setGas(uint16_t GasTemp, uint16_t GasMillis) const
 {
     /*!
      * @brief    Sets the gas heater target temperature and heating duration
@@ -516,7 +516,7 @@ bool BME680_Class::setGas(uint16_t GasTemp, uint16_t GasMillis) const
     return true;
 } // of method setGas()
 
-bool BME680_Class::measuring() const
+bool BME680Driver::measuring() const
 {
     /*!
      * @brief Returns true if the BME680 is currently performing a measurement
@@ -524,7 +524,7 @@ bool BME680_Class::measuring() const
     return (readByte(BME680_STATUS_REGISTER) & _BV(BME680_MEASURING_BIT_POSITION)) != 0;
 } // of method measuring()
 
-void BME680_Class::triggerMeasurement() const
+void BME680Driver::triggerMeasurement() const
 {
     /*!
      * @brief Trigger a new measurement on the BME680

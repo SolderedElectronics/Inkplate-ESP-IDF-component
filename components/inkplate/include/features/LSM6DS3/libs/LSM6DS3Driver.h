@@ -1,6 +1,6 @@
 /******************************************************************************
-SparkFunLSM6DS3.h
-LSM6DS3 Arduino and Teensy Driver
+LSM6DS3Driver.h
+LSM6DS3Driver Arduino and Teensy Driver
 
 Marshall Taylor @ SparkFun Electronics
 May 20, 2015
@@ -24,8 +24,8 @@ or concerns with licensing, please contact techsupport@sparkfun.com.
 Distributed as-is; no warranty is given.
 ******************************************************************************/
 
-#ifndef __LSM6DS3IMU_H__
-#define __LSM6DS3IMU_H__
+#ifndef __LSM6DS3DriverIMU_H__
+#define __LSM6DS3DriverIMU_H__
 
 #include <stdint.h>
 #include "driver/i2c_master.h"
@@ -49,7 +49,7 @@ typedef enum
 
 // This is the core operational class of the driver.
 //  LSM6DS3Core contains only read and write operations towards the IMU.
-//  To use the higher level functions, use the class LSM6DS3 which inherits
+//  To use the higher level functions, use the class LSM6DS3Driver which inherits
 //  this class.
 
 class LSM6DS3Core
@@ -109,11 +109,11 @@ struct SensorSettings
 
 // This is the highest level class of the driver.
 //
-//  class LSM6DS3 inherits the core and makes use of the beginCore()
+//  class LSM6DS3Driver inherits the core and makes use of the beginCore()
 // method through it's own begin() method.  It also contains the
 // settings struct to hold user settings.
 
-class LSM6DS3 : public LSM6DS3Core
+class LSM6DS3Driver : public LSM6DS3Core
 {
   public:
     // IMU settings
@@ -125,8 +125,8 @@ class LSM6DS3 : public LSM6DS3Core
 
     // Constructor generates default SensorSettings.
     //(over-ride after construction if desired)
-    LSM6DS3();
-    ~LSM6DS3() = default;
+    LSM6DS3Driver();
+    ~LSM6DS3Driver() = default;
 
     // Call to apply SensorSettings
     status_t begin(SensorSettings *pSettingsYouWanted = NULL);
@@ -2202,4 +2202,4 @@ typedef enum
     LSM6DS3_ACC_GYRO_INT2_SLEEP_ENABLED = 0x80,
 } LSM6DS3_ACC_GYRO_INT2_SLEEP_t;
 
-#endif // End of __LSM6DS3IMU_H__ definition check
+#endif // End of __LSM6DS3DriverIMU_H__ definition check

@@ -1,11 +1,11 @@
 /******************************************************************************
-SparkFunLSM6DS3.cpp
+LSM6DS3Driver.cpp
 LSM6DS3 ESP-IDF Driver (ported from Arduino/SparkFun)
 
 Ported to ESP-IDF new I2C master driver. SPI removed.
 ******************************************************************************/
 
-#include "SparkFunLSM6DS3.h"
+#include "LSM6DS3Driver.h"
 
 //****************************************************************************//
 //  LSM6DS3Core
@@ -75,7 +75,7 @@ status_t LSM6DS3Core::basePage(void)
 //****************************************************************************//
 //  LSM6DS3
 //****************************************************************************//
-LSM6DS3::LSM6DS3() : LSM6DS3Core()
+LSM6DS3Driver::LSM6DS3Driver() : LSM6DS3Core()
 {
     settings.gyroEnabled = 1;
     settings.gyroRange = 2000;
@@ -104,7 +104,7 @@ LSM6DS3::LSM6DS3() : LSM6DS3Core()
     nonSuccessCounter = 0;
 }
 
-status_t LSM6DS3::begin(SensorSettings *pSettingsYouWanted)
+status_t LSM6DS3Driver::begin(SensorSettings *pSettingsYouWanted)
 {
     uint8_t dataToWrite = 0;
 
@@ -304,7 +304,7 @@ status_t LSM6DS3::begin(SensorSettings *pSettingsYouWanted)
 //****************************************************************************//
 //  Accelerometer
 //****************************************************************************//
-int16_t LSM6DS3::readRawAccelX(void)
+int16_t LSM6DS3Driver::readRawAccelX(void)
 {
     int16_t output;
     status_t errorLevel = readRegisterInt16(&output, LSM6DS3_ACC_GYRO_OUTX_L_XL);
@@ -317,9 +317,9 @@ int16_t LSM6DS3::readRawAccelX(void)
     }
     return output;
 }
-float LSM6DS3::readFloatAccelX(void) { return calcAccel(readRawAccelX()); }
+float LSM6DS3Driver::readFloatAccelX(void) { return calcAccel(readRawAccelX()); }
 
-int16_t LSM6DS3::readRawAccelY(void)
+int16_t LSM6DS3Driver::readRawAccelY(void)
 {
     int16_t output;
     status_t errorLevel = readRegisterInt16(&output, LSM6DS3_ACC_GYRO_OUTY_L_XL);
@@ -332,9 +332,9 @@ int16_t LSM6DS3::readRawAccelY(void)
     }
     return output;
 }
-float LSM6DS3::readFloatAccelY(void) { return calcAccel(readRawAccelY()); }
+float LSM6DS3Driver::readFloatAccelY(void) { return calcAccel(readRawAccelY()); }
 
-int16_t LSM6DS3::readRawAccelZ(void)
+int16_t LSM6DS3Driver::readRawAccelZ(void)
 {
     int16_t output;
     status_t errorLevel = readRegisterInt16(&output, LSM6DS3_ACC_GYRO_OUTZ_L_XL);
@@ -347,9 +347,9 @@ int16_t LSM6DS3::readRawAccelZ(void)
     }
     return output;
 }
-float LSM6DS3::readFloatAccelZ(void) { return calcAccel(readRawAccelZ()); }
+float LSM6DS3Driver::readFloatAccelZ(void) { return calcAccel(readRawAccelZ()); }
 
-float LSM6DS3::calcAccel(int16_t input)
+float LSM6DS3Driver::calcAccel(int16_t input)
 {
     return (float)input * 0.061f * (settings.accelRange >> 1) / 1000.0f;
 }
@@ -357,7 +357,7 @@ float LSM6DS3::calcAccel(int16_t input)
 //****************************************************************************//
 //  Gyroscope
 //****************************************************************************//
-int16_t LSM6DS3::readRawGyroX(void)
+int16_t LSM6DS3Driver::readRawGyroX(void)
 {
     int16_t output;
     status_t errorLevel = readRegisterInt16(&output, LSM6DS3_ACC_GYRO_OUTX_L_G);
@@ -370,9 +370,9 @@ int16_t LSM6DS3::readRawGyroX(void)
     }
     return output;
 }
-float LSM6DS3::readFloatGyroX(void) { return calcGyro(readRawGyroX()); }
+float LSM6DS3Driver::readFloatGyroX(void) { return calcGyro(readRawGyroX()); }
 
-int16_t LSM6DS3::readRawGyroY(void)
+int16_t LSM6DS3Driver::readRawGyroY(void)
 {
     int16_t output;
     status_t errorLevel = readRegisterInt16(&output, LSM6DS3_ACC_GYRO_OUTY_L_G);
@@ -385,9 +385,9 @@ int16_t LSM6DS3::readRawGyroY(void)
     }
     return output;
 }
-float LSM6DS3::readFloatGyroY(void) { return calcGyro(readRawGyroY()); }
+float LSM6DS3Driver::readFloatGyroY(void) { return calcGyro(readRawGyroY()); }
 
-int16_t LSM6DS3::readRawGyroZ(void)
+int16_t LSM6DS3Driver::readRawGyroZ(void)
 {
     int16_t output;
     status_t errorLevel = readRegisterInt16(&output, LSM6DS3_ACC_GYRO_OUTZ_L_G);
@@ -400,9 +400,9 @@ int16_t LSM6DS3::readRawGyroZ(void)
     }
     return output;
 }
-float LSM6DS3::readFloatGyroZ(void) { return calcGyro(readRawGyroZ()); }
+float LSM6DS3Driver::readFloatGyroZ(void) { return calcGyro(readRawGyroZ()); }
 
-float LSM6DS3::calcGyro(int16_t input)
+float LSM6DS3Driver::calcGyro(int16_t input)
 {
     uint8_t gyroRangeDivisor = settings.gyroRange / 125;
     if (settings.gyroRange == 245)
@@ -413,19 +413,19 @@ float LSM6DS3::calcGyro(int16_t input)
 //****************************************************************************//
 //  Temperature
 //****************************************************************************//
-int16_t LSM6DS3::readRawTemp(void)
+int16_t LSM6DS3Driver::readRawTemp(void)
 {
     int16_t output;
     readRegisterInt16(&output, LSM6DS3_ACC_GYRO_OUT_TEMP_L);
     return output;
 }
 
-float LSM6DS3::readTempC(void)
+float LSM6DS3Driver::readTempC(void)
 {
     return (float)readRawTemp() / 16.0f + 25.0f;
 }
 
-float LSM6DS3::readTempF(void)
+float LSM6DS3Driver::readTempF(void)
 {
     return readTempC() * 9.0f / 5.0f + 32.0f;
 }
@@ -433,7 +433,7 @@ float LSM6DS3::readTempF(void)
 //****************************************************************************//
 //  FIFO
 //****************************************************************************//
-void LSM6DS3::fifoBegin(void)
+void LSM6DS3Driver::fifoBegin(void)
 {
     uint8_t thresholdLByte = settings.fifoThreshold & 0x00FF;
     uint8_t thresholdHByte = (settings.fifoThreshold & 0x0F00) >> 8;
@@ -490,13 +490,13 @@ void LSM6DS3::fifoBegin(void)
     writeRegister(LSM6DS3_ACC_GYRO_FIFO_CTRL5, tempFIFO_CTRL5);
 }
 
-void LSM6DS3::fifoClear(void)
+void LSM6DS3Driver::fifoClear(void)
 {
     while ((fifoGetStatus() & 0x1000) == 0)
         fifoRead();
 }
 
-int16_t LSM6DS3::fifoRead(void)
+int16_t LSM6DS3Driver::fifoRead(void)
 {
     uint8_t tempReadByte = 0;
     uint16_t tempAccumulator = 0;
@@ -507,7 +507,7 @@ int16_t LSM6DS3::fifoRead(void)
     return tempAccumulator;
 }
 
-uint16_t LSM6DS3::fifoGetStatus(void)
+uint16_t LSM6DS3Driver::fifoGetStatus(void)
 {
     uint8_t tempReadByte = 0;
     uint16_t tempAccumulator = 0;
@@ -518,7 +518,7 @@ uint16_t LSM6DS3::fifoGetStatus(void)
     return tempAccumulator;
 }
 
-void LSM6DS3::fifoEnd(void)
+void LSM6DS3Driver::fifoEnd(void)
 {
     writeRegister(LSM6DS3_ACC_GYRO_FIFO_CTRL5, 0x00);
 }

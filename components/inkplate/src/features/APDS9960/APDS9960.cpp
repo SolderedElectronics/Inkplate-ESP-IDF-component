@@ -11,5 +11,5 @@ bool APDS9960::begin(i2c_master_bus_handle_t bus_handle)
     if (i2c_master_bus_add_device(bus_handle, &dev_config, &dev_handle_) != ESP_OK)
         return false;
 
-    return SparkFun_APDS9960::init();
+    return APDS9960Driver::init();
 }

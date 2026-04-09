@@ -1,7 +1,7 @@
 #include "driver/i2c_master.h"
 #include "BQ27441.h"
 
-bool BQ_27441::begin(i2c_master_bus_handle_t bus_handle, uint32_t speed)
+bool BQ27441::begin(i2c_master_bus_handle_t bus_handle, uint32_t speed)
 {
     i2c_device_config_t dev_cfg = {};
     dev_cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
@@ -12,5 +12,5 @@ bool BQ_27441::begin(i2c_master_bus_handle_t bus_handle, uint32_t speed)
     if (i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle) != ESP_OK)
         return false;
 
-    return BQ27441::begin(dev_handle);
+    return BQ27441Driver::begin(dev_handle);
 }

@@ -11,8 +11,8 @@
  * APDS9960 object, call init(), and call the appropriate functions.
  */
 
-#ifndef SparkFun_APDS9960_H
-#define SparkFun_APDS9960_H
+#ifndef APDS9960Driver_H
+#define APDS9960Driver_H
 
 #include <stdint.h>
 #include "driver/i2c_master.h"
@@ -228,12 +228,12 @@ typedef struct gesture_data_type
 } gesture_data_type;
 
 /* APDS9960 Class */
-class SparkFun_APDS9960
+class APDS9960Driver
 {
   public:
     /* Initialization methods */
-    SparkFun_APDS9960();
-    ~SparkFun_APDS9960();
+    APDS9960Driver();
+    ~APDS9960Driver();
     bool init();
     uint8_t getStatusRegister();
     uint8_t getMode();

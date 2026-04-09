@@ -12,10 +12,10 @@
 #ifndef __BME680_SOLDERED__
 #define __BME680_SOLDERED__
 
-#include "libs/ZanshinBME680.h"
+#include "libs/BME680Driver.h"
 #include "driver/i2c_master.h"
 
-class BME680 : public BME680_Class
+class BME680 : public BME680Driver
 {
   public:
     bool begin(i2c_master_bus_handle_t bus_handle);

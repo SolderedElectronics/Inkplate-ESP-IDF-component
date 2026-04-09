@@ -13,9 +13,9 @@
 #define _BQ27441_G1_H
 
 #include "driver/i2c_master.h"
-#include "libs/SparkFunBQ27441.h"
+#include "libs/BQ27441Driver.h"
 
-class BQ_27441 : public BQ27441
+class BQ27441 : public BQ27441Driver
 {
   public:
     bool begin(i2c_master_bus_handle_t bus_handle, uint32_t speed = 100000);

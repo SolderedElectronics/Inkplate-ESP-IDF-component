@@ -26,11 +26,11 @@ public:
   esp_err_t einkOn() override;
   esp_err_t einkOff() override;
 
-  RTC       rtc;
-  APDS9960  apds;
-  BQ_27441   bq;
-  Soldered_LSM6DS3 lsm;
-  BME680 bme;
+  RTC      rtc;
+  APDS9960 apds;
+  BQ27441  bq;
+  LSM6DS3  lsm;
+  BME680   bme;
 
 private:
   esp_err_t initBuffers();

@@ -1,6 +1,6 @@
 #include "LSM6DS3.h"
 
-status_t Soldered_LSM6DS3::begin(i2c_master_bus_handle_t bus_handle, uint8_t addr)
+status_t LSM6DS3::begin(i2c_master_bus_handle_t bus_handle, uint8_t addr)
 {
     i2c_device_config_t dev_cfg = {};
     dev_cfg.dev_addr_length = I2C_ADDR_BIT_LEN_7;
@@ -12,5 +12,5 @@ status_t Soldered_LSM6DS3::begin(i2c_master_bus_handle_t bus_handle, uint8_t add
 
     setI2CHandle(dev_handle);
 
-    return LSM6DS3::begin();
+    return LSM6DS3Driver::begin();
 }

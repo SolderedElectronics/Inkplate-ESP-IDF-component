@@ -1,5 +1,5 @@
 /******************************************************************************
-SparkFunBQ27441.h
+BQ27441Driver.h
 BQ27441 Arduino Library Main Header File
 Jim Lindblom @ SparkFun Electronics
 May 9, 2016
@@ -18,8 +18,8 @@ SparkFun Battery Babysitter v1.0
 Arduino Uno (any 'duino should do)
 ******************************************************************************/
 
-#ifndef SparkFunBQ27441_h
-#define SparkFunBQ27441_h
+#ifndef BQ27441Driver_h
+#define BQ27441Driver_h
 
 #include <stdint.h>
 #include "BQ27441_Definitions.h"
@@ -77,7 +77,7 @@ typedef enum
     BAT_LOW  // Set GPOUT to BAT_LOW functionality
 } gpout_function;
 
-class BQ27441
+class BQ27441Driver
 {
   public:
     //////////////////////////////
@@ -86,7 +86,7 @@ class BQ27441
     /**
         Initializes class variables
     */
-    BQ27441();
+    BQ27441Driver();
 
     /**
         Initializes I2C and verifies communication with the BQ27441.
@@ -551,7 +551,7 @@ class BQ27441
     uint16_t i2cWriteBytes(uint8_t subAddress, uint8_t *src, uint8_t count);
 };
 
-extern BQ27441 lipo; // Use lipo.[] to interact with the library in an Arduino sketch
+extern BQ27441Driver lipo; // Use lipo.[] to interact with the library in an Arduino sketch
 // Thanks for reading!
 
 #endif
