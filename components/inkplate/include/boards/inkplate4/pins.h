@@ -16,6 +16,8 @@ extern PCAL expander1;
 // enables the GPIO0/CL level shifter
 #define GPIO0_ENABLE IO_NUM_B0
 
+#define FRONTLIGHT   IO_NUM_B2
+
 #define WAKEUP       IO_NUM_A3
 #define WAKEUP_SET   do { expander1.setLevel(WAKEUP, 1, true); } while(0)
 #define WAKEUP_CLEAR do { expander1.setLevel(WAKEUP, 0, true); } while(0)

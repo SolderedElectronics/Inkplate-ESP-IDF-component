@@ -13,6 +13,9 @@ void app_main(void)
 {
     Inkplate display;
 
+    display.frontlight.setState(true);
+    display.frontlight.setBrightness(62);
+
     display.wifi.begin();
     display.wifi.waitForConnect();
 

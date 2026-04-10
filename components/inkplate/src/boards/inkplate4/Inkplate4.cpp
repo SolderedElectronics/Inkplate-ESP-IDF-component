@@ -31,7 +31,7 @@ static const uint8_t waveform3Bit[8][9] =
  * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
  *         initialises GPIO and the PMIC.
  */
-Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0)
+Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0), frontlight(i2c, expander1)
 {
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
@@ -476,7 +476,7 @@ void Inkplate4::gpioInit()
   for (uint32_t i = 0; i < 256; ++i)
     m_pinLUT[i] = ((i & 0x03) << 4) | (((i & 0x0C) >> 2) << 18) |
                   (((i & 0x10) >> 4) << 23) | (((i & 0xE0) >> 5) << 25);
-
+        
   gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_13, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
@@ -507,6 +507,13 @@ void Inkplate4::gpioInit()
 
   expander1.setDirection(SD_PMOS_PIN, IO_MODE_INPUT, true);
 
+  // Write the output latch LOW *before* switching to output mode.
+  // PCAL OUTPORT defaults to 0xFF, so without this the pin briefly goes HIGH
+  // the instant setDirection() enables it, which wakes the frontlight chip
+  // mid-init and interferes with I2C.
+  expander1.setPort(IO_PORT_1, (uint8_t)(0xFF & ~(1 << (FRONTLIGHT % 8))));
+  expander1.setDirection(FRONTLIGHT, IO_MODE_OUTPUT, true);
+  
   expander2.setPort(IO_PORT_0, 0x00);
   expander2.setPort(IO_PORT_1, 0x00);
   expander2.setPortDirection(IO_PORT_0, 0x00);
@@ -587,8 +594,6 @@ void Inkplate4::pinsAsOutputs()
  */
 void Inkplate4::pinsZstate()
 {
-  m_i2s->conf1.tx_stop_en = 0;
-
   gpio_set_direction(GPIO_NUM_2,  GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_32, GPIO_MODE_INPUT);
   gpio_set_direction(GPIO_NUM_33, GPIO_MODE_INPUT);

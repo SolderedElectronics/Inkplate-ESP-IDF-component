@@ -26,7 +26,7 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
         "include/features/LSM6DS3/libs")
 endif()
 
-idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"
+idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"
                              "src/features/Network.cpp"
                              "src/features/SDCard.cpp"
                              "src/boards/BoardCommon.cpp"

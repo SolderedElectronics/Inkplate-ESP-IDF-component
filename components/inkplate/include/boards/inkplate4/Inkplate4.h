@@ -14,6 +14,8 @@
 #include "LSM6DS3.h"
 #include "BME680.h"
 
+#include "Frontlight.h"
+
 #define E_INK_WIDTH  600
 #define E_INK_HEIGHT 600
 
@@ -31,6 +33,8 @@ public:
   BQ27441  bq;
   LSM6DS3  lsm;
   BME680   bme;
+
+  Frontlight frontlight;
 
 private:
   esp_err_t initBuffers();
