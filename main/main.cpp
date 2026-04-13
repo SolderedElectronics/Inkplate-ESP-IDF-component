@@ -13,6 +13,7 @@ void app_main(void)
 {
     Inkplate display;
     display.clearDisplay();    // Clear the software frame buffer (does NOT clear the physical screen)
+    display.setRotation(3);
     display.setCursor(10, 10); // Set the text position to (10, 10) pixels
     display.setTextSize(2);    // Set text size to 2 (default is 1)
     display.setTextColor(1);   // Set text color to black (1 = black, 0 = white)

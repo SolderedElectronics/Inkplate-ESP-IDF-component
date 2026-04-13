@@ -33,7 +33,7 @@ class Inkplate : public Graphics, public INKPLATE_BOARD_CLASS
   Inkplate();
 
   void    drawPixel(int16_t x, int16_t y, uint16_t color);
-  uint8_t getRotation();
+  uint8_t getRotation() override;
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
   Image image;

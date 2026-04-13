@@ -27,7 +27,7 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
 endif()
 
 if(CONFIG_INKPLATE_BOARD_INKPLATE2)
-idf_component_register(SRCS "src/features/Network.cpp"
+idf_component_register(SRCS "src/features/I2S.cpp" "src/features/Network.cpp"
                              "src/boards/inkplate2/Inkplate2.cpp"
                              "src/boards/Inkplate.cpp"
                              "src/graphics/Graphics.cpp"
