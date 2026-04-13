@@ -10,6 +10,8 @@
   #include "../../boards/inkplate5/Inkplate5.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE4)
   #include "../../boards/inkplate4/Inkplate4.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
+  #include "../../boards/inkplate2/Inkplate2.h"
 #else
   #error "No Inkplate board selected. Choose a board in menuconfig -> Inkplate Board."
 #endif

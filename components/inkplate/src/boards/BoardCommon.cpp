@@ -18,6 +18,8 @@
   #include "inkplate5/pins.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE4
   #include "inkplate4/pins.h"
+#elif CONFIG_INKPLATE_BOARD_INKPLATE2
+  #include "inkplate2/pins.h"
 #endif
 
 #include "BoardCommon.h"
@@ -32,6 +34,7 @@
 
 static const char *TAG = "INKPLATE";
 
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
 #define _swap_int16_t(a, b) { int16_t t = (a); (a) = (b); (b) = t; }
 
 /**
@@ -47,6 +50,7 @@ PCAL    expander2(IO_EXT_ADDR, i2c);
 #endif
 TPS     tps(i2c);
 SDCard  sdCard(expander1);
+#endif 
 
 /**
  * ============================================================

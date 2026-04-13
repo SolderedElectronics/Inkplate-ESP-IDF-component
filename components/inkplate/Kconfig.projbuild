@@ -3,6 +3,9 @@ menu "Inkplate Board"
 choice INKPLATE_BOARD
     prompt "Board"
 
+    config INKPLATE_BOARD_INKPLATE2
+        bool "Inkplate2"
+
     config INKPLATE_BOARD_INKPLATE4
         bool "Inkplate4"
 

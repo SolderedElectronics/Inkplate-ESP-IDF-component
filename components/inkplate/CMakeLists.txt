@@ -26,6 +26,31 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
         "include/features/LSM6DS3/libs")
 endif()
 
+if(CONFIG_INKPLATE_BOARD_INKPLATE2)
+idf_component_register(SRCS "src/features/Network.cpp"
+                             "src/boards/inkplate2/Inkplate2.cpp"
+                             "src/boards/Inkplate.cpp"
+                             "src/graphics/Graphics.cpp"
+                             "src/graphics/Adafruit_GFX/Adafruit_GFX.cpp"
+                             "src/graphics/Shapes/Shapes.cpp"
+                             "src/graphics/Shapes/ShapesPolygon.cpp"
+                       REQUIRES "esp_driver_gpio"
+                                "esp_driver_spi"
+                                "esp_wifi" "nvs_flash" "esp_http_client"
+                       INCLUDE_DIRS "include"
+                                    "include/features"
+                                    "include/boards"
+                                    "include/boards/inkplate2"
+                                    "include/graphics"
+                                    "include/graphics/Adafruit_GFX"
+                                    "include/graphics/Shapes"
+                                    "include/graphics/Image"
+                                    "include/graphics/Image/BMP"
+                                    "include/graphics/Image/JPEG"
+                                    "include/graphics/Image/PNG"
+                                    "include/graphics/pngle"
+                                    )
+else()
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"
                              "src/features/Network.cpp"
                              "src/features/SDCard.cpp"
@@ -54,3 +79,4 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                                     "include/graphics/Image/PNG"
                                     "include/graphics/pngle"
                                     ${SENSOR_INCLUDES})
+endif()

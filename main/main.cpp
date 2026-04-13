@@ -12,20 +12,10 @@ extern "C"
 void app_main(void)
 {
     Inkplate display;
-
-    display.frontlight.setState(true);
-    display.frontlight.setBrightness(62);
-
-    display.wifi.begin();
-    display.wifi.waitForConnect();
-
-    display.setDisplayMode(BLACK_AND_WHITE);
-    display.clearDisplay();     // Clear the frame buffer (does NOT clear the physical screen)
-
-    display.display();
-
-    if (!display.image.draw(IMAGE_PATH, 0, 0, false, true))
-        ESP_LOGE(TAG, "Image draw failed");
-
-    display.display();
+    display.clearDisplay();    // Clear the software frame buffer (does NOT clear the physical screen)
+    display.setCursor(10, 10); // Set the text position to (10, 10) pixels
+    display.setTextSize(2);    // Set text size to 2 (default is 1)
+    display.setTextColor(1);   // Set text color to black (1 = black, 0 = white)
+    display.print("Hello World!"); // Print "Hello World!" at the set position
+    display.display();         // Refresh the e-paper display to show changes
 }
