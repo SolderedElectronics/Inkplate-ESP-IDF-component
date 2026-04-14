@@ -8,6 +8,9 @@
 #if CONFIG_INKPLATE_BOARD_INKPLATE6
   #include "inkplate6/pins.h"
   #define INKPLATE_BOARD_CLASS Inkplate6
+#elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
+  #include "inkplate6color/pins.h"
+  #define INKPLATE_BOARD_CLASS Inkplate6Color
 #elif CONFIG_INKPLATE_BOARD_INKPLATE10
   #include "inkplate10/pins.h"
   #define INKPLATE_BOARD_CLASS Inkplate10

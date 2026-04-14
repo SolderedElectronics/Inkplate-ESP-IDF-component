@@ -12,6 +12,8 @@
 // Include the active board's pins.h for WAKEUP_SET/CLEAR, CKV_SET, LE_SET, etc.
 #if CONFIG_INKPLATE_BOARD_INKPLATE6
   #include "inkplate6/pins.h"
+#elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
+  #include "inkplate6color/pins.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE10
   #include "inkplate10/pins.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE5
@@ -45,7 +47,7 @@ static const char *TAG = "INKPLATE";
 
 I2C     i2c;
 PCAL    expander1(IO_INT_ADDR, i2c);
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE5
+#if !defined(CONFIG_INKPLATE_BOARD_INKPLATE5) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
 PCAL    expander2(IO_EXT_ADDR, i2c);
 #endif
 TPS     tps(i2c);
@@ -164,6 +166,7 @@ void BoardCommon::writePixelInternal(int16_t x, int16_t y, uint16_t color)
     break;
   }
 
+  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
   if (m_displayMode == BLACK_AND_WHITE)
   {
     int x1    = x0 >> 3;
@@ -181,6 +184,12 @@ void BoardCommon::writePixelInternal(int16_t x, int16_t y, uint16_t color)
     *(m_framebufferColor + (m_einkWidth / 2) * y0 + x1) =
       (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
   }
+  #else
+    int x1 = x0 / 2;
+    int xSub = x0 % 2;
+    uint8_t temp = *(m_framebufferColor + m_einkWidth / 2 * y0 + x1);
+    *(m_framebufferColor + m_einkWidth / 2 * y0 + x1) = (pixelMaskGLUT[xSub] & temp) | (xSub ? color : color << 4);
+  #endif
 }
 
 /**
@@ -212,12 +221,14 @@ esp_err_t BoardCommon::display(bool leaveOn)
  */
 void BoardCommon::blockGpioPins()
 {
+  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
   expander1.blockPin(WAKEUP);
   expander1.blockPin(PWRUP);
   expander1.blockPin(VCOM);
   expander1.blockPin(OE);
   expander1.blockPin(GMOD);
   expander1.blockPin(SPV);
+  #endif
 }
 
 /**
@@ -447,6 +458,7 @@ const char* BoardCommon::getMountPoint()
  */
 void BoardCommon::vscanStart()
 {
+  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
   CKV_SET;
   esp_rom_delay_us(7);
   SPV_CLEAR;
@@ -468,6 +480,7 @@ void BoardCommon::vscanStart()
   CKV_CLEAR;
   esp_rom_delay_us(0);
   CKV_SET;
+  #endif
 }
 
 /**
@@ -475,10 +488,12 @@ void BoardCommon::vscanStart()
  */
 void BoardCommon::vscanEnd()
 {
+  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
   CKV_CLEAR;
   LE_SET;
   LE_CLEAR;
   esp_rom_delay_us(0);
+  #endif
 }
 
 /**
@@ -513,10 +528,14 @@ bool BoardCommon::getPanelState()
  */
 esp_err_t BoardCommon::pmicBegin()
 {
+  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
   WAKEUP_SET;
   esp_rom_delay_us(1000);
   esp_err_t ret = tps.initSequences();
   esp_rom_delay_us(1000);
   WAKEUP_CLEAR;
   return ret;
+  #else
+  return ESP_OK;
+  #endif
 }

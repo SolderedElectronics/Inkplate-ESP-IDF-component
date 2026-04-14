@@ -4,6 +4,8 @@
 #include "sdkconfig.h"
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6)
   #include "../../boards/inkplate6/Inkplate6.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
+  #include "../../boards/inkplate6color/Inkplate6Color.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE10)
   #include "../../boards/inkplate10/Inkplate10.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE5)

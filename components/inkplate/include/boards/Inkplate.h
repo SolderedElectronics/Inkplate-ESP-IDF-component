@@ -3,7 +3,7 @@
 
 #include "graphics/Graphics.h"
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-#include "Image.h"
+#include "ImageColor.h"
 #endif
 #ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
 #include "ImageColor.h"
@@ -14,6 +14,9 @@
 #if CONFIG_INKPLATE_BOARD_INKPLATE6
   #include "inkplate6/Inkplate6.h"
   #define INKPLATE_BOARD_CLASS Inkplate6
+#elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
+  #include "inkplate6color/Inkplate6color.h"
+  #define INKPLATE_BOARD_CLASS Inkplate6Color
 #elif CONFIG_INKPLATE_BOARD_INKPLATE10
   #include "inkplate10/Inkplate10.h"
   #define INKPLATE_BOARD_CLASS Inkplate10
@@ -39,7 +42,7 @@ class Inkplate : public Graphics, public INKPLATE_BOARD_CLASS
   uint8_t getRotation() override;
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-  Image image;
+  ImageColor image;
 #endif
 #ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
   ImageColor image;

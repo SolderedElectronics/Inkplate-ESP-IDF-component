@@ -4,6 +4,9 @@ if(CONFIG_INKPLATE_BOARD_INKPLATE10)
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6)
     set(BOARD_SRC "src/boards/inkplate6/Inkplate6.cpp")
     set(INCLUDE_SRC "include/boards/inkplate6")
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
+    set(BOARD_SRC "src/boards/inkplate6color/Inkplate6Color.cpp")
+    set(INCLUDE_SRC "include/boards/inkplate6color")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE5)
     set(BOARD_SRC "src/boards/inkplate5/Inkplate5.cpp")
     set(INCLUDE_SRC "include/boards/inkplate5")
@@ -104,13 +107,13 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                             ${BOARD_SRC}
                             ${SENSOR_SRCS}
                             ${GRAPHICS_SRCS}
-                            ${IMAGE_SRCS}
+                            ${IMAGE_COLOR_SRCS}
                        REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer" "esp_adc"
                                 "esp_driver_spi" "fatfs" "sdmmc"
                                 "esp_wifi" "nvs_flash" "esp_http_client"
                        INCLUDE_DIRS "include" "include/features" "include/boards"
                                     ${INCLUDE_SRC}
                                     ${GRAPHICS_INCLUDES}
-                                    ${IMAGE_INCLUDES}
+                                    ${IMAGE_COLOR_INCLUDES}
                                     ${SENSOR_INCLUDES})
 endif()

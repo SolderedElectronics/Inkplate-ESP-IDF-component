@@ -86,38 +86,38 @@ uint8_t ImageColor::getDitheredPixel(uint8_t r, uint8_t g, uint8_t b, int i, int
   uint8_t closest = findClosestPalette((uint8_t)er, (uint8_t)eg, (uint8_t)eb);
 
   // quantisation errors per channel
-  int32_t rErr = er - PALETTE_R[closest];
-  int32_t gErr = eg - PALETTE_G[closest];
-  int32_t bErr = eb - PALETTE_B[closest];
+  int32_t rErr = r - (int32_t)((pallete[closest] >> 16) & 0xFF);
+  int32_t gErr = g - (int32_t)((pallete[closest] >> 8) & 0xFF);
+  int32_t bErr = b - (int32_t)((pallete[closest] >> 0) & 0xFF);
 
   const DitherKernelDef *k = m_currentKernel;
 
-// kernel origin offset
-int originX = k->x;
+  // kernel origin offset
+  int originX = k->x;
 
-// iterate kernel rows
-for (int ky = 0; ky < k->height; ky++)
-{
-    int rowIndex = (ky == 0) ? 0 : 1; // current row or next row
+  // iterate kernel rows
+  for (int ky = 0; ky < k->height; ky++)
+  {
+      int rowIndex = (ky == 0) ? 0 : 1; // current row or next row
 
-    for (int kx = 0; kx < k->width; kx++)
-    {
-        int weight = k->data[ky * k->width + kx];
-        if (weight == 0) continue;
+      for (int kx = 0; kx < k->width; kx++)
+      {
+          int weight = k->data[ky * k->width + kx];
+          if (weight == 0) continue;
 
-        int offsetX = kx - originX;
-        int targetX = i + offsetX;
+          int offsetX = kx - originX;
+          int targetX = i + offsetX;
 
-        if (targetX < 0 || targetX >= w) continue;
+          if (targetX < 0 || targetX >= w) continue;
 
-        // Skip current pixel itself
-        if (ky == 0 && offsetX <= 0) continue;
+          // Skip current pixel itself
+          if (ky == 0 && offsetX <= 0) continue;
 
-        m_ditherR[rowIndex][targetX] += (int16_t)((rErr * weight) / k->coef);
-        m_ditherG[rowIndex][targetX] += (int16_t)((gErr * weight) / k->coef);
-        m_ditherB[rowIndex][targetX] += (int16_t)((bErr * weight) / k->coef);
-    }
-}
+          m_ditherR[rowIndex][targetX] += (int16_t)((rErr * weight) / k->coef);
+          m_ditherG[rowIndex][targetX] += (int16_t)((gErr * weight) / k->coef);
+          m_ditherB[rowIndex][targetX] += (int16_t)((bErr * weight) / k->coef);
+      }
+  }
 
   return closest;
 }
@@ -206,8 +206,33 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
   }
   else
   {
-    ESP_LOGE(TAG, "SD card not supported on this board: %s", src);
-    return false;
+    char fullPath[256];
+    if (src[0] == '/')
+      snprintf(fullPath, sizeof(fullPath), "%s", src);
+    else
+      snprintf(fullPath, sizeof(fullPath), "%s/%s", m_inkplate->getMountPoint(), src);
+
+    FILE *f = fopen(fullPath, "rb");
+    if (!f)
+    {
+      ESP_LOGE(TAG, "Failed to open: %s", fullPath);
+      return false;
+    }
+
+    fseek(f, 0, SEEK_END);
+    len = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    buf = (uint8_t *)malloc(len);
+    if (!buf)
+    {
+      fclose(f);
+      ESP_LOGE(TAG, "Out of memory (%ld bytes)", len);
+      return false;
+    }
+
+    fread(buf, 1, len, f);
+    fclose(f);
   }
 
   bool result = draw(buf, len, x, y, invert, dither);

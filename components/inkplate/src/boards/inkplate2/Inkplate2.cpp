@@ -16,7 +16,7 @@ static const char *TAG = "Inkplate2";
 
 Inkplate2::Inkplate2() 
 {
-  m_framebufferColor = (uint8_t *)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_DMA | MALLOC_CAP_8BIT);
+  m_framebufferColor = (uint8_t *)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!m_framebufferColor)
     ESP_LOGE(TAG, "Failed to allocate framebuffer");
 
@@ -48,7 +48,7 @@ Inkplate2::Inkplate2()
   ESP_ERROR_CHECK(spi_bus_initialize(SPI3_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
 
   spi_device_interface_config_t dev_cfg = {};
-  dev_cfg.clock_speed_hz = 1000000;
+  dev_cfg.clock_speed_hz = SPI_MASTER_FREQ_10M;
   dev_cfg.mode           = 0;
   dev_cfg.spics_io_num   = EPAPER_CS_PIN;
   dev_cfg.queue_size     = 3;
@@ -199,13 +199,20 @@ void Inkplate2::sendData(uint8_t *data, int n)
   gpio_set_level(EPAPER_DC_PIN, 1);
   esp_rom_delay_us(10);
 
-  spi_transaction_t trans;
-  memset(&trans, 0, sizeof(spi_transaction_t));
+  const size_t chunkSize = 4092;
 
-  trans.tx_buffer = data;
-  trans.length = n*8;
+  for (int i = 0; i < n; i += chunkSize)
+  {
+    int len = (n - i > chunkSize) ? chunkSize : (n - i);
 
-  ESP_ERROR_CHECK(spi_device_transmit(m_spiDev, &trans));
+    spi_transaction_t trans;
+    memset(&trans, 0, sizeof(trans));
+
+    trans.tx_buffer = data + i;
+    trans.length = len * 8;
+
+    ESP_ERROR_CHECK(spi_device_transmit(m_spiDev, &trans));
+  }
 
   //gpio_set_level(EPAPER_CS_PIN, 1);
   vTaskDelay(pdMS_TO_TICKS(1));
