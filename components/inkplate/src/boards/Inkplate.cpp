@@ -12,11 +12,7 @@
  * @note   Initialises Adafruit_GFX and Graphics with the panel dimensions,
  *         binds the Image helper to this instance, then clears the frame buffer.
  */
-#ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
-Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_WIDTH, E_INK_HEIGHT)
-#else
 Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_WIDTH, E_INK_HEIGHT), image(this)
-#endif
 {
   clearDisplay();
 }

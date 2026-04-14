@@ -22,7 +22,7 @@ endchoice
 
 endmenu
 
-menu "WiFi Configuration"
+menu "Wi-Fi Configuration"
 
 config WIFI_SSID
 	string "WiFi SSID"

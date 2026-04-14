@@ -34,7 +34,7 @@ public:
   LSM6DS3  lsm;
   BME680   bme;
 
-  Frontlight frontlight;
+  //Frontlight frontlight;
 
 private:
   esp_err_t initBuffers();

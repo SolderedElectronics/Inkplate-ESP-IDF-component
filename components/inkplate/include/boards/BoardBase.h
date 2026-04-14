@@ -11,7 +11,11 @@ typedef enum
   GRAYSCALE,
 } displayMode_t;
 
+#ifdef CONFIG_INKPLATE_BOARD_INKPLATE6
 class BoardBase : public I2S
+#else
+class BoardBase
+#endif
 {
 public:
   virtual void setDisplayMode(displayMode_t mode) = 0;

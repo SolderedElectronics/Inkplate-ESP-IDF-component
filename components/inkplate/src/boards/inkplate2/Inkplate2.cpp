@@ -62,8 +62,6 @@ Inkplate2::Inkplate2()
 
 void Inkplate2::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 {
-  if (x < 0 || y < 0 || x >= E_INK_WIDTH || y >= E_INK_HEIGHT)
-    return;
   if (color > 2)
     return;
 
@@ -86,6 +84,9 @@ void Inkplate2::writePixelInternal(int16_t x, int16_t y, uint16_t color)
   default:
     break;
   }
+
+  if (x < 0 || y < 0 || x >= m_einkWidth || y >= m_einkHeight)
+    return;
 
   int x1    = x / 8;
   int xSub  = x % 8;

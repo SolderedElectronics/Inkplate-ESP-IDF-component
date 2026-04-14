@@ -31,7 +31,7 @@ static const uint8_t waveform3Bit[8][9] =
  * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
  *         initialises GPIO and the PMIC.
  */
-Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0), frontlight(i2c, expander1)
+Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0)//, frontlight(i2c, expander1)
 {
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
@@ -507,12 +507,8 @@ void Inkplate4::gpioInit()
 
   expander1.setDirection(SD_PMOS_PIN, IO_MODE_INPUT, true);
 
-  // Write the output latch LOW *before* switching to output mode.
-  // PCAL OUTPORT defaults to 0xFF, so without this the pin briefly goes HIGH
-  // the instant setDirection() enables it, which wakes the frontlight chip
-  // mid-init and interferes with I2C.
-  expander1.setPort(IO_PORT_1, (uint8_t)(0xFF & ~(1 << (FRONTLIGHT % 8))));
-  expander1.setDirection(FRONTLIGHT, IO_MODE_OUTPUT, true);
+  //expander1.setPort(IO_PORT_1, (uint8_t)(0xFF & ~(1 << (FRONTLIGHT % 8))));
+  //expander1.setDirection(FRONTLIGHT, IO_MODE_OUTPUT, true);
   
   expander2.setPort(IO_PORT_0, 0x00);
   expander2.setPort(IO_PORT_1, 0x00);

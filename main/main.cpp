@@ -7,16 +7,20 @@
 static const char *TAG = "MAIN";
 
 // Image file on the SD card root (change extension to match your file)
-#define IMAGE_PATH "https://thumb.photo-ac.com/96/968b9b6fb0db2b364491b87fb1e792ee_t.jpeg"
+#define IMAGE_PATH "https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Arduino-library/refs/heads/dev/examples/Inkplate2/Advanced/WEB_WiFi/Inkplate2_Show_Pictures_From_Web/mountain.png"
+
 extern "C"
 void app_main(void)
 {
     Inkplate display;
     display.clearDisplay();    // Clear the software frame buffer (does NOT clear the physical screen)
+    display.setTextSize(2);
     display.setRotation(3);
-    display.setCursor(10, 10); // Set the text position to (10, 10) pixels
-    display.setTextSize(2);    // Set text size to 2 (default is 1)
-    display.setTextColor(1);   // Set text color to black (1 = black, 0 = white)
-    display.print("Hello World!"); // Print "Hello World!" at the set position
+
+    display.wifi.begin();
+    display.wifi.waitForConnect();
+
+    display.image.draw(IMAGE_PATH, 0, 0, true, false);
+    //display.print("Hello world");
     display.display();         // Refresh the e-paper display to show changes
 }

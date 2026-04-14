@@ -5,6 +5,9 @@
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
 #include "Image.h"
 #endif
+#ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
+#include "ImageColor.h"
+#endif
 #include "Network.h"
 #include "sdkconfig.h"
 
@@ -37,6 +40,9 @@ class Inkplate : public Graphics, public INKPLATE_BOARD_CLASS
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
   Image image;
+#endif
+#ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
+  ImageColor image;
 #endif
   WiFi  wifi;
 

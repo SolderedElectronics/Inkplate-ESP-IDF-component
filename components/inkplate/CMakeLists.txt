@@ -63,7 +63,7 @@ set(GRAPHICS_INCLUDES
 )
 
 set(IMAGE_SRCS
-    "src/graphics/Image/ImageColor.cpp"
+    "src/graphics/Image/Image.cpp"
     "src/graphics/Image/BMP/BMP.cpp"
     "src/graphics/Image/JPEG/JPEG.cpp"
     "src/graphics/Image/PNG/PNG.cpp"
@@ -111,6 +111,6 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                        INCLUDE_DIRS "include" "include/features" "include/boards"
                                     ${INCLUDE_SRC}
                                     ${GRAPHICS_INCLUDES}
-                                    ${IMAGE_COLOR_INCLUDES}
+                                    ${IMAGE_INCLUDES}
                                     ${SENSOR_INCLUDES})
 endif()
