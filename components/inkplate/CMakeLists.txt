@@ -30,49 +30,36 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE2)
     set(BOARD_SRC "src/boards/Inkplate2.cpp")
 endif()
 
-set(IMAGE_COLOR_SRCS
-    "src/graphics/ImageColor/ImageColor.cpp"
-    "src/graphics/ImageColor/BMP/BMP.cpp"
-    "src/graphics/ImageColor/JPEG/JPEG.cpp"
-    "src/graphics/ImageColor/PNG/PNG.cpp"
-    "src/graphics/pngle/pngle.c"
+set(DECODER_SRCS
+    "src/graphics/Decoders/BMP.cpp"
+    "src/graphics/Decoders/JPEG.cpp"
+    "src/graphics/Decoders/PNG.cpp"
+    "src/graphics/Decoders/pngle/pngle.c"
 )
 
-set(IMAGE_COLOR_INCLUDES 
-    "include/graphics/ImageColor"
-    "include/graphics/ImageColor/BMP"
-    "include/graphics/ImageColor/JPEG"
-    "include/graphics/ImageColor/PNG"
-    "include/graphics/pngle"
+set(DECODER_INCLUDES
+    "include/graphics/Decoders"
+    "include/graphics/Decoders/pngle"
+)
+
+set(IMAGE_COLOR_SRCS
+    "src/graphics/ImageColor.cpp"
 )
 
 set(GRAPHICS_SRCS
     "src/graphics/Graphics.cpp"
     "src/graphics/Adafruit_GFX/Adafruit_GFX.cpp"
-    "src/graphics/Shapes/Shapes.cpp"
-    "src/graphics/Shapes/ShapesPolygon.cpp"
+    "src/graphics/Shapes.cpp"
+    "src/graphics/ShapesPolygon.cpp"
 )
 
 set(GRAPHICS_INCLUDES
     "include/graphics"
     "include/graphics/Adafruit_GFX"
-    "include/graphics/Shapes"
 )
 
 set(IMAGE_SRCS
-    "src/graphics/Image/Image.cpp"
-    "src/graphics/Image/BMP/BMP.cpp"
-    "src/graphics/Image/JPEG/JPEG.cpp"
-    "src/graphics/Image/PNG/PNG.cpp"
-    "src/graphics/pngle/pngle.c"
-)
-
-set(IMAGE_INCLUDES 
-    "include/graphics/Image"
-    "include/graphics/Image/BMP"
-    "include/graphics/Image/JPEG"
-    "include/graphics/Image/PNG"
-    "include/graphics/pngle"
+    "src/graphics/Image.cpp"
 )
 
 if(CONFIG_INKPLATE_BOARD_INKPLATE2)
@@ -81,6 +68,7 @@ idf_component_register(SRCS "src/features/Network.cpp"
                             ${BOARD_SRC}
                             ${GRAPHICS_SRCS}
                             ${IMAGE_COLOR_SRCS}
+                            ${DECODER_SRCS}
                        REQUIRES "esp_driver_gpio"
                                 "esp_driver_spi"
                                 "esp_timer"
@@ -90,6 +78,7 @@ idf_component_register(SRCS "src/features/Network.cpp"
                                     "include/boards"
                                     ${GRAPHICS_INCLUDES}
                                     ${IMAGE_COLOR_INCLUDES}
+                                    ${DECODER_INCLUDES}
                                     )
 else()
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" 
@@ -101,6 +90,7 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                             ${SENSOR_SRCS}
                             ${GRAPHICS_SRCS}
                             ${IMAGE_COLOR_SRCS}
+                            ${DECODER_SRCS}
                        REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer" "esp_adc"
                                 "esp_driver_spi" "fatfs" "sdmmc"
                                 "esp_wifi" "nvs_flash" "esp_http_client"
@@ -109,5 +99,7 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                                     "include/boards"
                                     ${GRAPHICS_INCLUDES}
                                     ${IMAGE_COLOR_INCLUDES}
-                                    ${SENSOR_INCLUDES})
+                                    ${SENSOR_INCLUDES}
+                                    ${DECODER_INCLUDES}
+                                    )
 endif()

@@ -1,7 +1,7 @@
 #ifndef GRAPHICS_H
 #define GRAPHICS_H
 
-#include "Shapes/Shapes.h"
+#include "Shapes.h"
 #include "GraphicsDefs.h"
 
 class Graphics : public Shapes

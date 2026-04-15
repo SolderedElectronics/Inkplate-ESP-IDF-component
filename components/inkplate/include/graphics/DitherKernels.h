@@ -1,3 +1,6 @@
+#ifndef DITHER_KERNELS_H
+#define DITHER_KERNELS_H
+
 #include "stdlib.h"
 
 struct DitherKernelDef
@@ -51,3 +54,5 @@ static const DitherKernelDef DITHER_KERNELS[] = {
 };
 
 static const uint8_t DITHER_KERNEL_COUNT = sizeof DITHER_KERNELS / sizeof DITHER_KERNELS[0];
+
+#endif

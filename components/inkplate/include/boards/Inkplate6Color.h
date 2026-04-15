@@ -18,9 +18,6 @@
 
 extern PCAL expander1;
 
-// Color palette of the 6COLOR panel
-static uint32_t pallete[] = {0x000000, 0xFFFFFF, 0x00FF00, 0x0000FF, 0xFF0000, 0xFFFF00, 0xFF8000};
-
 // Pin on the internal io expander which controls MOSFET for turning on and off the SD card
 #define SD_PMOS_PIN IO_NUM_B2 // 10
 

@@ -20,7 +20,7 @@ void app_main(void)
 
     ESP_ERROR_CHECK(display.sdCardInit());
 
-    display.image.setDitherKernel(FloydSteinberg);
+    display.image.setDitherKernel(Stucki);
     display.image.draw(IMAGE_PATH, 0, 0, false, true);
     display.display();
 }

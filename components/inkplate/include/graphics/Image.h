@@ -1,14 +1,13 @@
-#ifndef _IMAGE_H_
-#define _IMAGE_H_
+#ifndef IMAGE_H
+#define IMAGE_H
 
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "BMP/BMP.h"
-#include "JPEG/JPEG.h"
-#include "PNG/PNG.h"
+#include "BMP.h"
+#include "JPEG.h"
+#include "PNG.h"
 
-// convert RGB to 8-bit grayscale (0-255) using luminance weights (for dithering)
 #ifndef RGB8BIT
 #define RGB8BIT(r, g, b) ((uint8_t)(((uint32_t)(r) * 54 + (uint32_t)(g) * 183 + (uint32_t)(b) * 19) >> 8))
 #endif
@@ -29,8 +28,6 @@ public:
   void      ditherSwap(int w);
 
 private:
-  friend class BMP;
-
   void      beginDither();
   void      endDither();
 
@@ -41,7 +38,6 @@ private:
 
   bool      m_dither;
   uint8_t  *m_ditherBuffer[2];
-  uint8_t   m_ditherPalette[256];
 };
 
 #endif

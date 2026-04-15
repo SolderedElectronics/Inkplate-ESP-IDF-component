@@ -2,14 +2,15 @@
 #define INKPLATE_H
 
 #include "graphics/Graphics.h"
+#include "Network.h"
+#include "sdkconfig.h"
+
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
 #include "ImageColor.h"
 #endif
 #ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
 #include "ImageColor.h"
 #endif
-#include "Network.h"
-#include "sdkconfig.h"
 
 #if CONFIG_INKPLATE_BOARD_INKPLATE6
   #include "Inkplate6.h"

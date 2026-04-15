@@ -11,9 +11,6 @@
 #include "BoardBase.h"
 #include "GraphicsDefs.h"
 
-// Color Palette of the Inkplate 2 panel
-static uint32_t pallete[] = {0xFFFFFF, 0x000000, 0xFF0000};
-
 #define EPAPER_RST_PIN  GPIO_NUM_19
 #define EPAPER_DC_PIN   GPIO_NUM_33
 #define EPAPER_CS_PIN   GPIO_NUM_27

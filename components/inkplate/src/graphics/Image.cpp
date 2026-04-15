@@ -16,9 +16,8 @@ static const char *TAG = "Image";
 Image::Image(Inkplate *inkplate)
     : m_inkplate(inkplate), m_bmp(inkplate), m_jpeg(inkplate), m_png(inkplate)
 {
-  m_dither           = false;
-  m_ditherBuffer[0]  = m_ditherBuffer[1] = nullptr;
-  memset(m_ditherPalette, 0, sizeof(m_ditherPalette));
+  m_dither          = false;
+  m_ditherBuffer[0] = m_ditherBuffer[1] = nullptr;
 }
 
 /**
@@ -37,8 +36,7 @@ Image::Image(Inkplate *inkplate)
  */
 uint8_t Image::getDitheredPixel(uint32_t px, int i, int j, int w, bool paletted)
 {
-  if (paletted)
-    px = m_ditherPalette[px];
+  // paletted: shared decoder already unpacked palette entry to luminance before calling
 
   if (m_inkplate->getDisplayMode() == BLACK_AND_WHITE)
     px = (uint16_t)px >> 1;

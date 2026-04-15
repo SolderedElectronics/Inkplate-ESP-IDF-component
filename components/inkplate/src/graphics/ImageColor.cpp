@@ -7,11 +7,6 @@
 
 static const char *TAG = "ImageColor";
 
-// Inkplate2 palette RGB values (index = color code)
-static const uint8_t PALETTE_R[3] = {255,   0, 255}; // white, black, red
-static const uint8_t PALETTE_G[3] = {255,   0,   0};
-static const uint8_t PALETTE_B[3] = {255,   0,   0};
-
 /**
  * ============================================================
  * Public functions
@@ -21,27 +16,35 @@ static const uint8_t PALETTE_B[3] = {255,   0,   0};
 ImageColor::ImageColor(Inkplate *inkplate)
     : m_inkplate(inkplate), m_bmp(inkplate), m_jpeg(inkplate), m_png(inkplate)
 {
-  memset(m_ditherPalette, 0, sizeof(m_ditherPalette));
-  m_ditherR[0] = m_ditherR[1] = nullptr;
-  m_ditherG[0] = m_ditherG[1] = nullptr;
-  m_ditherB[0] = m_ditherB[1] = nullptr;
+  for (int i = 0; i < DITHER_ROW_COUNT; ++i)
+    m_ditherR[i] = m_ditherG[i] = m_ditherB[i] = nullptr;
+  m_rowIdx = 0;
+
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
+  palletteSize  = 7;
+  pallete[0] = 0x000000; pallete[1] = 0xFFFFFF; pallete[2] = 0x00FF00;
+  pallete[3] = 0x0000FF; pallete[4] = 0xFF0000; pallete[5] = 0xFFFF00; pallete[6] = 0xFF8000;
+#else
+  palletteSize  = 3;
+  pallete[0] = 0xFFFFFF; pallete[1] = 0x000000; pallete[2] = 0xFF0000;
+#endif
 }
 
 uint8_t ImageColor::findClosestPalette(int16_t r, int16_t g, int16_t b)
 {
-    int32_t minDistance = INT32_MAX;
+    int64_t minDistance = INT64_MAX;
     uint8_t contenderCount = 0;
-    uint8_t contenderList[sizeof pallete / sizeof pallete[0]];
+    uint8_t contenderList[7]; // sized for max palette (7 colors)
 
-    for (uint8_t i = 0; i < sizeof pallete / sizeof pallete[0]; i++)
+    for (uint8_t i = 0; i < palletteSize; ++i)
     {
-        int32_t dr = r - RED8(pallete[i]);
-        int32_t dg = g - GREEN8(pallete[i]);;
-        int32_t db = b - BLUE8(pallete[i]);;
+        int32_t dr = r - (int16_t)RED8(pallete[i]);
+        int32_t dg = g - (int16_t)GREEN8(pallete[i]);
+        int32_t db = b - (int16_t)BLUE8(pallete[i]);
 
-        int32_t currentDistance = dr*dr + dg*dg + db*db;
+        int64_t currentDistance = (int64_t)dr*dr + (int64_t)dg*dg + (int64_t)db*db;
 
-         if (currentDistance < minDistance)
+        if (currentDistance < minDistance)
         {
             minDistance = currentDistance;
             contenderList[0] = i;
@@ -49,7 +52,7 @@ uint8_t ImageColor::findClosestPalette(int16_t r, int16_t g, int16_t b)
         }
         else if (currentDistance == minDistance)
         {
-            if (contenderCount < sizeof pallete / sizeof pallete[0])
+            if (contenderCount < palletteSize)
                 contenderList[contenderCount++] = i;
         }
     }
@@ -75,58 +78,52 @@ void ImageColor::setDitherKernel(DitherKernel kernel)
  */
 uint8_t ImageColor::getDitheredPixel(uint8_t r, uint8_t g, uint8_t b, int i, int w)
 {
-  // accumulate error into input channels
-  int16_t er = (int16_t)r + m_ditherR[0][i];
-  int16_t eg = (int16_t)g + m_ditherG[0][i];
-  int16_t eb = (int16_t)b + m_ditherB[0][i];
+  const int rowIdx = m_rowIdx & DITHER_ROW_MASK;
+  int16_t *rowR = m_ditherR[rowIdx];
+  int16_t *rowG = m_ditherG[rowIdx];
+  int16_t *rowB = m_ditherB[rowIdx];
 
-  // clear consumed error slot
-  m_ditherR[0][i] = 0;
-  m_ditherG[0][i] = 0;
-  m_ditherB[0][i] = 0;
+  int16_t er = (int16_t)r + rowR[i];
+  int16_t eg = (int16_t)g + rowG[i];
+  int16_t eb = (int16_t)b + rowB[i];
 
-  // clamp
+  rowR[i] = 0;
+  rowG[i] = 0;
+  rowB[i] = 0;
+
   if (er < 0) er = 0; else if (er > 255) er = 255;
   if (eg < 0) eg = 0; else if (eg > 255) eg = 255;
   if (eb < 0) eb = 0; else if (eb > 255) eb = 255;
 
-  uint8_t closest = findClosestPalette((uint8_t)er, (uint8_t)eg, (uint8_t)eb);
+  int closest = findClosestPalette(er, eg, eb);
 
-  // quantisation errors per channel
-  int32_t rErr = r - (int32_t)((pallete[closest] >> 16) & 0xFF);
-  int32_t gErr = g - (int32_t)((pallete[closest] >> 8) & 0xFF);
-  int32_t bErr = b - (int32_t)((pallete[closest] >> 0) & 0xFF);
+  int32_t rErr = er - (int32_t)RED8(pallete[closest]);
+  int32_t gErr = eg - (int32_t)GREEN8(pallete[closest]);
+  int32_t bErr = eb - (int32_t)BLUE8(pallete[closest]);
 
   const DitherKernelDef *k = m_currentKernel;
+  const int minOffset = (i < (int)k->x) ? -i : -(int)k->x;
+  const int maxOffset = ((int)k->width - k->x - 1 < w - 1 - i) ? (int)k->width - k->x - 1 : w - 1 - i;
 
-  // kernel origin offset
-  int originX = k->x;
-
-  // iterate kernel rows
-  for (int ky = 0; ky < k->height; ky++)
+  for (int ky = 0; ky < k->height; ++ky)
   {
-      int rowIndex = (ky == 0) ? 0 : 1; // current row or next row
-
-      for (int kx = 0; kx < k->width; kx++)
+      const int nextRowIdx = (rowIdx + ky) & DITHER_ROW_MASK;
+      int16_t *nextRowR = m_ditherR[nextRowIdx];
+      int16_t *nextRowG = m_ditherG[nextRowIdx];
+      int16_t *nextRowB = m_ditherB[nextRowIdx];
+      for (int l = minOffset; l <= maxOffset; ++l)
       {
-          int weight = k->data[ky * k->width + kx];
-          if (weight == 0) continue;
-
-          int offsetX = kx - originX;
-          int targetX = i + offsetX;
-
-          if (targetX < 0 || targetX >= w) continue;
-
-          // Skip current pixel itself
-          if (ky == 0 && offsetX <= 0) continue;
-
-          m_ditherR[rowIndex][targetX] += (int16_t)((rErr * weight) / k->coef);
-          m_ditherG[rowIndex][targetX] += (int16_t)((gErr * weight) / k->coef);
-          m_ditherB[rowIndex][targetX] += (int16_t)((bErr * weight) / k->coef);
+          const int weight = k->data[ky * k->width + (l + k->x)];
+          if (!weight)
+              continue;
+          const int idx = i + l;
+          nextRowR[idx] += (int16_t)((weight * rErr) / k->coef);
+          nextRowG[idx] += (int16_t)((weight * gErr) / k->coef);
+          nextRowB[idx] += (int16_t)((weight * bErr) / k->coef);
       }
   }
 
-  return closest;
+  return (uint8_t)closest;
 }
 
 /**
@@ -134,15 +131,7 @@ uint8_t ImageColor::getDitheredPixel(uint8_t r, uint8_t g, uint8_t b, int i, int
  */
 void ImageColor::ditherSwap(int w)
 {
-  // swap pointers so "next row" becomes "current row"
-  int16_t *tmpR = m_ditherR[0]; m_ditherR[0] = m_ditherR[1]; m_ditherR[1] = tmpR;
-  int16_t *tmpG = m_ditherG[0]; m_ditherG[0] = m_ditherG[1]; m_ditherG[1] = tmpG;
-  int16_t *tmpB = m_ditherB[0]; m_ditherB[0] = m_ditherB[1]; m_ditherB[1] = tmpB;
-
-  // zero out the new "next row"
-  memset(m_ditherR[1], 0, (w + 2) * sizeof(int16_t));
-  memset(m_ditherG[1], 0, (w + 2) * sizeof(int16_t));
-  memset(m_ditherB[1], 0, (w + 2) * sizeof(int16_t));
+  m_rowIdx = (m_rowIdx + 1) & DITHER_ROW_MASK;
 }
 
 /**
@@ -255,17 +244,18 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
 
 void ImageColor::beginDither()
 {
-  for (int i = 0; i < 2; ++i)
+  m_rowIdx = 0;
+  for (int i = 0; i < DITHER_ROW_COUNT; ++i)
   {
-    m_ditherR[i] = (int16_t *)calloc(BMP_COLOR_MAX_WIDTH + 2, sizeof(int16_t));
-    m_ditherG[i] = (int16_t *)calloc(BMP_COLOR_MAX_WIDTH + 2, sizeof(int16_t));
-    m_ditherB[i] = (int16_t *)calloc(BMP_COLOR_MAX_WIDTH + 2, sizeof(int16_t));
+    m_ditherR[i] = (int16_t *)calloc(BMP_MAX_WIDTH + 2, sizeof(int16_t));
+    m_ditherG[i] = (int16_t *)calloc(BMP_MAX_WIDTH + 2, sizeof(int16_t));
+    m_ditherB[i] = (int16_t *)calloc(BMP_MAX_WIDTH + 2, sizeof(int16_t));
   }
 }
 
 void ImageColor::endDither()
 {
-  for (int i = 0; i < 2; ++i)
+  for (int i = 0; i < DITHER_ROW_COUNT; ++i)
   {
     free(m_ditherR[i]); m_ditherR[i] = nullptr;
     free(m_ditherG[i]); m_ditherG[i] = nullptr;
