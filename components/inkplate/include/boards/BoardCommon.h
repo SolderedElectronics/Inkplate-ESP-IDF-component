@@ -8,6 +8,7 @@
 
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE10) || \
     defined(CONFIG_INKPLATE_BOARD_INKPLATE6)  || \
+    defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK)  || \
     defined(CONFIG_INKPLATE_BOARD_INKPLATE5)  || \
     defined(CONFIG_INKPLATE_BOARD_INKPLATE4)
 // enables the GPIO0/CL level shifter

@@ -15,11 +15,6 @@ extern I2C    i2c;
 
 static const char *TAG = "INKPLATE6";
 
-static const uint8_t waveform3Bit[8][9] =
-  {{0, 0, 0, 0, 1, 1, 1, 1, 0}, {0, 0, 0, 1, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 0, 2, 1, 0, 0},
-   {1, 1, 1, 2, 2, 1, 1, 0, 0}, {1, 1, 1, 1, 2, 2, 1, 0, 0}, {0, 1, 1, 1, 2, 2, 1, 0, 0},
-   {0, 0, 0, 0, 1, 1, 2, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 0, 0}};
-
 /**
  * ============================================================
  * Public functions
@@ -32,7 +27,11 @@ static const uint8_t waveform3Bit[8][9] =
  * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
  *         initialises GPIO and the PMIC.
  */
+#if CONFIG_INKPLATE_BOARD_INKPLATE6
 Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12)
+#else
+Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 15, 5)
+#endif
 {
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
@@ -153,7 +152,7 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
     return 0;
   }
 
-  uint16_t position = (m_einkWidth * m_einkHeight / 8) - 1;
+  uint32_t position = (m_einkWidth * m_einkHeight / 8) - 1;
   uint32_t n        = (m_einkWidth * m_einkHeight / 4) - 1;
   uint8_t  diffWhite, diffBlack;
   uint32_t changeCount = 0;
@@ -189,7 +188,11 @@ uint32_t Inkplate6::partialUpdate(bool forced, bool leaveOn)
   if (einkOn() != ESP_OK)
     return 0;
 
+  #if CONFIG_INKPLATE_BOARD_INKPLATE6
   uint8_t rep = 6;
+  #else
+  uint8_t rep = 5;
+  #endif
   for (int k = 0; k < rep; k++)
   {
     vscanStart();
@@ -307,6 +310,7 @@ esp_err_t Inkplate6::display3b(bool leaveOn)
     return ret;
   }
 
+  #if CONFIG_INKPLATE_BOARD_INKPLATE6
   clean(0, 1);
   clean(1, 18);
   clean(2, 1);
@@ -316,8 +320,19 @@ esp_err_t Inkplate6::display3b(bool leaveOn)
   clean(2, 1);
   clean(0, 18);
   clean(2, 1);
+  #elif CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
+  clean(0, 5);
+  clean(1, 15);
+  clean(2, 1);
+  clean(0, 15);
+  clean(2, 1);
+  clean(1, 15);
+  clean(2, 1);
+  clean(0, 15);
+  clean(2, 1);
+  #endif
 
-  for (int k = 0; k < 9; ++k)
+  for (int k = 0; k < 9; k++)
   {
     uint8_t *dp = m_framebufferColor + E_INK_WIDTH * E_INK_HEIGHT / 2;
     vscanStart();
@@ -369,6 +384,7 @@ esp_err_t Inkplate6::display1b(bool leaveOn)
     return ret;
   }
 
+  #if CONFIG_INKPLATE_BOARD_INKPLATE6
   clean(0, 1);
   clean(1, 18);
   clean(2, 1);
@@ -378,6 +394,17 @@ esp_err_t Inkplate6::display1b(bool leaveOn)
   clean(2, 1);
   clean(0, 18);
   clean(2, 1);
+  #elif CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
+  clean(0, 5);
+  clean(1, 15);
+  clean(2, 1);
+  clean(0, 15);
+  clean(2, 1);
+  clean(1, 15);
+  clean(2, 1);
+  clean(0, 15);
+  clean(2, 1);
+  #endif
 
   memcpy(m_framebuffer, m_newFramebuffer, E_INK_WIDTH * E_INK_HEIGHT / 8);
 

@@ -20,8 +20,21 @@ extern PCAL expander1;
 // pin on the internal io expander which controls MOSFET for turning on and off the SD card
 #define SD_PMOS_PIN  IO_NUM_B2
 
+#if CONFIG_INKPLATE_BOARD_INKPLATE6
 #define E_INK_WIDTH  800
 #define E_INK_HEIGHT 600
+static const uint8_t waveform3Bit[8][9] =
+  {{0, 0, 0, 0, 1, 1, 1, 1, 0}, {0, 0, 0, 1, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 0, 2, 1, 0, 0},
+   {1, 1, 1, 2, 2, 1, 1, 0, 0}, {1, 1, 1, 1, 2, 2, 1, 0, 0}, {0, 1, 1, 1, 2, 2, 1, 0, 0},
+   {0, 0, 0, 0, 1, 1, 2, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 0, 0}};
+#elif CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
+#define E_INK_WIDTH  1024
+#define E_INK_HEIGHT 758
+static const uint8_t waveform3Bit[8][9] =
+   {{0, 0, 0, 0, 0, 1, 1, 1, 0}, {0, 0, 1, 2, 1, 1, 2, 1, 0}, {0, 1, 1, 2, 1, 1, 1, 2, 0},
+    {1, 1, 1, 2, 2, 1, 1, 2, 0}, {1, 1, 1, 2, 1, 2, 1, 2, 0}, {0, 1, 1, 2, 1, 2, 1, 2, 0},
+    {1, 2, 1, 1, 2, 2, 1, 2, 0}, {0, 0, 0, 0, 0, 0, 0, 2, 0}};
+#endif
 
 class Inkplate6 : public BoardCommon
 {

@@ -2,6 +2,8 @@ if(CONFIG_INKPLATE_BOARD_INKPLATE10)
     set(BOARD_SRC "src/boards/Inkplate10.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6)
     set(BOARD_SRC "src/boards/Inkplate6.cpp" "src/features/I2S.cpp")
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK)
+    set(BOARD_SRC "src/boards/Inkplate6.cpp" "src/features/I2S.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
     set(BOARD_SRC "src/boards/Inkplate6Color.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE5)
@@ -82,14 +84,14 @@ idf_component_register(SRCS "src/features/Network.cpp"
                                     )
 else()
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" 
-                            "src/features/PCAL.cpp" "src/features/TPS.cpp"
+                            "src/features/PCAL.cpp" "src/features/TPS.cpp" "src/features/I2S.cpp"
                             "src/features/Network.cpp" "src/features/SDCard.cpp"
                             "src/boards/BoardCommon.cpp"
                             "src/boards/Inkplate.cpp"
                             ${BOARD_SRC}
                             ${SENSOR_SRCS}
                             ${GRAPHICS_SRCS}
-                            ${IMAGE_COLOR_SRCS}
+                            ${IMAGE_SRCS}
                             ${DECODER_SRCS}
                        REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer" "esp_adc"
                                 "esp_driver_spi" "fatfs" "sdmmc"
@@ -98,7 +100,7 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                                     "include/features"
                                     "include/boards"
                                     ${GRAPHICS_INCLUDES}
-                                    ${IMAGE_COLOR_INCLUDES}
+                                    ${IMAGE_INCLUDES}
                                     ${SENSOR_INCLUDES}
                                     ${DECODER_INCLUDES}
                                     )

@@ -2,7 +2,7 @@
 #define SHAPES_H
 
 #include "sdkconfig.h"
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6)
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK) 
   #include "Inkplate6.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
   #include "Inkplate6Color.h"

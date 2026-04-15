@@ -32,17 +32,17 @@ ImageColor::ImageColor(Inkplate *inkplate)
 
 uint8_t ImageColor::findClosestPalette(int16_t r, int16_t g, int16_t b)
 {
-    int64_t minDistance = INT64_MAX;
+    int32_t minDistance = INT32_MAX;
     uint8_t contenderCount = 0;
     uint8_t contenderList[7]; // sized for max palette (7 colors)
 
     for (uint8_t i = 0; i < palletteSize; ++i)
     {
-        int32_t dr = r - (int16_t)RED8(pallete[i]);
-        int32_t dg = g - (int16_t)GREEN8(pallete[i]);
-        int32_t db = b - (int16_t)BLUE8(pallete[i]);
+        int16_t dr = r - (int16_t)RED8(pallete[i]);
+        int16_t dg = g - (int16_t)GREEN8(pallete[i]);
+        int16_t db = b - (int16_t)BLUE8(pallete[i]);
 
-        int64_t currentDistance = (int64_t)dr*dr + (int64_t)dg*dg + (int64_t)db*db;
+        int32_t currentDistance = dr*dr + dg*dg + db*db;
 
         if (currentDistance < minDistance)
         {

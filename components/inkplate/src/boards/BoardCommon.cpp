@@ -10,7 +10,7 @@
 #include "nvs.h"
 
 // Include the active board's pins.h for WAKEUP_SET/CLEAR, CKV_SET, LE_SET, etc.
-#if CONFIG_INKPLATE_BOARD_INKPLATE6
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK) 
   #include "Inkplate6.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
   #include "Inkplate6Color.h"
@@ -180,8 +180,8 @@ void BoardCommon::writePixelInternal(int16_t x, int16_t y, uint16_t color)
     color &= 7;
     int x1    = x0 >> 1;
     int x_sub = x0 & 1;
-    uint8_t temp = *(m_framebufferColor + (m_einkWidth / 2) * y0 + x1);
-    *(m_framebufferColor + (m_einkWidth / 2) * y0 + x1) =
+    uint8_t temp = *(m_framebufferColor + (E_INK_WIDTH / 2) * y0 + x1);
+    *(m_framebufferColor + (E_INK_WIDTH / 2) * y0 + x1) =
       (pixelMaskGLUT[x_sub] & temp) | (x_sub ? color : color << 4);
   }
   #else

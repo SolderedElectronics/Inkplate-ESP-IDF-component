@@ -6,13 +6,13 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-#include "ImageColor.h"
+#include "Image.h"
 #endif
 #ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
 #include "ImageColor.h"
 #endif
 
-#if CONFIG_INKPLATE_BOARD_INKPLATE6
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK) 
   #include "Inkplate6.h"
   #define INKPLATE_BOARD_CLASS Inkplate6
 #elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
@@ -43,7 +43,7 @@ class Inkplate : public Graphics, public INKPLATE_BOARD_CLASS
   uint8_t getRotation() override;
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-  ImageColor image;
+  Image image;
 #endif
 #ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
   ImageColor image;
