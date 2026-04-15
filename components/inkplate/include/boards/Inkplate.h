@@ -1,5 +1,5 @@
-#ifndef __INKPLATE_H__
-#define __INKPLATE_H__
+#ifndef INKPLATE_H
+#define INKPLATE_H
 
 #include "graphics/Graphics.h"
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
@@ -12,22 +12,22 @@
 #include "sdkconfig.h"
 
 #if CONFIG_INKPLATE_BOARD_INKPLATE6
-  #include "inkplate6/Inkplate6.h"
+  #include "Inkplate6.h"
   #define INKPLATE_BOARD_CLASS Inkplate6
 #elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-  #include "inkplate6color/Inkplate6color.h"
+  #include "Inkplate6color.h"
   #define INKPLATE_BOARD_CLASS Inkplate6Color
 #elif CONFIG_INKPLATE_BOARD_INKPLATE10
-  #include "inkplate10/Inkplate10.h"
+  #include "Inkplate10.h"
   #define INKPLATE_BOARD_CLASS Inkplate10
 #elif CONFIG_INKPLATE_BOARD_INKPLATE5
-  #include "inkplate5/Inkplate5.h"
+  #include "Inkplate5.h"
   #define INKPLATE_BOARD_CLASS Inkplate5
 #elif CONFIG_INKPLATE_BOARD_INKPLATE4
-  #include "inkplate4/Inkplate4.h"
+  #include "Inkplate4.h"
   #define INKPLATE_BOARD_CLASS Inkplate4
 #elif CONFIG_INKPLATE_BOARD_INKPLATE2
-  #include "inkplate2/Inkplate2.h"
+  #include "Inkplate2.h"
   #define INKPLATE_BOARD_CLASS Inkplate2
 #else
   #error "No Inkplate board selected. Choose a board in menuconfig -> Inkplate Board."

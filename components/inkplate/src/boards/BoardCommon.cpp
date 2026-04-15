@@ -11,17 +11,17 @@
 
 // Include the active board's pins.h for WAKEUP_SET/CLEAR, CKV_SET, LE_SET, etc.
 #if CONFIG_INKPLATE_BOARD_INKPLATE6
-  #include "inkplate6/pins.h"
+  #include "Inkplate6.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-  #include "inkplate6color/pins.h"
+  #include "Inkplate6Color.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE10
-  #include "inkplate10/pins.h"
+  #include "Inkplate10.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE5
-  #include "inkplate5/pins.h"
+  #include "Inkplate5.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE4
-  #include "inkplate4/pins.h"
+  #include "Inkplate4.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE2
-  #include "inkplate2/pins.h"
+  #include "Inkplate2.h"
 #endif
 
 #include "BoardCommon.h"
@@ -51,7 +51,7 @@ PCAL    expander1(IO_INT_ADDR, i2c);
 PCAL    expander2(IO_EXT_ADDR, i2c);
 #endif
 TPS     tps(i2c);
-SDCard  sdCard(expander1);
+SDCard  sdCard(expander1, SD_PMOS_PIN);
 #endif 
 
 /**

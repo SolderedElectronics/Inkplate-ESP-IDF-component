@@ -14,10 +14,10 @@ static const char *TAG = "FRONTLIGHT";
  * @brief  Register the Frontlight on the I2C bus.
  *
  */
-Frontlight::Frontlight(I2C &i2c, PCAL &expander)
+esp_err_t Frontlight::begin(I2C &i2c, PCAL &expander)
 {
-  ESP_ERROR_CHECK(i2c.addDevice(FRONTLIGHT_I2C_ADDR, &m_devHandle));
   m_expander = &expander;
+  return i2c.addDevice(FRONTLIGHT_I2C_ADDR, &m_devHandle);
 }
 
 esp_err_t Frontlight::setBrightness(uint8_t value)

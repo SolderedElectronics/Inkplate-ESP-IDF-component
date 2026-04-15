@@ -1,24 +1,24 @@
-#ifndef __SHAPES_H__
-#define __SHAPES_H__
+#ifndef SHAPES_H
+#define SHAPES_H
 
 #include "sdkconfig.h"
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6)
-  #include "../../boards/inkplate6/Inkplate6.h"
+  #include "Inkplate6.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
-  #include "../../boards/inkplate6color/Inkplate6Color.h"
+  #include "Inkplate6Color.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE10)
-  #include "../../boards/inkplate10/Inkplate10.h"
+  #include "Inkplate10.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE5)
-  #include "../../boards/inkplate5/Inkplate5.h"
+  #include "Inkplate5.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE4)
-  #include "../../boards/inkplate4/Inkplate4.h"
+  #include "Inkplate4.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
-  #include "../../boards/inkplate2/Inkplate2.h"
+  #include "Inkplate2.h"
 #else
   #error "No Inkplate board selected. Choose a board in menuconfig -> Inkplate Board."
 #endif
 
-#include "../Adafruit_GFX/Adafruit_GFX.h"
+#include "Adafruit_GFX.h"
 
 #define maxVer 100
 #define maxHt  E_INK_HEIGHT

@@ -51,26 +51,13 @@ Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12
 
   //vTaskDelay(pdMS_TO_TICKS(5000));
 
-  spi_bus_config_t bus_cfg = {};
-  bus_cfg.mosi_io_num     = EPAPER_DIN;
-  bus_cfg.miso_io_num     = -1;
-  bus_cfg.sclk_io_num     = EPAPER_CLK;
-  bus_cfg.quadwp_io_num   = -1;
-  bus_cfg.quadhd_io_num   = -1;
-  ESP_ERROR_CHECK(spi_bus_initialize(SPI3_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
-
-  spi_device_interface_config_t dev_cfg = {};
-  dev_cfg.clock_speed_hz = SPI_MASTER_FREQ_20M;
-  dev_cfg.mode           = 0;
-  dev_cfg.spics_io_num   = EPAPER_CS_PIN;
-  dev_cfg.queue_size     = 3;
-  ESP_ERROR_CHECK(spi_bus_add_device(SPI3_HOST, &dev_cfg, &m_spiDev));
-
   if (!setPanelDeepSleep(false))
     ESP_LOGE(TAG, "Panel init failed");
 
   setPanelDeepSleep(true);
   rtc.begin(i2c.getBusHandle());
+
+  setIOExpanderForLowPower();
 
   ESP_LOGI(TAG, "Initialization finished!");
 }
@@ -233,7 +220,7 @@ bool Inkplate6Color::setPanelDeepSleep(bool sleep)
   {
     if (!m_spiDev)
     {
-      // Re-initialize SPI bus on wake
+      // re-initialize SPI bus on wake because of SD card DAM conflict
       spi_bus_config_t bus_cfg = {};
       bus_cfg.mosi_io_num     = EPAPER_DIN;
       bus_cfg.miso_io_num     = -1;
@@ -309,7 +296,7 @@ bool Inkplate6Color::setPanelDeepSleep(bool sleep)
     gpio_set_level(EPAPER_DC_PIN, 0);
     gpio_set_level(EPAPER_CS_PIN, 0);
 
-    // Free SPI bus to release DMA channel
+    // free SPI bus to release DMA channel for SD card
     if (m_spiDev)
     {
       spi_bus_remove_device(m_spiDev);
@@ -319,4 +306,39 @@ bool Inkplate6Color::setPanelDeepSleep(bool sleep)
 
     return true;
   }
+}
+
+void Inkplate6Color::setIOExpanderForLowPower()
+{
+  // Battery voltage Switch MOSFET
+  expander1.setDirection(IO_NUM_B1, IO_MODE_OUTPUT);
+  expander1.setLevel(IO_NUM_B1, 0);
+
+  // Rest of pins go to OUTPUT LOW state because in deepSleep mode they are
+  // using least amount of power
+  expander1.setDirection(IO_NUM_A0, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_A1, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_A2, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_A3, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_A4, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_A5, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_A6, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_A7, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_B0, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_B5, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_B6, IO_MODE_OUTPUT);
+  expander1.setDirection(IO_NUM_B7, IO_MODE_OUTPUT);
+
+  expander1.setLevel(IO_NUM_A0, 0);
+  expander1.setLevel(IO_NUM_A1, 0);
+  expander1.setLevel(IO_NUM_A2, 0);
+  expander1.setLevel(IO_NUM_A3, 0);
+  expander1.setLevel(IO_NUM_A4, 0);
+  expander1.setLevel(IO_NUM_A5, 0);
+  expander1.setLevel(IO_NUM_A6, 0);
+  expander1.setLevel(IO_NUM_A7, 0);
+  expander1.setLevel(IO_NUM_B0, 0);
+  expander1.setLevel(IO_NUM_B5, 0);
+  expander1.setLevel(IO_NUM_B6, 0);
+  expander1.setLevel(IO_NUM_B7, 0);
 }

@@ -1,5 +1,5 @@
-#ifndef __LSM6DS3_SOLDERED_H__
-#define __LSM6DS3_SOLDERED_H__
+#ifndef LSM6DS3_H
+#define LSM6DS3_H
 
 #include "libs/LSM6DS3Driver.h"
 #include "driver/i2c_master.h"

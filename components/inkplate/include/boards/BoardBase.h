@@ -1,5 +1,5 @@
-#ifndef _BOARD_BASE_H_
-#define _BOARD_BASE_H_
+#ifndef BOARD_BASE_H
+#define BOARD_BASE_H
 
 #include "I2S.h"
 #include "esp_err.h"

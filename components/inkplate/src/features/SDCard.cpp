@@ -17,7 +17,7 @@
  * @param  PCAL &expander
  *         Reference to the PCAL expander that has SD_PMOS_PIN.
  */
-SDCard::SDCard(PCAL &expander) : m_expander(expander)
+SDCard::SDCard(PCAL &expander, IOPin_t pin) : m_expander(expander), m_pin(pin)
 {
 }
 
@@ -29,8 +29,8 @@ SDCard::SDCard(PCAL &expander) : m_expander(expander)
  */
 esp_err_t SDCard::sdCardInit()
 {
-  m_expander.setDirection(SD_PMOS_PIN, IO_MODE_OUTPUT, true);
-  m_expander.setLevel(SD_PMOS_PIN, 0, true);
+  m_expander.setDirection(m_pin, IO_MODE_OUTPUT, true);
+  m_expander.setLevel(m_pin, 0, true);
   esp_rom_delay_us(50000);
 
   spi_bus_config_t busCfg = {};
@@ -75,16 +75,16 @@ esp_err_t SDCard::sdCardSleep()
   esp_err_t ret = ESP_OK;
   if (m_card)
   {
-  ret    = esp_vfs_fat_sdcard_unmount(SD_MOUNT_POINT, m_card);
-  m_card = nullptr;
+    ret    = esp_vfs_fat_sdcard_unmount(SD_MOUNT_POINT, m_card);
+    m_card = nullptr;
   }
   spi_bus_free(SPI2_HOST);
 
-  gpio_set_direction(GPIO_NUM_12, GPIO_MODE_INPUT);
-  gpio_set_direction(GPIO_NUM_13, GPIO_MODE_INPUT);
-  gpio_set_direction(GPIO_NUM_14, GPIO_MODE_INPUT);
-  gpio_set_direction(GPIO_NUM_15, GPIO_MODE_INPUT);
-  m_expander.setDirection(SD_PMOS_PIN, IO_MODE_INPUT, true);
+  gpio_set_direction(SD_MISO, GPIO_MODE_INPUT);
+  gpio_set_direction(SD_MOSI, GPIO_MODE_INPUT);
+  gpio_set_direction(SD_SCK, GPIO_MODE_INPUT);
+  gpio_set_direction(SD_CS, GPIO_MODE_INPUT);
+  m_expander.setDirection(m_pin, IO_MODE_INPUT, true);
 
   return ret;
 }

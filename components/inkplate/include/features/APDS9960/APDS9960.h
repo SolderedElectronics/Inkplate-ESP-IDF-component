@@ -1,5 +1,5 @@
-#ifndef __APDS9960_SOLDERED__
-#define __APDS9960_SOLDERED__
+#ifndef APDS9960_H
+#define APDS9960_H
 
 #include "libs/APDS9960Driver.h"
 

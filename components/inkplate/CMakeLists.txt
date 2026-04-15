@@ -1,18 +1,13 @@
 if(CONFIG_INKPLATE_BOARD_INKPLATE10)
-    set(BOARD_SRC "src/boards/inkplate10/Inkplate10.cpp")
-    set(INCLUDE_SRC "include/boards/inkplate10")
+    set(BOARD_SRC "src/boards/Inkplate10.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6)
-    set(BOARD_SRC "src/boards/inkplate6/Inkplate6.cpp")
-    set(INCLUDE_SRC "include/boards/inkplate6")
+    set(BOARD_SRC "src/boards/Inkplate6.cpp" "src/features/I2S.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
-    set(BOARD_SRC "src/boards/inkplate6color/Inkplate6Color.cpp")
-    set(INCLUDE_SRC "include/boards/inkplate6color")
+    set(BOARD_SRC "src/boards/Inkplate6Color.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE5)
-    set(BOARD_SRC "src/boards/inkplate5/Inkplate5.cpp")
-    set(INCLUDE_SRC "include/boards/inkplate5")
+    set(BOARD_SRC "src/boards/Inkplate5.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
-    set(BOARD_SRC "src/boards/inkplate4/Inkplate4.cpp")
-    set(INCLUDE_SRC "include/boards/inkplate4")
+    set(BOARD_SRC "src/boards/Inkplate4.cpp")
     set(SENSOR_SRCS
         "src/features/APDS9960/APDS9960.cpp"
         "src/features/APDS9960/libs/APDS9960Driver.cpp"
@@ -32,8 +27,7 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
         "include/features/LSM6DS3"
         "include/features/LSM6DS3/libs")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE2)
-    set(BOARD_SRC "src/boards/inkplate2/Inkplate2.cpp")
-    set(INCLUDE_SRC "include/boards/inkplate2")
+    set(BOARD_SRC "src/boards/Inkplate2.cpp")
 endif()
 
 set(IMAGE_COLOR_SRCS
@@ -94,13 +88,12 @@ idf_component_register(SRCS "src/features/Network.cpp"
                        INCLUDE_DIRS "include"
                                     "include/features"
                                     "include/boards"
-                                    ${INCLUDE_SRC}
                                     ${GRAPHICS_INCLUDES}
                                     ${IMAGE_COLOR_INCLUDES}
                                     )
 else()
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" 
-                            "src/features/PCAL.cpp" "src/features/I2S.cpp" "src/features/TPS.cpp"
+                            "src/features/PCAL.cpp" "src/features/TPS.cpp"
                             "src/features/Network.cpp" "src/features/SDCard.cpp"
                             "src/boards/BoardCommon.cpp"
                             "src/boards/Inkplate.cpp"
@@ -111,8 +104,9 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                        REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer" "esp_adc"
                                 "esp_driver_spi" "fatfs" "sdmmc"
                                 "esp_wifi" "nvs_flash" "esp_http_client"
-                       INCLUDE_DIRS "include" "include/features" "include/boards"
-                                    ${INCLUDE_SRC}
+                       INCLUDE_DIRS "include" 
+                                    "include/features"
+                                    "include/boards"
                                     ${GRAPHICS_INCLUDES}
                                     ${IMAGE_COLOR_INCLUDES}
                                     ${SENSOR_INCLUDES})

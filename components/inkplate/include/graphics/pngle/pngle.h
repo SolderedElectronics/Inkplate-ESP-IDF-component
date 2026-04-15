@@ -22,8 +22,8 @@
  * SOFTWARE.
  */
 
-#ifndef __PNGLE_H__
-#define __PNGLE_H__
+#ifndef PNGLE_H
+#define PNGLE_H
 
 #include <stdint.h>
 

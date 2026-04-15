@@ -1,13 +1,26 @@
-#ifndef _INKPLATE_10_H_
-#define _INKPLATE_10_H_
+#ifndef INKPLATE_10_H
+#define INKPLATE_10_H
 
-#include "BoardCommon.h"
-#include "pins.h"
 #include "esp_err.h"
 #include "esp_rom_sys.h"
+#include "soc/gpio_reg.h"
+#include "soc/gpio_struct.h"
+
+#include "BoardCommon.h"
+#include "GraphicsDefs.h"
+
+#include "PCAL.h"
 #include "RTC.h"
 
-#include "../../graphics/GraphicsDefs.h"
+extern PCAL expander1;
+
+#define IO_INT_ADDR  0x20
+#define IO_EXT_ADDR  0x21
+
+// pin on the internal io expander which controls MOSFET for turning on and off the SD card
+#define SD_PMOS_PIN  IO_NUM_B2
+
+#define DATA 0x0E8C0030
 
 #define E_INK_WIDTH  1200
 #define E_INK_HEIGHT 825

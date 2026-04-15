@@ -1,5 +1,5 @@
-#ifndef _I2C_H_
-#define _I2C_H_
+#ifndef I2C_H
+#define I2C_H
 
 #include "driver/i2c_master.h"
 

@@ -1,5 +1,5 @@
-#ifndef _FRONTLIGHT_H_
-#define _FRONTLIGHT_H_
+#ifndef FRONTLIGHT_H
+#define FRONTLIGHT_H
 
 #include "esp_err.h"
 #include <stdint.h>
@@ -15,7 +15,8 @@
 class Frontlight
 {
 public:
-  Frontlight(I2C &i2c, PCAL &expander);
+  Frontlight() = default;
+  esp_err_t begin(I2C &i2c, PCAL &expander);
 
   esp_err_t setBrightness(uint8_t value);
   void      setState(bool enable);

@@ -29,25 +29,32 @@ ImageColor::ImageColor(Inkplate *inkplate)
 
 uint8_t ImageColor::findClosestPalette(int16_t r, int16_t g, int16_t b)
 {
-    int32_t minDist = INT32_MAX;
-    uint8_t best = 0;
+    int32_t minDistance = INT32_MAX;
+    uint8_t contenderCount = 0;
+    uint8_t contenderList[sizeof pallete / sizeof pallete[0]];
 
-    for (uint8_t i = 0; i < PALETTE_SIZE; i++)
+    for (uint8_t i = 0; i < sizeof pallete / sizeof pallete[0]; i++)
     {
         int32_t dr = r - RED8(pallete[i]);
         int32_t dg = g - GREEN8(pallete[i]);;
         int32_t db = b - BLUE8(pallete[i]);;
 
-        int32_t dist = dr*dr + dg*dg + db*db;
+        int32_t currentDistance = dr*dr + dg*dg + db*db;
 
-        if (dist < minDist)
+         if (currentDistance < minDistance)
         {
-            minDist = dist;
-            best = i;
+            minDistance = currentDistance;
+            contenderList[0] = i;
+            contenderCount = 1;
+        }
+        else if (currentDistance == minDistance)
+        {
+            if (contenderCount < sizeof pallete / sizeof pallete[0])
+                contenderList[contenderCount++] = i;
         }
     }
 
-    return best;
+    return contenderList[0];
 }
 
 void ImageColor::setDitherKernel(DitherKernel kernel)

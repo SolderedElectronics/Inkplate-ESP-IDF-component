@@ -1,5 +1,5 @@
-#ifndef _TPS_H_
-#define _TPS_H_
+#ifndef TPS_H
+#define TPS_H
 
 #include "esp_err.h"
 #include <stdint.h>

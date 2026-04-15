@@ -1,20 +1,31 @@
-#ifndef _INKPLATE_4_H_
-#define _INKPLATE_4_H_
+#ifndef INKPLATE_4_H
+#define INKPLATE_4_H
 
-#include "BoardCommon.h"
-#include "pins.h"
 #include "esp_err.h"
 #include "esp_rom_sys.h"
+#include "soc/gpio_reg.h"
+#include "soc/gpio_struct.h"
 
-#include "../../graphics/GraphicsDefs.h"
+#include "BoardCommon.h"
+#include "GraphicsDefs.h"
 
+#include "PCAL.h"
 #include "RTC.h"
 #include "APDS9960.h"
 #include "BQ27441.h"
 #include "LSM6DS3.h"
 #include "BME680.h"
-
 #include "Frontlight.h"
+
+extern PCAL expander1;
+
+#define IO_INT_ADDR  0x20
+#define IO_EXT_ADDR  0x21
+
+// pin on the internal io expander which controls MOSFET for turning on and off the SD card
+#define SD_PMOS_PIN  IO_NUM_B3
+
+#define DATA 0x0E8C0030
 
 #define E_INK_WIDTH  600
 #define E_INK_HEIGHT 600

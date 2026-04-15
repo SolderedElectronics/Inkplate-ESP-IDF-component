@@ -1,5 +1,5 @@
-#ifndef _NETWORK_H_
-#define _NETWORK_H_
+#ifndef NETWORK_H
+#define NETWORK_H
 
 #include "esp_event.h"
 #include "esp_err.h"

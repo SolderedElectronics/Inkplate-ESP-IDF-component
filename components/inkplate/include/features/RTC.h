@@ -1,5 +1,5 @@
-#ifndef _RTC_H_
-#define _RTC_H_
+#ifndef RTC_H
+#define RTC_H
 
 #include "time.h"
 #include "esp_check.h"

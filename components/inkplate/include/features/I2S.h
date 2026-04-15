@@ -1,5 +1,5 @@
-#ifndef _I2S_H_
-#define _I2S_H_
+#ifndef I2S_H
+#define I2S_H
 
 #include "esp_rom_lldesc.h"
 #include "soc/i2s_struct.h"

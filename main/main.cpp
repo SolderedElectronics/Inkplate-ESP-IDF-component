@@ -13,18 +13,14 @@ extern "C"
 void app_main(void)
 {
     Inkplate display;
-    //display.setRotation(3);
+    display.setRotation(2);
 
     //display.wifi.begin();
     //display.wifi.waitForConnect();
 
-     if (display.sdCardInit() != ESP_OK)
-    {
-        ESP_LOGE(TAG, "SD card init failed");
-        return;
-    }
+    ESP_ERROR_CHECK(display.sdCardInit());
 
-    display.image.setDitherKernel(Stucki);
+    display.image.setDitherKernel(FloydSteinberg);
     display.image.draw(IMAGE_PATH, 0, 0, false, true);
     display.display();
 }

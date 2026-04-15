@@ -1,21 +1,31 @@
-#ifndef _INKPLATE_6_H_
-#define _INKPLATE_6_H_
+#ifndef INKPLATE_5_H
+#define INKPLATE_5_H
 
-#include "BoardCommon.h"
-#include "pins.h"
 #include "esp_err.h"
 #include "esp_rom_sys.h"
+#include "soc/gpio_reg.h"
+#include "soc/gpio_struct.h"
+
+#include "BoardCommon.h"
+#include "GraphicsDefs.h"
+
+#include "PCAL.h"
 #include "RTC.h"
 
-#include "../../graphics/GraphicsDefs.h"
+extern PCAL expander1;
 
-#define E_INK_WIDTH  800
-#define E_INK_HEIGHT 600
+#define IO_INT_ADDR  0x20
 
-class Inkplate6 : public BoardCommon
+// pin on the internal io expander which controls MOSFET for turning on and off the SD card
+#define SD_PMOS_PIN  IO_NUM_B2
+
+#define E_INK_WIDTH  1280
+#define E_INK_HEIGHT 720
+
+class Inkplate5 : public BoardCommon
 {
 public:
-  Inkplate6();
+  Inkplate5();
 
   uint32_t  partialUpdate(bool forced = false, bool leaveOn = false);
   esp_err_t einkOn() override;
@@ -33,8 +43,8 @@ private:
   void      pinsAsOutputs();
   void      pinsZstate();
 
-  uint8_t*  m_glut   = nullptr;
-  uint8_t*  m_glut2  = nullptr;
+  uint32_t* m_glut   = nullptr;
+  uint32_t* m_glut2  = nullptr;
   uint32_t* m_pinLUT = nullptr;
 };
 

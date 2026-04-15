@@ -1,5 +1,5 @@
-#ifndef _PCAL_H_
-#define _PCAL_H_
+#ifndef PCAL_H
+#define PCAL_H
 
 #include "I2C.h"
 

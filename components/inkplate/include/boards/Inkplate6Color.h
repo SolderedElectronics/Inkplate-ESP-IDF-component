@@ -1,10 +1,22 @@
-#ifndef _INKPLATE6_COLOR_PINS_H_
-#define _INKPLATE6_COLOR_PINS_H_
+#ifndef INKPLATE_6_COLOR_H
+#define INKPLATE_6_COLOR_H
 
+#include "esp_err.h"
+#include "esp_rom_sys.h"
 #include "soc/gpio_reg.h"
 #include "soc/gpio_struct.h"
-// Header guard for the Arduino include
+
+#include "driver/spi_master.h"
+
+#include "BoardCommon.h"
+#include "GraphicsDefs.h"
+
+#include "PCAL.h"
+#include "RTC.h"
+
 #define IO_INT_ADDR 0x20
+
+extern PCAL expander1;
 
 // Color palette of the 6COLOR panel
 static uint32_t pallete[] = {0x000000, 0xFFFFFF, 0x00FF00, 0x0000FF, 0xFF0000, 0xFFFF00, 0xFF8000};
@@ -56,5 +68,38 @@ static uint32_t pallete[] = {0x000000, 0xFFFFFF, 0x00FF00, 0x0000FF, 0xFF0000, 0
 #define INKPLATE_RED    0b00000100
 #define INKPLATE_YELLOW 0b00000101
 #define INKPLATE_ORANGE 0b00000110
+
+class Inkplate6Color : public BoardCommon
+{
+public:
+  Inkplate6Color();
+  
+  uint32_t  partialUpdate(bool forced = false, bool leaveOn = false) {return 0;};
+  esp_err_t einkOn() override;
+  esp_err_t einkOff() override;
+
+  RTC       rtc;
+
+private:
+  esp_err_t initBuffers();
+  esp_err_t display3b(bool leaveOn);
+  bool      waitForEpd(uint32_t timeout);
+  void      resetPanel();
+  void      sendCommand(uint8_t command);
+  void      sendData(uint8_t *data, int n);
+  void      sendData(uint8_t data);
+  bool      setPanelDeepSleep(bool state);
+
+  void      setIOExpanderForLowPower();
+
+  void      calculateLUTs() {return;};
+  esp_err_t display1b(bool leaveOn) {return ESP_OK;};
+  void      gpioInit() {return;};
+  void      clean(uint8_t c, uint8_t rep) {return;};
+  void      pinsAsOutputs() {return;};
+  void      pinsZstate() {return;};
+
+  spi_device_handle_t m_spiDev = nullptr;
+};
 
 #endif

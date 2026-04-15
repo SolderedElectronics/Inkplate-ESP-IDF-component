@@ -1,16 +1,5 @@
-/**
- **************************************************
- *
- * @file        BME680-SOLDERED.h
- * @brief       Header file for BME680-SOLDERED board (ESP-IDF)
- *
- *
- * @copyright GNU General Public License v3.0
- * @authors     Zvonimir Haramustek for Soldered.com
- ***************************************************/
-
-#ifndef __BME680_SOLDERED__
-#define __BME680_SOLDERED__
+#ifndef BME680_H
+#define BME680_H
 
 #include "libs/BME680Driver.h"
 #include "driver/i2c_master.h"
