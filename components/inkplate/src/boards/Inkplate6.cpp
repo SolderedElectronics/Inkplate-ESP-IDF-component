@@ -5,6 +5,8 @@
 #include "string.h"
 #include "esp_log.h"
 
+#include "freertos/FreeRTOS.h"
+
 #include "Inkplate6.h"
 #include "TPS.h"
 
@@ -39,6 +41,14 @@ Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 15, 5)
   blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
   rtc.begin(i2c.getBusHandle());
+  #if CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
+  expander1.setDirection(TOUCHSCREEN_EN, IO_MODE_OUTPUT, true);
+  expander1.setDirection(TOUCHSCREEN_RST, IO_MODE_OUTPUT, true);
+  ESP_ERROR_CHECK(touch.begin(i2c, expander1, true));
+  //expander1.setDirection(FRONTLIGHT_EN, IO_MODE_OUTPUT, true);
+  //vTaskDelay(3000);
+  //frontlight.begin(i2c, expander1, FRONTLIGHT_EN);
+  #endif
 
   ESP_LOGI(TAG, "Initialization finished!");
 }
@@ -516,10 +526,10 @@ void Inkplate6::gpioInit()
 
   expander1.setDirection(SD_PMOS_PIN, IO_MODE_INPUT, true);
 
+  expander2.setPortDirection(IO_PORT_0, 0xFF);
+  expander2.setPortDirection(IO_PORT_1, 0xFF);
   expander2.setPort(IO_PORT_0, 0x00);
   expander2.setPort(IO_PORT_1, 0x00);
-  expander2.setPortDirection(IO_PORT_0, 0x00);
-  expander2.setPortDirection(IO_PORT_1, 0x00);
 
   pinsAsOutputs();
 }

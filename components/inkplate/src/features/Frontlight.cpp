@@ -14,9 +14,10 @@ static const char *TAG = "FRONTLIGHT";
  * @brief  Register the Frontlight on the I2C bus.
  *
  */
-esp_err_t Frontlight::begin(I2C &i2c, PCAL &expander)
+esp_err_t Frontlight::begin(I2C &i2c, PCAL &expander, IOPin_t pin)
 {
   m_expander = &expander;
+  m_pin = pin;
   return i2c.addDevice(FRONTLIGHT_I2C_ADDR, &m_devHandle);
 }
 
@@ -26,11 +27,9 @@ esp_err_t Frontlight::setBrightness(uint8_t value)
   return i2c_master_transmit(m_devHandle, buf, sizeof(buf), -1);
 }
 
-
-
 void Frontlight::setState(bool enable)
 {
   ESP_LOGI(TAG, "Set state");
-  m_expander->setLevel(FRONTLIGHT_EN_PIN, enable ? 1 : 0, true);
+  m_expander->setLevel(m_pin, enable ? 1 : 0, true);
 }
 

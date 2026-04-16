@@ -9,20 +9,18 @@
 
 #define FRONTLIGHT_I2C_ADDR  0x5C >> 1
 
-// IO expander pin wired to frontlight
-#define FRONTLIGHT_EN_PIN    IO_NUM_B2
-
 class Frontlight
 {
 public:
   Frontlight() = default;
-  esp_err_t begin(I2C &i2c, PCAL &expander);
+  esp_err_t begin(I2C &i2c, PCAL &expander, IOPin_t pin);
 
   esp_err_t setBrightness(uint8_t value);
   void      setState(bool enable);
 
 private:
   PCAL                   *m_expander  = nullptr;
+  IOPin_t                 m_pin;
   i2c_master_dev_handle_t m_devHandle = NULL;
 };
 

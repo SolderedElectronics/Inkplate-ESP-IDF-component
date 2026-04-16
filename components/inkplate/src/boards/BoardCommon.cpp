@@ -293,7 +293,7 @@ double BoardCommon::readBattery()
   adc_oneshot_chan_cfg_t chanCfg = {};
   chanCfg.atten    = ADC_ATTEN_DB_12;
   chanCfg.bitwidth = ADC_BITWIDTH_12;
-  adc_oneshot_config_channel(adcHandle, ADC_CHANNEL_7, &chanCfg);
+  adc_oneshot_config_channel(adcHandle, ADC_CHANNEL_6, &chanCfg);
 
   adc_cali_handle_t caliHandle = NULL;
   adc_cali_line_fitting_config_t caliCfg = {};

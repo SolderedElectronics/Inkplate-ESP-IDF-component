@@ -24,12 +24,21 @@ extern PCAL expander1;
 #define E_INK_WIDTH  800
 #define E_INK_HEIGHT 600
 static const uint8_t waveform3Bit[8][9] =
-  {{0, 0, 0, 0, 1, 1, 1, 1, 0}, {0, 0, 0, 1, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 0, 2, 1, 0, 0},
-   {1, 1, 1, 2, 2, 1, 1, 0, 0}, {1, 1, 1, 1, 2, 2, 1, 0, 0}, {0, 1, 1, 1, 2, 2, 1, 0, 0},
-   {0, 0, 0, 0, 1, 1, 2, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 0, 0}};
+{{0, 0, 0, 0, 1, 1, 1, 1, 0}, {0, 0, 0, 1, 1, 1, 1, 0, 0}, {1, 1, 1, 1, 0, 2, 1, 0, 0},
+{1, 1, 1, 2, 2, 1, 1, 0, 0}, {1, 1, 1, 1, 2, 2, 1, 0, 0}, {0, 1, 1, 1, 2, 2, 1, 0, 0},
+{0, 0, 0, 0, 1, 1, 2, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 0, 0}};
 #elif CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
+#include "Frontlight.h"
+#include "Touchscreen.h"
 #define E_INK_WIDTH  1024
 #define E_INK_HEIGHT 758
+#define FRONTLIGHT_EN IO_NUM_B3
+
+#define TOUCHSCREEN_EN          IO_NUM_B4
+#define TOUCHSCREEN_RST         IO_NUM_B2
+#define TOUCHSCREEN_INT         GPIO_NUM_36
+#define TOUCHSCREEN_IO_EXPANDER IO_INT_ADDR
+#define TOUCHSCREEN_IO_REGS     ioRegsInt
 static const uint8_t waveform3Bit[8][9] =
    {{0, 0, 0, 0, 0, 1, 1, 1, 0}, {0, 0, 1, 2, 1, 1, 2, 1, 0}, {0, 1, 1, 2, 1, 1, 1, 2, 0},
     {1, 1, 1, 2, 2, 1, 1, 2, 0}, {1, 1, 1, 2, 1, 2, 1, 2, 0}, {0, 1, 1, 2, 1, 2, 1, 2, 0},
@@ -46,6 +55,10 @@ public:
   esp_err_t einkOff() override;
 
   RTC rtc;
+  #if CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
+  Frontlight frontlight;
+  Touch touch;
+  #endif
 
 private:
   esp_err_t initBuffers();
