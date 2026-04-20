@@ -41,8 +41,8 @@ class Touch
 public:
   Touch() = default;
 
-  bool      touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h);
   esp_err_t begin(I2C &i2c, PCAL &expander, uint8_t powerState);
+  bool      touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h);
   void      shutdown();
   bool      available();
   void      setPowerState(uint8_t state);

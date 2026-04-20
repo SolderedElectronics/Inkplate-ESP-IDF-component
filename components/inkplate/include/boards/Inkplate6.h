@@ -18,9 +18,9 @@ extern PCAL expander1;
 #define IO_EXT_ADDR  0x21
 
 // pin on the internal io expander which controls MOSFET for turning on and off the SD card
-#define SD_PMOS_PIN  IO_NUM_B2
 
 #if CONFIG_INKPLATE_BOARD_INKPLATE6
+#define SD_PMOS_PIN  IO_NUM_B2
 #define E_INK_WIDTH  800
 #define E_INK_HEIGHT 600
 static const uint8_t waveform3Bit[8][9] =
@@ -30,6 +30,7 @@ static const uint8_t waveform3Bit[8][9] =
 #elif CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
 #include "Frontlight.h"
 #include "Touchscreen.h"
+#define SD_PMOS_PIN  IO_NUM_B5
 #define E_INK_WIDTH  1024
 #define E_INK_HEIGHT 758
 #define FRONTLIGHT_EN IO_NUM_B3
@@ -57,7 +58,7 @@ public:
   RTC rtc;
   #if CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
   Frontlight frontlight;
-  Touch touch;
+  Touch touchscreen;
   #endif
 
 private:

@@ -1,6 +1,7 @@
 #include "driver/i2c_master.h"
 #include "esp_log.h"
 #include "esp_check.h"
+#include "freertos/FreeRTOS.h"
 
 #include "PCAL.h"
 
@@ -464,7 +465,13 @@ bool PCAL::checkBlockedPins(IOPin_t pin)
 esp_err_t PCAL::writePin(uint8_t reg, uint8_t val)
 {
   uint8_t data[2] = { reg, val };
-  return i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  while (i2c_master_transmit(m_devHandle, data, sizeof(data), 50) != ESP_OK)
+  {
+    ESP_LOGI(TAG, "Waiting on I2C bus...");
+    vTaskDelay(50);
+  }
+
+  return ESP_OK;
 }
 
 /**
@@ -476,7 +483,11 @@ esp_err_t PCAL::writePin(uint8_t reg, uint8_t val)
 uint8_t PCAL::readPin(uint8_t reg)
 {
   uint8_t val = 0;
-  ESP_ERROR_CHECK(i2c_master_transmit_receive(m_devHandle, &reg, 1, &val, 1, -1));
+  while (i2c_master_transmit_receive(m_devHandle, &reg, 1, &val, 1, 50) != ESP_OK)
+  {
+    ESP_LOGI(TAG, "Waiting on I2C bus...");
+    vTaskDelay(50);
+  }
 
   return val;
 }

@@ -44,10 +44,7 @@ Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 15, 5)
   #if CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
   expander1.setDirection(TOUCHSCREEN_EN, IO_MODE_OUTPUT, true);
   expander1.setDirection(TOUCHSCREEN_RST, IO_MODE_OUTPUT, true);
-  ESP_ERROR_CHECK(touch.begin(i2c, expander1, true));
-  //expander1.setDirection(FRONTLIGHT_EN, IO_MODE_OUTPUT, true);
-  //vTaskDelay(3000);
-  //frontlight.begin(i2c, expander1, FRONTLIGHT_EN);
+  ESP_ERROR_CHECK(touchscreen.begin(i2c, expander1, true));
   #endif
 
   ESP_LOGI(TAG, "Initialization finished!");
@@ -418,7 +415,7 @@ esp_err_t Inkplate6::display1b(bool leaveOn)
 
   memcpy(m_framebuffer, m_newFramebuffer, E_INK_WIDTH * E_INK_HEIGHT / 8);
 
-  for (int k = 0; k < 5; k++)
+  for (int k = 0; k < 4; k++)
   {
     uint8_t *memoryPtr = m_newFramebuffer + (E_INK_WIDTH * E_INK_HEIGHT / 8) - 1;
     vscanStart();

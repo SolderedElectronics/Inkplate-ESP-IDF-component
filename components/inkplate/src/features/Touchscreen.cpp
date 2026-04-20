@@ -6,6 +6,7 @@
 static const char *TAG = "TouchCypress";
 
 #define TS_GET_BOOTLOADERMODE(reg) (((reg)&0x10) >> 4)
+#define BOUND(min, val, max)  ((val) >= (min) && (val) <= (max))
 
 static volatile bool tsFlag = false;
 
@@ -72,6 +73,81 @@ esp_err_t Touch::begin(I2C &i2c, PCAL &expander, uint8_t powerState)
   return ESP_OK;
 }
 
+bool Touch::touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h)
+{
+  int16_t x2 = x1 + w, y2 = y1 +  h;
+  if (available())
+  {
+    uint8_t n;
+    uint16_t x[2], y[2];
+    n = getData(x, y);
+
+    uint64_t tsIntTimeout = esp_timer_get_time() / 1000;
+    while ((esp_timer_get_time() / 1000 - tsIntTimeout) < 100ULL)
+    {
+        if (tsFlag)
+        {
+            tsIntTimeout = esp_timer_get_time() / 1000;
+            tsFlag = false;
+            handshake();
+        }
+    }
+    touchT = esp_timer_get_time() / 1000;
+    touchN = n;
+    memcpy(touchX, x, 2);
+    memcpy(touchY, y, 2);
+  }
+
+  if ((esp_timer_get_time() / 1000 - touchT) < 150ULL)
+  {
+      if (touchN == 1 && BOUND(x1, touchX[0], x2) && BOUND(y1, touchY[0], y2))
+          return true;
+      if (touchN == 2 && ((BOUND(x1, touchX[0], x2) && BOUND(y1, touchY[0], y2)) ||
+                          (BOUND(x1, touchX[1], x2) && BOUND(y1, touchY[1], y2))))
+          return true;
+  }
+  return false;
+}
+
+void Touch::shutdown()
+{
+    // Turn off the touchscreen power supply.
+    power(false);
+}
+
+/**
+ * @brief       Set power mode of the Touchscreen Controller. There are 3 modes
+ *              CYPRESS_TOUCH_OPERATE_MODE - Normal mode (fast response, higher accuracy, higher power consumption).
+ *                                           Current ~ 15mA.
+ *              CYPRESS_TOUCH_LOW_POWER_MODE - After few seconds of inactivity, TSC goes into low power ode and
+ * periodically goes into operating mode to check for touch event. Current ~4mA. CYPRESS_TOUCH_DEEP_SLEEP_MODE - Disable
+ * TSC. Current ~25uA.
+ *
+ * @param       uint8_t _s
+ *              Power mode - Can only be CYPRESS_TOUCH_OPERATE_MODE, CYPRESS_TOUCH_LOW_POWER_MODE or
+ * CYPRESS_TOUCH_DEEP_SLEEP_MODE. [defined in TouchCypress.h]
+ */
+void Touch::setPowerState(uint8_t s)
+{
+    // Check for the parameters.
+    if ((s == CYPRESS_TOUCH_DEEP_SLEEP_MODE) || (s == CYPRESS_TOUCH_LOW_POWER_MODE) ||
+        (s == CYPRESS_TOUCH_OPERATE_MODE))
+    {
+        // Set new power mode setting.
+        sendCommand(s);
+    }
+}
+
+uint8_t Touch::getPowerState()
+{
+    uint8_t reg = CYPRESS_TOUCH_BASE_ADDR;
+    uint8_t result = 0;
+
+    ESP_ERROR_CHECK(i2c_master_transmit_receive(m_devHandle, &reg, 1, &result, 1, -1));
+
+    return result;
+}
+
 uint8_t Touch::getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z)
 {
   // Struct typedef for touch data report from the touchscreen controller IC.
@@ -104,7 +180,10 @@ uint8_t Touch::getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z)
   // Read the new data from the touchscreen controller IC.
   // Return zero detected fingers if reading has failed.
   if (!getTouchData(&touchReport))
+  {
+    ESP_LOGI(TAG, "NODATA");
     return 0;
+  }
 
   // Scale it to fit the screen.
   scale(&touchReport, E_INK_WIDTH - 1, E_INK_HEIGHT - 1, false, true, true);
@@ -144,8 +223,11 @@ bool Touch::getTouchData(struct cypressTouchData *touchData)
 
   // Read registers for the touch data (32 bytes of data).
   // If read failed for some reason, return false.
-  if (!readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, regs, sizeof(regs)))
+  if (readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, regs, sizeof(regs)) != ESP_OK)
+  {
+    ESP_LOGI(TAG, "read i2c");
     return false;
+  }
 
   // Send a handshake.
   handshake();
@@ -247,6 +329,19 @@ void Touch::reset()
   vTaskDelay(pdMS_TO_TICKS(10));
 }
 
+/**
+ * @brief       Method executes a SW reset by using I2C command.
+ *
+ */
+void Touch::swReset()
+{
+    // Issue a command for SW reset.
+    sendCommand(CYPRESS_TOUCH_SOFT_RST_MODE);
+
+    // Wait a little bit.
+    vTaskDelay(pdMS_TO_TICKS(20));
+}
+
 bool Touch::ping(int retries)
 {
   for (int i = 0; i < retries; i++)
@@ -262,6 +357,11 @@ bool Touch::ping(int retries)
   }
 
   return false;
+}
+
+void Touch::getRawData(uint8_t *b)
+{
+    readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, b, 16);
 }
 
 esp_err_t Touch::sendCommand(uint8_t cmd)
@@ -307,7 +407,12 @@ esp_err_t Touch::writeI2CRegs(uint8_t cmd, uint8_t *buffer, int len)
 
 esp_err_t Touch::exitBootloaderMode()
 {
-  uint8_t blCommandArray[] = { 0x00, 0xFF, 0xA5, 0, 1, 2, 3, 4, 5, 6, 7};
+  uint8_t blCommandArray[] =  {
+        0x00,                     // File offset.
+        0xFF,                     // Command.
+        0xA5,                     // Exit bootloader command.
+        0,    1, 2, 3, 4, 5, 6, 7 // Default keys.
+    };
 
   ESP_ERROR_CHECK(writeI2CRegs(CYPRESS_TOUCH_BASE_ADDR, blCommandArray, sizeof(blCommandArray)));
 
