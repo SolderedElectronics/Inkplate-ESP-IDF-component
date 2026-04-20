@@ -5,11 +5,10 @@
 #include "Network.h"
 #include "sdkconfig.h"
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-#include "Image.h"
-#endif
-#ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
 #include "ImageColor.h"
+#else
+#include "Image.h"
 #endif
 
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK) 
@@ -21,6 +20,9 @@
 #elif CONFIG_INKPLATE_BOARD_INKPLATE10
   #include "Inkplate10.h"
   #define INKPLATE_BOARD_CLASS Inkplate10
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+  #include "Inkplate13.h"
+  #define INKPLATE_BOARD_CLASS Inkplate13
 #elif CONFIG_INKPLATE_BOARD_INKPLATE5
   #include "Inkplate5.h"
   #define INKPLATE_BOARD_CLASS Inkplate5
@@ -42,11 +44,10 @@ class Inkplate : public Graphics, public INKPLATE_BOARD_CLASS
   void    drawPixel(int16_t x, int16_t y, uint16_t color);
   uint8_t getRotation() override;
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-  Image image;
-#endif
-#ifdef CONFIG_INKPLATE_BOARD_INKPLATE2
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   ImageColor image;
+#else
+  Image image;
 #endif
   WiFi  wifi;
 

@@ -4,7 +4,11 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+#define BMP_MAX_WIDTH    1600
+#else
 #define BMP_MAX_WIDTH    800
+#endif
 #define BMP_MAX_ROW_SIZE (BMP_MAX_WIDTH * 4) // 32bpp max
 #define BMP_ROWSIZE(w, c) ((((w) * (c) + 31) / 32) * 4)
 

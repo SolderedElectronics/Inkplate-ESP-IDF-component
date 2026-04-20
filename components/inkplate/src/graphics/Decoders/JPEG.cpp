@@ -4,6 +4,7 @@
 #include "freertos/task.h"
 #include "esp_log.h"
 #include "esp_timer.h"
+#include "esp_wifi.h"
 
 #include "Inkplate.h"
 #include "JPEG.h"
@@ -37,6 +38,8 @@ bool JPEG::draw(uint8_t *buf, int32_t len, int x, int y, bool invert, bool dithe
     m_lineBufH    = 0;
     m_lineBufY    = 0;
 
+    esp_wifi_set_ps(WIFI_PS_NONE);  // disable PM during decode
+
     uint8_t *workspace = (uint8_t *)malloc(TJPGD_WORKSPACE_SIZE);
     if (!workspace)
     {
@@ -61,6 +64,7 @@ bool JPEG::draw(uint8_t *buf, int32_t len, int x, int y, bool invert, bool dithe
     free(m_lineBuf);
     m_lineBuf = nullptr;
     free(workspace);
+    esp_wifi_set_ps(WIFI_PS_MIN_MODEM);  // restore PM
     return res == JDR_OK;
 }
 
@@ -135,7 +139,7 @@ UINT JPEG::outputCallback(JDEC *jdec, void *bitmap, JRECT *rect)
                     uint8_t b   = m_instance->m_lineBuf[idx + 2];
 
                     uint8_t val;
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13) 
                     val = m_instance->m_inkplate->image.getDitheredPixel(r, g, b, i, jdec->width);
                     if (m_instance->m_invert && val < 2) val ^= 1;
 #else
@@ -164,7 +168,7 @@ UINT JPEG::outputCallback(JDEC *jdec, void *bitmap, JRECT *rect)
                 uint8_t b   = px[idx + 2];
 
                 uint8_t val;
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
                 val = m_instance->m_inkplate->image.findClosestPalette(r, g, b);
                 if (m_instance->m_invert && val < 2) val ^= 1;
 #else

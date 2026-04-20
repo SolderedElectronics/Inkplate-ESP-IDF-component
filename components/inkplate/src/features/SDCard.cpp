@@ -47,7 +47,7 @@ esp_err_t SDCard::sdCardInit()
   host.slot                     = SPI2_HOST;
 
   sdspi_device_config_t slotCfg = SDSPI_DEVICE_CONFIG_DEFAULT();
-  slotCfg.gpio_cs               = GPIO_NUM_15;
+  slotCfg.gpio_cs               = SD_CS;
   slotCfg.host_id               = SPI2_HOST;
 
   esp_vfs_fat_sdmmc_mount_config_t mountCfg = {};

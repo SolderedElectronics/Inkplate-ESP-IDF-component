@@ -16,6 +16,8 @@
   #include "Inkplate6Color.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE10
   #include "Inkplate10.h"
+#elif CONFIG_INKPLATE_BOARD_INKPLATE13
+  #include "Inkplate13.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE5
   #include "Inkplate5.h"
 #elif CONFIG_INKPLATE_BOARD_INKPLATE4
@@ -47,7 +49,7 @@ static const char *TAG = "INKPLATE";
 
 I2C     i2c;
 PCAL    expander1(IO_INT_ADDR, i2c);
-#if !defined(CONFIG_INKPLATE_BOARD_INKPLATE5) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
+#if !defined(CONFIG_INKPLATE_BOARD_INKPLATE5) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
 PCAL    expander2(IO_EXT_ADDR, i2c);
 #endif
 TPS     tps(i2c);
@@ -166,7 +168,7 @@ void BoardCommon::writePixelInternal(int16_t x, int16_t y, uint16_t color)
     break;
   }
 
-  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
+  #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   if (m_displayMode == BLACK_AND_WHITE)
   {
     int x1    = x0 >> 3;
@@ -221,7 +223,7 @@ esp_err_t BoardCommon::display(bool leaveOn)
  */
 void BoardCommon::blockGpioPins()
 {
-  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
+  #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   expander1.blockPin(WAKEUP);
   expander1.blockPin(PWRUP);
   expander1.blockPin(VCOM);
@@ -273,7 +275,7 @@ void BoardCommon::cleanBurnIn(uint8_t clearCycles, uint16_t cyclesDelay)
     clearCycles--;
   }
 }
-
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE13
 /**
  * @brief  Read the LiPo battery voltage via the ESP32 ADC.
  *
@@ -315,6 +317,7 @@ double BoardCommon::readBattery()
 
   return (double(mv) * 2.0 / 1000.0);
 }
+#endif
 
 /**
  * @brief  Program a new VCOM voltage into the TPS65186 and persist it in NVS.
@@ -458,7 +461,7 @@ const char* BoardCommon::getMountPoint()
  */
 void BoardCommon::vscanStart()
 {
-  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
+  #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   CKV_SET;
   esp_rom_delay_us(7);
   SPV_CLEAR;
@@ -488,7 +491,7 @@ void BoardCommon::vscanStart()
  */
 void BoardCommon::vscanEnd()
 {
-  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
+  #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   CKV_CLEAR;
   LE_SET;
   LE_CLEAR;
@@ -528,7 +531,7 @@ bool BoardCommon::getPanelState()
  */
 esp_err_t BoardCommon::pmicBegin()
 {
-  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
+  #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   WAKEUP_SET;
   esp_rom_delay_us(1000);
   esp_err_t ret = tps.initSequences();

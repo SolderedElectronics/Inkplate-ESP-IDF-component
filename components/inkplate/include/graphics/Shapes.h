@@ -8,6 +8,8 @@
   #include "Inkplate6Color.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE10)
   #include "Inkplate10.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+  #include "Inkplate13.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE5)
   #include "Inkplate5.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE4)

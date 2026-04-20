@@ -6,11 +6,10 @@
 #include "soc/gpio_reg.h"
 #include "soc/gpio_struct.h"
 
-#include "driver/spi_master.h"
-
 #include "BoardCommon.h"
 #include "GraphicsDefs.h"
 
+#include "SPI.h"
 #include "PCAL.h"
 #include "RTC.h"
 
@@ -96,7 +95,7 @@ private:
   void      pinsAsOutputs() {return;};
   void      pinsZstate() {return;};
 
-  spi_device_handle_t m_spiDev = nullptr;
+  SPI       m_spi;
 };
 
 #endif

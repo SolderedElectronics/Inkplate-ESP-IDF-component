@@ -113,7 +113,7 @@ void BMP::drawLine(int16_t x, int16_t y, BitmapHeader *header, bool invert, bool
         }
 
         uint8_t val;
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
         if (dither)
             val = m_inkplate->image.getDitheredPixel(r, g, b, j, w);
         else

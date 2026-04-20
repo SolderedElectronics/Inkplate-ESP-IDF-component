@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "esp32/rom/tjpgd.h"
+#include "rom/tjpgd.h"
 
 #define TJPGD_WORKSPACE_SIZE 16688
 

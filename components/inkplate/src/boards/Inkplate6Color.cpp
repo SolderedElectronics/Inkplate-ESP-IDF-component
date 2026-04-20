@@ -28,7 +28,7 @@ static const char *TAG = "INKPLATE6COLOR";
  * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
  *         initialises GPIO and the PMIC.
  */
-Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12)
+Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12), m_spi(EPAPER_DIN, EPAPER_CLK, EPAPER_CS_PIN, SPI3_HOST)
 {
   ESP_ERROR_CHECK(initBuffers());
 
@@ -170,72 +170,25 @@ void Inkplate6Color::resetPanel()
 
 void Inkplate6Color::sendCommand(uint8_t command)
 {
-  //gpio_set_level(EPAPER_CS_PIN, 0);
-  gpio_set_level(EPAPER_DC_PIN, 0);
-  esp_rom_delay_us(10);
-
-  spi_transaction_t t = {};
-  t.length    = 8;
-  t.tx_buffer = &command;
-  spi_device_polling_transmit(m_spiDev, &t);
-
-  //gpio_set_level(EPAPER_CS_PIN, 1);
-  vTaskDelay(pdMS_TO_TICKS(1));
+    m_spi.sendCommand(command, (gpio_num_t)EPAPER_DC_PIN);
 }
+
 void Inkplate6Color::sendData(uint8_t *data, int n)
 {
-  if (n == 0) return;
-
-  //gpio_set_level(EPAPER_CS_PIN, 0);
-  gpio_set_level(EPAPER_DC_PIN, 1);
-  esp_rom_delay_us(10);
-
-  const size_t chunkSize = 4092;
-
-  for (int i = 0; i < n; i += chunkSize)
-  {
-    int len = (n - i > chunkSize) ? chunkSize : (n - i);
-
-    spi_transaction_t trans;
-    memset(&trans, 0, sizeof(trans));
-
-    trans.tx_buffer = data + i;
-    trans.length = len * 8;
-
-    ESP_ERROR_CHECK(spi_device_transmit(m_spiDev, &trans));
-  }
-
-  //gpio_set_level(EPAPER_CS_PIN, 1);
-  vTaskDelay(pdMS_TO_TICKS(1));
+    m_spi.sendData(data, n, (gpio_num_t)EPAPER_DC_PIN);
 }
 
 void Inkplate6Color::sendData(uint8_t data)
 {
-  sendData(&data, 1);
+    m_spi.sendData(data, (gpio_num_t)EPAPER_DC_PIN);
 }
 
 bool Inkplate6Color::setPanelDeepSleep(bool sleep)
 {
   if (!sleep)
   {
-    if (!m_spiDev)
-    {
-      // re-initialize SPI bus on wake because of SD card DAM conflict
-      spi_bus_config_t bus_cfg = {};
-      bus_cfg.mosi_io_num     = EPAPER_DIN;
-      bus_cfg.miso_io_num     = -1;
-      bus_cfg.sclk_io_num     = EPAPER_CLK;
-      bus_cfg.quadwp_io_num   = -1;
-      bus_cfg.quadhd_io_num   = -1;
-      ESP_ERROR_CHECK(spi_bus_initialize(SPI3_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
-      
-      spi_device_interface_config_t dev_cfg = {};
-      dev_cfg.clock_speed_hz = SPI_MASTER_FREQ_20M;
-      dev_cfg.mode           = 0;
-      dev_cfg.spics_io_num   = EPAPER_CS_PIN;
-      dev_cfg.queue_size     = 3;
-      ESP_ERROR_CHECK(spi_bus_add_device(SPI3_HOST, &dev_cfg, &m_spiDev));
-    }
+    if (!m_spi.isInitialized())
+      m_spi.init();
       
     // Wake
     gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
@@ -297,12 +250,7 @@ bool Inkplate6Color::setPanelDeepSleep(bool sleep)
     gpio_set_level(EPAPER_CS_PIN, 0);
 
     // free SPI bus to release DMA channel for SD card
-    if (m_spiDev)
-    {
-      spi_bus_remove_device(m_spiDev);
-      m_spiDev = nullptr;
-    }
-    spi_bus_free(SPI3_HOST);
+    m_spi.deinit();
 
     return true;
   }

@@ -76,7 +76,7 @@ void PNG::drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint3
             for (uint32_t i = 0; i < w; ++i)
             {
                 uint8_t val;
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
                 val = m_instance->m_inkplate->image.getDitheredPixel(r, g, b, x + i, ihdr->width);
                 if (m_instance->m_invert && val < 2) val ^= 1;
 #else
@@ -93,7 +93,7 @@ void PNG::drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint3
     else
     {
         uint8_t val;
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
         val = m_instance->m_inkplate->image.findClosestPalette(r, g, b);
         if (m_instance->m_invert && val < 2) val ^= 1;
 #else

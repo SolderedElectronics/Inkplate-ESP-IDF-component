@@ -6,10 +6,17 @@
 #include "esp_err.h"
 
 // SPI pin numbers (GPIO)
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+#define SD_MISO GPIO_NUM_13
+#define SD_MOSI GPIO_NUM_11
+#define SD_SCK  GPIO_NUM_12
+#define SD_CS   GPIO_NUM_10
+#else
 #define SD_MISO GPIO_NUM_12
 #define SD_MOSI GPIO_NUM_13
 #define SD_SCK  GPIO_NUM_14
 #define SD_CS   GPIO_NUM_15
+#endif
 
 #define SD_MOUNT_POINT "/sdcard"
 

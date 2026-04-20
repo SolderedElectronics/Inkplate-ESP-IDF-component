@@ -1,15 +1,24 @@
 if(CONFIG_INKPLATE_BOARD_INKPLATE10)
     set(BOARD_SRC "src/boards/Inkplate10.cpp")
+    set(IMAGE_SRCS "src/graphics/Image.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6)
     set(BOARD_SRC "src/boards/Inkplate6.cpp" "src/features/I2S.cpp")
+    set(IMAGE_SRCS "src/graphics/Image.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK)
     set(BOARD_SRC "src/boards/Inkplate6.cpp" "src/features/I2S.cpp")
+    set(IMAGE_SRCS "src/graphics/Image.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
-    set(BOARD_SRC "src/boards/Inkplate6Color.cpp")
+    set(BOARD_SRC "src/boards/Inkplate6Color.cpp" "src/features/SPI.cpp")
+    set(IMAGE_SRCS "src/graphics/ImageColor.cpp")
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE13)
+    set(BOARD_SRC "src/boards/Inkplate13.cpp" "src/features/SPI.cpp")
+    set(IMAGE_SRCS "src/graphics/ImageColor.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE5)
     set(BOARD_SRC "src/boards/Inkplate5.cpp")
+    set(IMAGE_SRCS "src/graphics/Image.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
     set(BOARD_SRC "src/boards/Inkplate4.cpp")
+    set(IMAGE_SRCS "src/graphics/Image.cpp")
     set(SENSOR_SRCS
         "src/features/APDS9960/APDS9960.cpp"
         "src/features/APDS9960/libs/APDS9960Driver.cpp"
@@ -30,6 +39,7 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
         "include/features/LSM6DS3/libs")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE2)
     set(BOARD_SRC "src/boards/Inkplate2.cpp")
+    set(IMAGE_SRCS "src/graphics/ImageColor.cpp")
 endif()
 
 set(DECODER_SRCS
@@ -44,10 +54,6 @@ set(DECODER_INCLUDES
     "include/graphics/Decoders/pngle"
 )
 
-set(IMAGE_COLOR_SRCS
-    "src/graphics/ImageColor.cpp"
-)
-
 set(GRAPHICS_SRCS
     "src/graphics/Graphics.cpp"
     "src/graphics/Adafruit_GFX/Adafruit_GFX.cpp"
@@ -59,17 +65,12 @@ set(GRAPHICS_INCLUDES
     "include/graphics"
     "include/graphics/Adafruit_GFX"
 )
-
-set(IMAGE_SRCS
-    "src/graphics/Image.cpp"
-)
-
 if(CONFIG_INKPLATE_BOARD_INKPLATE2)
 idf_component_register(SRCS "src/features/Network.cpp"
                             "src/boards/Inkplate.cpp"
                             ${BOARD_SRC}
                             ${GRAPHICS_SRCS}
-                            ${IMAGE_COLOR_SRCS}
+                            ${IMAGE_SRCS}
                             ${DECODER_SRCS}
                        REQUIRES "esp_driver_gpio"
                                 "esp_driver_spi"
@@ -79,12 +80,11 @@ idf_component_register(SRCS "src/features/Network.cpp"
                                     "include/features"
                                     "include/boards"
                                     ${GRAPHICS_INCLUDES}
-                                    ${IMAGE_COLOR_INCLUDES}
                                     ${DECODER_INCLUDES}
                                     )
 else()
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" 
-                            "src/features/PCAL.cpp" "src/features/TPS.cpp" "src/features/I2S.cpp"
+                            "src/features/PCAL.cpp" "src/features/TPS.cpp"
                             "src/features/Network.cpp" "src/features/SDCard.cpp"
                             "src/boards/BoardCommon.cpp" "src/features/Touchscreen.cpp"
                             "src/boards/Inkplate.cpp"
@@ -100,7 +100,6 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                                     "include/features"
                                     "include/boards"
                                     ${GRAPHICS_INCLUDES}
-                                    ${IMAGE_INCLUDES}
                                     ${SENSOR_INCLUDES}
                                     ${DECODER_INCLUDES}
                                     )
