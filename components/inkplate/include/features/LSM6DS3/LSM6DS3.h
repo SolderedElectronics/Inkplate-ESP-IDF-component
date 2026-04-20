@@ -7,15 +7,13 @@
 
 class LSM6DS3 : public LSM6DS3Driver
 {
-  public:
-    LSM6DS3() = default;
+public:
+  LSM6DS3() = default;
 
-    // Initializes the I2C bus and device, then configures the sensor.
-    // Call once before reading data.
-    status_t begin(i2c_master_bus_handle_t bus_handle, uint8_t addr = 0x6B);
+  status_t begin(i2c_master_bus_handle_t bus_handle, uint8_t addr = 0x6B);
 
-  private:
-    i2c_master_dev_handle_t dev_handle;
+private:
+  i2c_master_dev_handle_t dev_handle;
 };
 
 #endif

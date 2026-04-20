@@ -100,8 +100,8 @@ public:
   Inkplate13();
   
   uint32_t  partialUpdate(bool forced = false, bool leaveOn = false) {return 0;};
-  esp_err_t einkOn() override;
-  esp_err_t einkOff() override;
+  esp_err_t einkOn() {return ESP_OK};
+  esp_err_t einkOff() {return ESP_OK};
 
   RTC       rtc;
 

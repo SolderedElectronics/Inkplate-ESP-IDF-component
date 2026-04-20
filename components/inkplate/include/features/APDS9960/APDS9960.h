@@ -5,9 +5,9 @@
 
 class APDS9960 : public APDS9960Driver
 {
-  public:
-    APDS9960() : APDS9960Driver() {}
-    bool begin(i2c_master_bus_handle_t bus_handle);
+public:
+  APDS9960() : APDS9960Driver() {}
+  bool begin(i2c_master_bus_handle_t bus_handle);
 };
 
 #endif

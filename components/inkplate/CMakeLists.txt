@@ -86,7 +86,7 @@ else()
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" 
                             "src/features/PCAL.cpp" "src/features/TPS.cpp"
                             "src/features/Network.cpp" "src/features/SDCard.cpp"
-                            "src/boards/BoardCommon.cpp" "src/features/Touchscreen.cpp"
+                            "src/boards/BoardCommon.cpp" "src/features/Touchscreen.cpp" "src/features/TouchscreenElan.cpp"
                             "src/boards/Inkplate.cpp"
                             ${BOARD_SRC}
                             ${SENSOR_SRCS}

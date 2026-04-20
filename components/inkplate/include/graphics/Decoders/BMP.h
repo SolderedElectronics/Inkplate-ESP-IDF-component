@@ -21,10 +21,10 @@
 
 struct BitmapHeader
 {
-    uint32_t startRAW;
-    int32_t  width;
-    int32_t  height;
-    uint16_t color;
+  uint32_t startRAW;
+  int32_t  width;
+  int32_t  height;
+  uint16_t color;
 };
 
 class Inkplate;
@@ -32,18 +32,18 @@ class Inkplate;
 class BMP
 {
 public:
-    BMP(Inkplate *inkplate);
+  BMP(Inkplate *inkplate);
 
-    bool draw(uint8_t *buf, int x, int y, bool invert = false, bool dither = false);
+  bool draw(uint8_t *buf, int x, int y, bool invert = false, bool dither = false);
 
 private:
-    void readHeader(uint8_t *buf, BitmapHeader *header);
-    bool isValid(BitmapHeader *header);
-    void drawLine(int16_t x, int16_t y, BitmapHeader *header, bool invert, bool dither);
+  void readHeader(uint8_t *buf, BitmapHeader *header);
+  bool isValid(BitmapHeader *header);
+  void drawLine(int16_t x, int16_t y, BitmapHeader *header, bool invert, bool dither);
 
-    Inkplate *m_inkplate;
-    uint8_t   m_pixelBuffer[BMP_MAX_ROW_SIZE];
-    uint32_t  m_paletteRGB[256]; // packed 0x00RRGGBB per indexed-BMP palette entry
+  Inkplate *m_inkplate;
+  uint8_t   m_pixelBuffer[BMP_MAX_ROW_SIZE];
+  uint32_t  m_paletteRGB[256]; // packed 0x00RRGGBB per indexed-BMP palette entry
 };
 
 #endif

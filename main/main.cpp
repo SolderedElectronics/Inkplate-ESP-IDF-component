@@ -23,7 +23,6 @@ void app_main(void)
     //return;
     }
 
-    display.image.setDitherKernel(Stucki);
     display.image.draw(IMAGE_PATH, 0, 0, false, true);
     display.display();
 }

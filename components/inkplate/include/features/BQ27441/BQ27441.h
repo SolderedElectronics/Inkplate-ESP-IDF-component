@@ -6,8 +6,8 @@
 
 class BQ27441 : public BQ27441Driver
 {
-  public:
-    bool begin(i2c_master_bus_handle_t bus_handle, uint32_t speed = 100000);
+public:
+  bool begin(i2c_master_bus_handle_t bus_handle, uint32_t speed = 100000);
 };
 
 #endif

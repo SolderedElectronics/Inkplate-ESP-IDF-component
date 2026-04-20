@@ -6,17 +6,17 @@
 
 class BME680 : public BME680Driver
 {
-  public:
-    bool begin(i2c_master_bus_handle_t bus_handle);
+public:
+  bool begin(i2c_master_bus_handle_t bus_handle);
 
-    float readTemperature();
-    float readPressure();
-    float readHumidity();
-    float readAltitude();
-    float readGasResistance();
-    void  readSensorData(float &temp, float &humidity, float &pressure, float &gas);
+  float readTemperature();
+  float readPressure();
+  float readHumidity();
+  float readAltitude();
+  float readGasResistance();
+  void  readSensorData(float &temp, float &humidity, float &pressure, float &gas);
 
-    float calculateAltitude(float pressure);
+  float calculateAltitude(float pressure);
 };
 
 #endif

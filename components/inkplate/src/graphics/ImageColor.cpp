@@ -240,6 +240,38 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
   return result;
 }
 
+bool ImageColor::draw(const uint8_t *buf, int w, int h, int x, int y, bool invert, bool dither)
+{
+  if (dither) beginDither();
+
+  const int bytesPerRow = (w + 3) / 4;
+  for (int row = 0; row < h; ++row)
+  {
+      for (int col = 0; col < w; ++col)
+      {
+          int byteIdx = row * bytesPerRow + col / 4;
+          int shift   = 6 - (col % 4) * 2;
+          uint8_t px  = (buf[byteIdx] >> shift) & 0x03;
+
+          // Map 2bpp -> RGB using simple greyscale ramp
+          uint8_t luma = px * 85;
+          if (invert) luma = 255 - luma;
+
+          uint8_t out;
+          if (dither)
+              out = getDitheredPixel(luma, luma, luma, col, w);
+          else
+              out = findClosestPalette(luma, luma, luma);
+
+          m_inkplate->drawPixel(x + col, y + row, out);
+      }
+      if (dither) ditherSwap(w);
+  }
+
+  if (dither) endDither();
+  return true;
+}
+
 /**
  * ============================================================
  * Private functions

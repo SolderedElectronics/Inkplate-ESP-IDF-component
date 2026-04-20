@@ -22,6 +22,7 @@ public:
   bool      draw(uint8_t *buf, int x, int y, bool invert = false, bool dither = false);
   bool      draw(uint8_t *buf, int32_t len, int x, int y, bool invert = false, bool dither = false);
   bool      draw(const char *src, int x, int y, bool invert = false, bool dither = false);
+  bool      draw(const uint8_t *buf, int w, int h, int x, int y, bool invert = false, bool dither = false);
 
   // called by format decoders via m_inkplate->image when dithering is enabled
   uint8_t   getDitheredPixel(uint32_t px, int i, int j, int w, bool paletted);

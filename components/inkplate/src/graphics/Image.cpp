@@ -184,6 +184,41 @@ bool Image::draw(const char *src, int x, int y, bool invert, bool dither)
   return result;
 }
 
+bool Image::draw(const uint8_t *buf, int w, int h, int x, int y, bool invert, bool dither)
+{
+    m_dither = dither;
+    if (dither) beginDither();
+
+    for (int row = 0; row < h; ++row)
+    {
+        const int bytesPerRow = (w + 3) / 4;
+        for (int col = 0; col < w; ++col)
+        {
+            int byteIdx  = row * bytesPerRow + col / 4;
+            int shift    = 6 - (col % 4) * 2;
+            uint8_t px   = (buf[byteIdx] >> shift) & 0x03;
+
+            // Convert 2bpp value (0=black,1=dark,2=light,3=white) to 8-bit luma
+            // Typical mapping: 0->0, 1->85, 2->170, 3->255
+            uint8_t luma = px * 85;
+            if (invert) luma = 255 - luma;
+
+            uint8_t out;
+            if (dither)
+                out = getDitheredPixel(luma, col, row, w, false);
+            else
+                out = luma >> 5; // 3-bit greyscale for grayscale mode
+
+            m_inkplate->drawPixel(x + col, y + row, out);
+        }
+        if (dither) ditherSwap(w);
+    }
+
+    if (dither) endDither();
+    m_dither = false;
+    return true;
+}
+
 /**
  * ============================================================
  * Private functions

@@ -20,18 +20,18 @@
  */
 bool BME680::begin(i2c_master_bus_handle_t bus_handle)
 {
-    bool returnValue = BME680Driver::begin(bus_handle, 0);
+  bool returnValue = BME680Driver::begin(bus_handle, 0);
 
-    if (returnValue)
-    {
-        BME680Driver::setOversampling(TemperatureSensor, Oversample16);
-        BME680Driver::setOversampling(HumiditySensor,    Oversample16);
-        BME680Driver::setOversampling(PressureSensor,    Oversample16);
-        BME680Driver::setIIRFilter(IIR4);
-        BME680Driver::setGas(320, 150);
-    }
+  if (returnValue)
+  {
+    BME680Driver::setOversampling(TemperatureSensor, Oversample16);
+    BME680Driver::setOversampling(HumiditySensor,    Oversample16);
+    BME680Driver::setOversampling(PressureSensor,    Oversample16);
+    BME680Driver::setIIRFilter(IIR4);
+    BME680Driver::setGas(320, 150);
+  }
 
-    return returnValue;
+  return returnValue;
 }
 
 /**
@@ -40,9 +40,9 @@ bool BME680::begin(i2c_master_bus_handle_t bus_handle)
  */
 float BME680::readTemperature()
 {
-    int32_t temp, humidity, pressure, gas;
-    BME680Driver::getSensorData(temp, humidity, pressure, gas);
-    return temp / 100.0f;
+  int32_t temp, humidity, pressure, gas;
+  BME680Driver::getSensorData(temp, humidity, pressure, gas);
+  return temp / 100.0f;
 }
 
 /**
@@ -51,9 +51,9 @@ float BME680::readTemperature()
  */
 float BME680::readPressure()
 {
-    int32_t temp, humidity, pressure, gas;
-    BME680Driver::getSensorData(temp, humidity, pressure, gas);
-    return pressure / 100.0f;
+  int32_t temp, humidity, pressure, gas;
+  BME680Driver::getSensorData(temp, humidity, pressure, gas);
+  return pressure / 100.0f;
 }
 
 /**
@@ -62,9 +62,9 @@ float BME680::readPressure()
  */
 float BME680::readHumidity()
 {
-    int32_t temp, humidity, pressure, gas;
-    BME680Driver::getSensorData(temp, humidity, pressure, gas);
-    return humidity / 1000.0f;
+  int32_t temp, humidity, pressure, gas;
+  BME680Driver::getSensorData(temp, humidity, pressure, gas);
+  return humidity / 1000.0f;
 }
 
 /**
@@ -73,10 +73,10 @@ float BME680::readHumidity()
  */
 float BME680::readAltitude()
 {
-    int32_t temp, humidity, pressure, gas;
-    BME680Driver::getSensorData(temp, humidity, pressure, gas);
-    const float seaLevel = 1013.25f;
-    return 44330.0f * (1.0f - powf(((float)pressure / 100.0f) / seaLevel, 0.1903f));
+  int32_t temp, humidity, pressure, gas;
+  BME680Driver::getSensorData(temp, humidity, pressure, gas);
+  const float seaLevel = 1013.25f;
+  return 44330.0f * (1.0f - powf(((float)pressure / 100.0f) / seaLevel, 0.1903f));
 }
 
 /**
@@ -85,9 +85,9 @@ float BME680::readAltitude()
  */
 float BME680::readGasResistance()
 {
-    int32_t temp, humidity, pressure, gas;
-    BME680Driver::getSensorData(temp, humidity, pressure, gas);
-    return gas / 100.0f;
+  int32_t temp, humidity, pressure, gas;
+  BME680Driver::getSensorData(temp, humidity, pressure, gas);
+  return gas / 100.0f;
 }
 
 /**
@@ -99,13 +99,13 @@ float BME680::readGasResistance()
  */
 void BME680::readSensorData(float &temp, float &humidity, float &pressure, float &gas)
 {
-    int32_t _temp, _humidity, _pressure, _gas;
-    BME680Driver::getSensorData(_temp, _humidity, _pressure, _gas);
+  int32_t _temp, _humidity, _pressure, _gas;
+  BME680Driver::getSensorData(_temp, _humidity, _pressure, _gas);
 
-    temp     = _temp     / 100.0f;
-    humidity = _humidity / 1000.0f;
-    pressure = _pressure / 100.0f;
-    gas      = _gas      / 100.0f;
+  temp     = _temp     / 100.0f;
+  humidity = _humidity / 1000.0f;
+  pressure = _pressure / 100.0f;
+  gas      = _gas      / 100.0f;
 }
 
 /**
@@ -115,6 +115,6 @@ void BME680::readSensorData(float &temp, float &humidity, float &pressure, float
  */
 float BME680::calculateAltitude(float pressure)
 {
-    const float seaLevel = 1013.25f;
-    return 44330.0f * (1.0f - powf(pressure / seaLevel, 0.1903f));
+  const float seaLevel = 1013.25f;
+  return 44330.0f * (1.0f - powf(pressure / seaLevel, 0.1903f));
 }
