@@ -28,7 +28,7 @@ static const char *TAG = "INKPLATE6COLOR";
  * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
  *         initialises GPIO and the PMIC.
  */
-Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12), m_spi(EPAPER_DIN, EPAPER_CLK, EPAPER_CS_PIN, SPI3_HOST)
+Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12), m_spi(EPAPER_DIN, EPAPER_CLK, SPI3_HOST)
 {
   ESP_ERROR_CHECK(initBuffers());
 

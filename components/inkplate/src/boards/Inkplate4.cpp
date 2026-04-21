@@ -45,6 +45,7 @@ Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0)//, frontli
   bq.begin(bus);
   lsm.begin(bus);
   bme.begin(bus);
+  touch.begin(i2c, expander2, true);
 
   ESP_LOGI(TAG, "Initialization finished!");
 }
@@ -514,6 +515,9 @@ void Inkplate4::gpioInit()
   expander2.setPort(IO_PORT_1, 0x00);
   expander2.setPortDirection(IO_PORT_0, 0x00);
   expander2.setPortDirection(IO_PORT_1, 0x00);
+  
+  expander2.setDirection(TOUCHSCREEN_EN, IO_MODE_OUTPUT, true);
+  expander2.setLevel(TOUCHSCREEN_EN, 1, true);
 
   pinsAsOutputs();
 }

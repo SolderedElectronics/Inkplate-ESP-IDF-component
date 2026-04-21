@@ -180,17 +180,20 @@ uint8_t TouchElan::getPowerState()
 
 uint8_t TouchElan::tsWriteRegs(uint8_t /*addr*/, const uint8_t *buff, uint8_t size)
 {
-    // addr unused — already encoded in m_devHandle
-    esp_err_t ret = i2c_master_transmit(m_devHandle, buff, size, pdMS_TO_TICKS(100));
+    esp_err_t ret = i2c_master_transmit(m_devHandle, buff, size, -1);
+    if (ret != ESP_OK)
+    {
+        ESP_LOGE(TAG, "tsWriteRegs failed: %s", esp_err_to_name(ret));
+    }
     return (ret == ESP_OK) ? 0 : 1;
 }
 
 void TouchElan::tsReadRegs(uint8_t /*addr*/, uint8_t *buff, uint8_t size)
 {
-    esp_err_t ret = i2c_master_receive(m_devHandle, buff, size, pdMS_TO_TICKS(100));
+    esp_err_t ret = i2c_master_receive(m_devHandle, buff, size, -1);
     if (ret != ESP_OK)
     {
-        ESP_LOGE(TAG, "I2C read failed: %s", esp_err_to_name(ret));
+        ESP_LOGE(TAG, "tsReadRegs failed: %s", esp_err_to_name(ret));
         memset(buff, 0, size);
     }
 }
@@ -198,9 +201,9 @@ void TouchElan::tsReadRegs(uint8_t /*addr*/, uint8_t *buff, uint8_t size)
 void TouchElan::tsHardwareReset()
 {
     m_expander->setLevel(TOUCHSCREEN_RST, 0);
-    vTaskDelay(pdMS_TO_TICKS(15));
+    vTaskDelay(pdMS_TO_TICKS(100));
     m_expander->setLevel(TOUCHSCREEN_RST, 1);
-    vTaskDelay(pdMS_TO_TICKS(15));
+    vTaskDelay(pdMS_TO_TICKS(100));
 }
 
 bool TouchElan::tsSoftwareReset()
@@ -219,6 +222,8 @@ bool TouchElan::tsSoftwareReset()
         vTaskDelay(pdMS_TO_TICKS(1));
         timeout--;
     }
+
+    vTaskDelay(pdMS_TO_TICKS(500));
 
     if (timeout > 0)
         tsFlag = true;

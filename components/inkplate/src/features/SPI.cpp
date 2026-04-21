@@ -47,7 +47,7 @@ void SPI::deinit()
 
 void SPI::sendCommand(uint8_t command, gpio_num_t dcPin)
 {
-  //gpio_set_level(dcPin, 0);
+  gpio_set_level(dcPin, 0);
   esp_rom_delay_us(10);
 
   spi_transaction_t t = {};
@@ -62,7 +62,7 @@ void SPI::sendData(uint8_t *data, int n, gpio_num_t dcPin)
 {
   if (n == 0) return;
 
-  //gpio_set_level(dcPin, 1);
+  gpio_set_level(dcPin, 1);
   esp_rom_delay_us(10);
 
   const size_t chunkSize = 4092;

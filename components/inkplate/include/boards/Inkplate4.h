@@ -16,6 +16,7 @@
 #include "LSM6DS3.h"
 #include "BME680.h"
 #include "Frontlight.h"
+#include "TouchscreenElan.h"
 
 extern PCAL expander1;
 
@@ -44,6 +45,8 @@ public:
   BQ27441  bq;
   LSM6DS3  lsm;
   BME680   bme;
+
+  TouchElan touch;
 
   //Frontlight frontlight;
 

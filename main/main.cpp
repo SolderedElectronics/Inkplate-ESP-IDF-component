@@ -7,13 +7,13 @@
 static const char *TAG = "MAIN";
 
 // Image file on the SD card root (change extension to match your file)
-#define IMAGE_PATH "https://wallpaperaccess.com/full/1140575.png"
+#define IMAGE_PATH "https://upload.wikimedia.org/wikipedia/commons/c/c2/Auckland_Skyline_800x600.jpg"
 
 extern "C"
 void app_main(void)
 {
     Inkplate display;
-    display.setRotation(3);
+    return;
     display.wifi.begin();
     display.wifi.waitForConnect();
 

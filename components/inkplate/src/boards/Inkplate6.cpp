@@ -37,6 +37,11 @@ Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 15, 5)
 {
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
+
+  expander1.setLevel(IO_NUM_B3, 1);  // set latch first
+  expander1.setDirection(IO_NUM_B3, IO_MODE_OUTPUT);
+
+  return;
   gpioInit();
   blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
