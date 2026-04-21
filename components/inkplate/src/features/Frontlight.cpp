@@ -18,6 +18,7 @@ esp_err_t Frontlight::begin(I2C &i2c, PCAL &expander, IOPin_t pin)
 {
   m_expander = &expander;
   m_pin = pin;
+  m_expander->setDirection(m_pin, IO_MODE_OUTPUT);
   return i2c.addDevice(FRONTLIGHT_I2C_ADDR, &m_devHandle);
 }
 

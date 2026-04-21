@@ -35,7 +35,7 @@ esp_err_t I2C::addDevice(uint8_t addr, i2c_master_dev_handle_t *handle)
   i2c_device_config_t dev_config  = {};
   dev_config.dev_addr_length      = I2C_ADDR_BIT_LEN_7;
   dev_config.device_address       = addr;
-  dev_config.scl_speed_hz         = 400000;
+  dev_config.scl_speed_hz         = 100000;
 
   return i2c_master_bus_add_device(m_busHandle, &dev_config, handle);
 }

@@ -37,11 +37,6 @@ Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 15, 5)
 {
   ESP_ERROR_CHECK(initBuffers());
   calculateLUTs();
-
-  expander1.setLevel(IO_NUM_B3, 1);  // set latch first
-  expander1.setDirection(IO_NUM_B3, IO_MODE_OUTPUT);
-
-  return;
   gpioInit();
   blockGpioPins();
   ESP_ERROR_CHECK(pmicBegin());
@@ -50,6 +45,7 @@ Inkplate6::Inkplate6() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 15, 5)
   expander1.setDirection(TOUCHSCREEN_EN, IO_MODE_OUTPUT, true);
   expander1.setDirection(TOUCHSCREEN_RST, IO_MODE_OUTPUT, true);
   ESP_ERROR_CHECK(touchscreen.begin(i2c, expander1, true));
+  frontlight.begin(i2c, expander1, FRONTLIGHT_EN);
   #endif
 
   ESP_LOGI(TAG, "Initialization finished!");

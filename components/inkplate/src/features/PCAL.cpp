@@ -468,7 +468,7 @@ esp_err_t PCAL::writePin(uint8_t reg, uint8_t val)
   while (i2c_master_transmit(m_devHandle, data, sizeof(data), 50) != ESP_OK)
   {
     ESP_LOGI(TAG, "Waiting on I2C bus...");
-    vTaskDelay(50);
+    vTaskDelay(pdMS_TO_TICKS(300));
   }
 
   return ESP_OK;
@@ -486,7 +486,7 @@ uint8_t PCAL::readPin(uint8_t reg)
   while (i2c_master_transmit_receive(m_devHandle, &reg, 1, &val, 1, 50) != ESP_OK)
   {
     ESP_LOGI(TAG, "Waiting on I2C bus...");
-    vTaskDelay(50);
+    vTaskDelay(pdMS_TO_TICKS(300));
   }
 
   return val;

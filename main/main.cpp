@@ -13,6 +13,11 @@ extern "C"
 void app_main(void)
 {
     Inkplate display;
+
+    display.frontlight.setState(true);
+    vTaskDelay(500);
+    display.frontlight.setState(false);
+    //display.display();
     return;
     display.wifi.begin();
     display.wifi.waitForConnect();

@@ -26,6 +26,8 @@ extern PCAL expander1;
 // pin on the internal io expander which controls MOSFET for turning on and off the SD card
 #define SD_PMOS_PIN  IO_NUM_B3
 
+#define FRONTLIGHT_EN IO_NUM_B2
+
 #define DATA 0x0E8C0030
 
 #define E_INK_WIDTH  600
@@ -47,8 +49,7 @@ public:
   BME680   bme;
 
   TouchElan touch;
-
-  //Frontlight frontlight;
+  Frontlight frontlight;
 
 private:
   esp_err_t initBuffers();
