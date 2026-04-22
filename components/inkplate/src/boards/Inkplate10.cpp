@@ -117,7 +117,7 @@ uint32_t Inkplate10::partialUpdate(bool forced, bool leaveOn)
       hscanStart(send);
       n--;
 
-      for (int j = 0; j < (m_einkWidth / 4); j += 4)
+      for (int j = 0; j < (m_einkWidth / 4) - 1; j++)
       {
         data = *(m_waveformBuffer + n);
         send = m_pinLUT[data];
@@ -433,12 +433,6 @@ esp_err_t Inkplate10::display1b(bool leaveOn)
   return ESP_OK;
 }
 
-/**
- * @brief  Latch one word of pixel data and advance the horizontal scan.
- *
- * @param  uint32_t data
- *         Pre-computed GPIO bitmask for the pixel data to send
- */
 void Inkplate10::hscanStart(uint32_t data)
 {
   SPH_CLEAR;

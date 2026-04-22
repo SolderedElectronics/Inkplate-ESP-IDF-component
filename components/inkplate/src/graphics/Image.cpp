@@ -54,12 +54,12 @@ uint8_t Image::getDitheredPixel(uint32_t px, int i, int w, bool paletted)
 
     /* distribute quantisation error: right=7/16, below-left=3/16, below=5/16, below-right=1/16 */
     m_ditherBuffer[1][i] += (quantError * 5) >> 4;
-    if (i != w - 1)
+    if (i < w - 1)   // explicit upper bound (not just != w-1)
     {
         m_ditherBuffer[0][i + 1] += (quantError * 7) >> 4;
         m_ditherBuffer[1][i + 1] += (quantError * 1) >> 4;
     }
-    if (i != 0)
+    if (i > 0)        // explicit lower bound
         m_ditherBuffer[1][i - 1] += (quantError * 3) >> 4;
 
     return newPixel >> 5;
@@ -169,37 +169,29 @@ bool Image::draw(const char *src, int x, int y, bool dither, bool invert)
     return result;
 }
 
-bool Image::draw(const uint8_t *buf, int w, int h, int x, int y, bool dither, bool invert)
+bool Image::draw(uint8_t *buf, int x, int y, int w, int h, int c)
 {
-    m_dither = dither;
-    if (dither) beginDither();
-
-    for (int row = 0; row < h; ++row)
+    if (m_inkplate->getDisplayMode() == BLACK_AND_WHITE)
     {
-        const int bytesPerRow = (w + 3) / 4; /* 4 pixels packed per byte */
-        for (int col = 0; col < w; ++col)
+        m_inkplate->drawBitmap(x, y, buf, w, h, c);
+    }
+    else
+    {
+        int rowBytes = (w + 7) / 8; // bytes per row, rounded up
+
+        for (int i = 0; i < h; i++)
         {
-            int byteIdx = row * bytesPerRow + col / 4;
-            int shift   = 6 - (col % 4) * 2;
-            uint8_t px  = (buf[byteIdx] >> shift) & 0x03;
+            for (int j = 0; j < w; j++)
+            {
+                // extract the bit for pixel (j, i)
+                uint8_t byte = buf[i * rowBytes + (j / 8)];
+                bool bit = (byte >> (7 - (j % 8))) & 1;
 
-            /* map 2bpp value to 8-bit luminance: 0→0, 1→85, 2→170, 3→255 */
-            uint8_t luma = px * 85;
-            if (invert) luma = 255 - luma;
-
-            uint8_t out;
-            if (dither)
-                out = getDitheredPixel(luma, col, w, false);
-            else
-                out = luma >> 5; /* convert to 3-bit greyscale */
-
-            m_inkplate->drawPixel(x + col, y + row, out);
+                m_inkplate->drawPixel(x + j, y + i, bit ? c : 0xFF);
+            }
         }
-        if (dither) ditherSwap(w);
     }
 
-    if (dither) endDither();
-    m_dither = false;
     return true;
 }
 
@@ -209,8 +201,8 @@ bool Image::draw(const uint8_t *buf, int w, int h, int x, int y, bool dither, bo
 
 void Image::beginDither()
 {
-    m_ditherBuffer[0] = (uint8_t *)calloc(BMP_MAX_WIDTH + 2, 1);
-    m_ditherBuffer[1] = (uint8_t *)calloc(BMP_MAX_WIDTH + 2, 1);
+    m_ditherBuffer[0] = (uint8_t *)calloc((BMP_MAX_WIDTH + 2) * sizeof(uint16_t), 1);
+    m_ditherBuffer[1] = (uint8_t *)calloc((BMP_MAX_WIDTH + 2) * sizeof(uint16_t), 1);
 }
 
 void Image::endDither()

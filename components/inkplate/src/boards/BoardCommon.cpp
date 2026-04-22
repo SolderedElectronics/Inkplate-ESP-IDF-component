@@ -30,6 +30,7 @@
 #include "esp_rom_sys.h"
 #include "nvs_flash.h"
 #include "nvs.h"
+#include "freertos/FreeRTOS.h"
 
 #include "BoardCommon.h"
 #include "I2C.h"
@@ -226,7 +227,7 @@ void BoardCommon::cleanBurnIn(uint8_t clearCycles, uint16_t cyclesDelay)
     clean(0, m_cleanCycles0);
     clean(2, 1);
 
-    esp_rom_delay_us(cyclesDelay * 1000);
+    vTaskDelay(pdMS_TO_TICKS(cyclesDelay));
     clearCycles--;
   }
 }
@@ -296,12 +297,6 @@ esp_err_t BoardCommon::setVCOM(double vcom)
   return ESP_OK;
 }
 
-/**
- * @brief  Read the VCOM voltage stored in NVS (written by setVCOM()).
- *
- * @return double
- *         Stored VCOM in volts, or 0.0 if no value has been saved.
- */
 double BoardCommon::getVCOM()
 {
   nvs_handle_t nvs;

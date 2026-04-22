@@ -177,6 +177,13 @@ private:
   esp_err_t display1b(bool leaveOn);
 
   /**
+   * @brief Latch one word of pixel data and advance the horizontal scan.
+   *
+   * @param data pre-computed GPIO bitmask for the pixel data to send.
+   */
+  void hscanStart(uint32_t data);
+
+  /**
    * @brief Initialize all GPIO pins and IO expander directions.
    * 
    */

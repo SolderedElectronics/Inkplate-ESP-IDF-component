@@ -114,15 +114,14 @@ public:
    * @brief Draws a raw 2bpp greyscale bitmap at the given position.
    * 
    * @param buf pointer to the 2bpp bitmap buffer.
-   * @param w image width in pixels.
-   * @param h image height in pixels.
    * @param x x coordinate of the top-left corner.
    * @param y y coordinate of the top-left corner.
-   * @param dither true to apply Floyd-Steinberg dithering.
-   * @param invert true to invert pixel colours.
+   * @param w image width in pixels.
+   * @param h image height in pixels.
+   * @param c color.
    * @return bool true always
    */
-  bool draw(const uint8_t *buf, int w, int h, int x, int y, bool dither = false, bool invert = false);
+  bool draw(uint8_t *buf, int x, int y, int w, int h, int c);
 
 
 private:

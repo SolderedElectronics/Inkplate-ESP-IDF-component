@@ -234,7 +234,7 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
   return result;
 }
 
-bool ImageColor::draw(const uint8_t *buf, int w, int h, int x, int y, bool invert, bool dither)
+bool ImageColor::draw(const uint8_t *buf, int x, int y, int w, int h, bool invert, bool dither)
 {
   if (dither) beginDither();
 

@@ -151,7 +151,7 @@ public:
    * @param invert true to invert pixel colours.
    * @return bool true always
    */
-  bool draw(const uint8_t *buf, int w, int h, int x, int y, bool dither = false, bool invert = false);
+  bool draw(const uint8_t *buf, int x, int y, int w, int h, bool dither = false, bool invert = false);
 
   /**
    * @brief Sets the active dithering kernel.

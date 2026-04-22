@@ -22,6 +22,14 @@
 
 #pragma once
 
+#if !defined(ARDUINO_INKPLATECOLOR) && !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_INKPLATE13SPECTRA)
+#define BLACK 1
+#define WHITE 0
+#else
+#define BLACK 0
+#define WHITE 1
+#endif
+
 #include <stdint.h>
 
 static const uint8_t LUT2[16] = {0xAA, 0xA9, 0xA6, 0xA5, 0x9A, 0x99, 0x96, 0x95,
