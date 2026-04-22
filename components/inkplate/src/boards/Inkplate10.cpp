@@ -1,3 +1,25 @@
+/**
+ * @file Inkplate10.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Inkplate 10 board.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
 #include "string.h"
@@ -16,46 +38,10 @@ extern I2C    i2c;
 
 static const char *TAG = "INKPLATE10";
 
-static uint8_t waveform3Bit[8][9] =
-  {{0, 0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 0, 2, 2, 2, 1, 1, 0}, {0, 0, 2, 1, 1, 2, 2, 1, 0},
-   {0, 1, 2, 2, 1, 2, 2, 1, 0}, {0, 0, 2, 1, 2, 2, 2, 1, 0}, {0, 2, 2, 2, 2, 2, 2, 1, 0},
-   {0, 0, 0, 0, 0, 2, 1, 2, 0}, {0, 0, 0, 2, 2, 2, 2, 2, 0}};
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
-static const uint8_t waveform1[8][9] = {
-  {0, 0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 0, 2, 2, 2, 1, 1, 0}, {0, 0, 2, 1, 1, 2, 2, 1, 0}, {0, 1, 2, 2, 1, 2, 2, 1, 0},
-  {0, 0, 2, 1, 2, 2, 2, 1, 0}, {0, 2, 2, 2, 2, 2, 2, 1, 0}, {0, 0, 0, 0, 0, 2, 1, 2, 0}, {0, 0, 0, 2, 2, 2, 2, 2, 0}};
-
-static const uint8_t waveform2[8][9] = {
-  {0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 2, 1, 2, 1, 1, 0}, {0, 0, 0, 2, 2, 1, 2, 1, 0}, {0, 0, 2, 2, 1, 2, 2, 1, 0},
-  {0, 0, 0, 2, 1, 1, 1, 2, 0}, {0, 0, 2, 2, 2, 1, 1, 2, 0}, {0, 0, 0, 0, 0, 1, 2, 2, 0}, {0, 0, 0, 0, 2, 2, 2, 2, 0}};
-
-static const uint8_t waveform3[8][9] = {
-  {0, 3, 3, 3, 3, 3, 3, 3, 0}, {0, 1, 2, 1, 1, 2, 2, 1, 0}, {0, 2, 2, 2, 1, 2, 2, 1, 0}, {0, 0, 2, 2, 2, 2, 2, 1, 0},
-  {0, 3, 3, 2, 1, 1, 1, 2, 0}, {0, 3, 3, 2, 2, 1, 1, 2, 0}, {0, 2, 1, 2, 1, 2, 1, 2, 0}, {0, 3, 3, 3, 2, 2, 2, 2, 0}};
-
-static const uint8_t waveform4[8][9] = {
-  {0, 0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 0, 2, 2, 2, 1, 1, 0}, {0, 0, 2, 1, 1, 2, 2, 1, 0}, {1, 1, 2, 2, 1, 2, 2, 1, 0},
-  {0, 0, 2, 1, 2, 2, 2, 1, 0}, {0, 1, 2, 2, 2, 2, 2, 1, 0}, {0, 0, 0, 2, 2, 2, 1, 2, 0}, {0, 0, 0, 2, 2, 2, 2, 2, 0}};
-
-static const uint8_t waveform5[8][9] = {
-  {0, 0, 0, 0, 0, 0, 0, 1, 0}, {0, 0, 0, 2, 2, 2, 1, 1, 0}, {2, 2, 2, 1, 0, 2, 1, 0, 0}, {2, 1, 1, 2, 1, 1, 1, 2, 0},
-  {2, 2, 2, 1, 1, 1, 0, 2, 0}, {2, 2, 2, 1, 1, 2, 1, 2, 0}, {0, 0, 0, 0, 2, 1, 2, 2, 0}, {0, 0, 0, 0, 2, 2, 2, 2, 0}};
-
-static const uint8_t *const waveformList[5] = {
-  &waveform1[0][0], &waveform2[0][0], &waveform3[0][0], &waveform4[0][0], &waveform5[0][0]};
-
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
-
-/**
- * @brief  Inkplate10 constructor.
- *
- * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
- *         initialises GPIO and the PMIC.
- */
 Inkplate10::Inkplate10() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 12, 9)
 {
   ESP_ERROR_CHECK(initBuffers());
@@ -68,94 +54,6 @@ Inkplate10::Inkplate10() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 12, 9)
   ESP_LOGI(TAG, "Initialization finished!");
 }
 
-/**
- * @brief  Power on the e-ink panel and assert all required control signals.
- *
- * @return esp_err_t
- *         ESP_OK on success, ESP_ERR_TIMEOUT if the PMIC does not reach
- *         power-good within 250 ms.
- */
-esp_err_t Inkplate10::einkOn()
-{
-  if (getPanelState())
-    return ESP_OK;
-
-  WAKEUP_SET;
-  esp_rom_delay_us(5000);
-
-  tps.enableRails();
-  tps.setPowerUpSequence(TPS_PWRUP_SEQ);
-  tps.setPowerDownSequence(TPS_PWRDN_SEQ);
-
-  pinsAsOutputs();
-  LE_CLEAR;
-  CL_CLEAR;
-
-  SPH_SET;
-  GMOD_SET;
-  SPV_SET;
-  CKV_CLEAR;
-  OE_CLEAR;
-  PWRUP_SET;
-  setPanelState(true);
-
-  if (!tps.waitPowerGood(true))
-  {
-    einkOff();
-    return ESP_ERR_TIMEOUT;
-  }
-
-  ESP_LOGI(TAG, "Eink turned on.");
-
-  VCOM_SET;
-  OE_SET;
-  return ESP_OK;
-}
-
-/**
- * @brief  Power off the e-ink panel and tri-state all data lines.
- *
- * @return esp_err_t
- *         ESP_OK on success, or a TPS driver error code.
- */
-esp_err_t Inkplate10::einkOff()
-{
-  if (!getPanelState())
-    return ESP_OK;
-
-  VCOM_CLEAR;
-  OE_CLEAR;
-  GMOD_CLEAR;
-  GPIO.out &= ~(DATA | LE | CL);
-
-  CKV_CLEAR;
-  SPH_CLEAR;
-  SPV_CLEAR;
-  PWRUP_CLEAR;
-
-  tps.waitPowerGood(false);
-
-  WAKEUP_CLEAR;
-  esp_err_t ret = tps.disableRails();
-
-  pinsZstate();
-  setPanelState(false);
-
-  ESP_LOGI(TAG, "Eink turned off.");
-  return ret;
-}
-
-/**
- * @brief  Send only the changed pixels to the display (1-bit mode only).
- *
- * @param  bool forced
- *         If true, bypasses the partial update block flag
- * @param  bool leaveOn
- *         If true, leaves the e-ink panel powered on after the update
- *
- * @return uint32_t
- *         Number of pixels that changed; 0 if a full update was performed instead
- */
 uint32_t Inkplate10::partialUpdate(bool forced, bool leaveOn)
 {
   if (m_displayMode == GRAYSCALE)
@@ -249,18 +147,122 @@ uint32_t Inkplate10::partialUpdate(bool forced, bool leaveOn)
   return changeCount;
 }
 
-/**
- * ============================================================
- * Private functions
- * ============================================================
- */
+esp_err_t Inkplate10::einkOn()
+{
+  if (getPanelState())
+    return ESP_OK;
 
-/**
- * @brief  Allocate all framebuffers and LUT arrays in PSRAM/internal RAM.
- *
- * @return esp_err_t
- *         ESP_OK on success, ESP_ERR_NO_MEM if any allocation fails
- */
+  WAKEUP_SET;
+  esp_rom_delay_us(5000);
+
+  tps.enableRails();
+  tps.setPowerUpSequence(TPS_PWRUP_SEQ);
+  tps.setPowerDownSequence(TPS_PWRDN_SEQ);
+
+  pinsAsOutputs();
+  LE_CLEAR;
+  CL_CLEAR;
+
+  SPH_SET;
+  GMOD_SET;
+  SPV_SET;
+  CKV_CLEAR;
+  OE_CLEAR;
+  PWRUP_SET;
+  setPanelState(true);
+
+  if (!tps.waitPowerGood(true))
+  {
+    einkOff();
+    return ESP_ERR_TIMEOUT;
+  }
+
+  ESP_LOGI(TAG, "Eink turned on.");
+
+  VCOM_SET;
+  OE_SET;
+  return ESP_OK;
+}
+
+esp_err_t Inkplate10::einkOff()
+{
+  if (!getPanelState())
+    return ESP_OK;
+
+  VCOM_CLEAR;
+  OE_CLEAR;
+  GMOD_CLEAR;
+  GPIO.out &= ~(DATA | LE | CL);
+
+  CKV_CLEAR;
+  SPH_CLEAR;
+  SPV_CLEAR;
+  PWRUP_CLEAR;
+
+  tps.waitPowerGood(false);
+
+  WAKEUP_CLEAR;
+  esp_err_t ret = tps.disableRails();
+
+  pinsZstate();
+  setPanelState(false);
+
+  ESP_LOGI(TAG, "Eink turned off.");
+  return ret;
+}
+
+esp_err_t Inkplate10::setWaveform(uint8_t waveformNumber, bool burnToEEPROM)
+{
+  if (waveformNumber < 1 || waveformNumber > 5)
+    return ESP_ERR_INVALID_ARG;
+
+  uint8_t   index = waveformNumber - 1;
+  esp_err_t ret   = changeWaveform((uint8_t *)waveformList[index]);
+  if (ret != ESP_OK)
+    return ret;
+
+  if (!burnToEEPROM)
+    return ESP_OK;
+
+  waveformData waveformEEPROM;
+  waveformEEPROM.waveformId = INKPLATE10_WAVEFORM1 + index;
+  memcpy(&waveformEEPROM.waveform, waveformList[index], sizeof(waveformEEPROM.waveform));
+  waveformEEPROM.checksum = calculateChecksum(waveformEEPROM);
+
+  return burnWaveformToEEPROM(waveformEEPROM);
+}
+
+esp_err_t Inkplate10::getWaveformFromEEPROM(struct waveformData *waveformData)
+{
+  nvs_handle_t handle;
+  esp_err_t    ret;
+
+  ret = nvs_open("inkplate", NVS_READONLY, &handle);
+  if (ret != ESP_OK)
+    return ret;
+
+  size_t size = sizeof(struct waveformData);
+  ret = nvs_get_blob(handle, "waveform", waveformData, &size);
+  nvs_close(handle);
+  if (ret != ESP_OK)
+    return ret;
+
+  return (calculateChecksum(*waveformData) == waveformData->checksum) ? ESP_OK : ESP_ERR_INVALID_CRC;
+}
+
+esp_err_t Inkplate10::changeWaveform(uint8_t *waveform)
+{
+  if (!waveform)
+    return ESP_ERR_INVALID_ARG;
+  memcpy(waveform3Bit, waveform, sizeof(waveform3Bit));
+  calculateLUTs();
+  return ESP_OK;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Private functions                             */
+/* -------------------------------------------------------------------------- */
+
 esp_err_t Inkplate10::initBuffers()
 {
   m_framebufferColor = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM);
@@ -291,11 +293,6 @@ esp_err_t Inkplate10::initBuffers()
   return ESP_OK;
 }
 
-/**
- * @brief  Pre-compute m_glut and m_glut2 waveform lookup tables from waveform3Bit.
- *
- * @note   Must be called after any change to waveform3Bit (e.g. via changeWaveform).
- */
 void Inkplate10::calculateLUTs()
 {
   for (int j = 0; j < 9; ++j)
@@ -310,15 +307,6 @@ void Inkplate10::calculateLUTs()
     }
 }
 
-/**
- * @brief  Push the 3-bit grayscale framebuffer to the display.
- *
- * @param  bool leaveOn
- *         If true, leaves the e-ink panel powered on after the update
- *
- * @return esp_err_t
- *         ESP_OK on success, or an error code if einkOn() failed
- */
 esp_err_t Inkplate10::display3b(bool leaveOn)
 {
   esp_err_t ret = einkOn();
@@ -380,15 +368,6 @@ esp_err_t Inkplate10::display3b(bool leaveOn)
   return ESP_OK;
 }
 
-/**
- * @brief  Push the 1-bit black-and-white framebuffer to the display.
- *
- * @param  bool leaveOn
- *         If true, leaves the e-ink panel powered on after the update
- *
- * @return esp_err_t
- *         ESP_OK on success, or an error code if einkOn() failed
- */
 esp_err_t Inkplate10::display1b(bool leaveOn)
 {
   esp_err_t ret = einkOn();
@@ -469,12 +448,6 @@ void Inkplate10::hscanStart(uint32_t data)
   CKV_SET;
 }
 
-/**
- * @brief  Configure all GPIO pins, IO expander pins, and the pixel-to-GPIO LUT.
- *
- * @note   SPI pins are set as inputs to reduce deep-sleep current. Unused expander
- *         pins are driven low to avoid floating states.
- */
 void Inkplate10::gpioInit()
 {
   expander1.setLevel(IO_NUM_B1, 0, true);
@@ -534,14 +507,6 @@ void Inkplate10::gpioInit()
   expander2.setPortDirection(IO_PORT_1, 0x00);
 }
 
-/**
- * @brief  Send a solid waveform pattern to the display for cleaning.
- *
- * @param  uint8_t c
- *         Pattern: 0 = discharge (0xAA), 1 = charge (0x55), 2 = blank (0x00), 3 = full (0xFF)
- * @param  uint8_t rep
- *         Number of times to repeat the pattern across the full frame
- */
 void Inkplate10::clean(uint8_t c, uint8_t rep)
 {
   einkOn();
@@ -575,11 +540,6 @@ void Inkplate10::clean(uint8_t c, uint8_t rep)
   }
 }
 
-/**
- * @brief  Set all EPD data and control pins as outputs (active drive mode).
- *
- * @note   Called when powering the panel on to restore drive strength after pinsZstate().
- */
 void Inkplate10::pinsAsOutputs()
 {
   gpio_set_direction(GPIO_NUM_0,  GPIO_MODE_OUTPUT);
@@ -601,11 +561,6 @@ void Inkplate10::pinsAsOutputs()
   gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
 }
 
-/**
- * @brief  Set all EPD data and control pins as inputs (high-impedance / tri-state).
- *
- * @note   Called when powering the panel off to reduce current draw.
- */
 void Inkplate10::pinsZstate()
 {
   gpio_set_direction(GPIO_NUM_2,  GPIO_MODE_INPUT);
@@ -627,9 +582,6 @@ void Inkplate10::pinsZstate()
   gpio_set_direction(GPIO_NUM_27, GPIO_MODE_INPUT);
 }
 
-/**
- * @brief  Calculate checksum of waveform data (sum of all bytes except the last one, mod 256).
- */
 uint8_t Inkplate10::calculateChecksum(struct waveformData waveformData)
 {
   uint8_t  *d   = (uint8_t *)&waveformData;
@@ -640,13 +592,6 @@ uint8_t Inkplate10::calculateChecksum(struct waveformData waveformData)
   return sum % 256;
 }
 
-/**
- * @brief  Write waveform data to NVS.
- *
- * @return esp_err_t
- *         ESP_OK on success
- *         NVS error code on failure
- */
 esp_err_t Inkplate10::burnWaveformToEEPROM(struct waveformData waveformData)
 {
   nvs_handle_t handle;
@@ -662,83 +607,4 @@ esp_err_t Inkplate10::burnWaveformToEEPROM(struct waveformData waveformData)
 
   nvs_close(handle);
   return ret;
-}
-
-/**
- * @brief  Replace the active waveform and recalculate LUTs.
- *
- * @param  uint8_t *_wf
- *         Pointer to an 8×9 waveform array
- *
- * @return esp_err_t
- *         ESP_OK on success
- *         ESP_ERR_INVALID_ARG if _wf is null
- */
-esp_err_t Inkplate10::changeWaveform(uint8_t *waveform)
-{
-  if (!waveform)
-    return ESP_ERR_INVALID_ARG;
-  memcpy(waveform3Bit, waveform, sizeof(waveform3Bit));
-  calculateLUTs();
-  return ESP_OK;
-}
-
-/**
- * @brief  Read waveform data from NVS and verify its checksum.
- *
- * @return esp_err_t
- *         ESP_OK if a valid waveform was found
- *         ESP_ERR_INVALID_CRC if the checksum does not match
- *         NVS error code if the read failed
- */
-esp_err_t Inkplate10::getWaveformFromEEPROM(struct waveformData *waveformData)
-{
-  nvs_handle_t handle;
-  esp_err_t    ret;
-
-  ret = nvs_open("inkplate", NVS_READONLY, &handle);
-  if (ret != ESP_OK)
-    return ret;
-
-  size_t size = sizeof(struct waveformData);
-  ret = nvs_get_blob(handle, "waveform", waveformData, &size);
-  nvs_close(handle);
-  if (ret != ESP_OK)
-    return ret;
-
-  return (calculateChecksum(*waveformData) == waveformData->checksum) ? ESP_OK : ESP_ERR_INVALID_CRC;
-}
-
-/**
- * @brief  Select and optionally persist one of the five built-in waveforms.
- *
- * @param  uint8_t waveformNumber
- *         1–5 selects waveform1–waveform5
- * @param  bool burnToEEPROM
- *         If true, saves the waveform to NVS so it survives reboot
- *
- * @return esp_err_t
- *         ESP_OK on success
- *         ESP_ERR_INVALID_ARG if waveformNumber is out of range
- *         NVS error code if burning to NVS failed
- */
-esp_err_t Inkplate10::setWaveform(uint8_t waveformNumber, bool burnToEEPROM)
-{
-  if (waveformNumber < 1 || waveformNumber > 5)
-    return ESP_ERR_INVALID_ARG;
-
-  uint8_t   index = waveformNumber - 1;
-  esp_err_t ret   = changeWaveform((uint8_t *)waveformList[index]);
-  if (ret != ESP_OK)
-    return ret;
-
-  if (!burnToEEPROM)
-    return ESP_OK;
-
-  waveformData waveformEEPROM;
-  waveformEEPROM.waveformId = INKPLATE10_WAVEFORM1 + index;
-  memcpy(&waveformEEPROM.waveform, waveformList[index], sizeof(waveformEEPROM.waveform));
-  waveformEEPROM.checksum = calculateChecksum(waveformEEPROM);
-
-  return burnWaveformToEEPROM(waveformEEPROM);
 }

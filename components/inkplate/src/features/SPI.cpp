@@ -1,21 +1,43 @@
-#include "SPI.h"
+/**
+ * @file SPI.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Helper for SPI communication.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "esp_log.h"
 #include "string.h"
 #include "rom/ets_sys.h"
 #include "freertos/FreeRTOS.h"
 
+#include "SPI.h"
+
 static const char *TAG = "SPI";
 
-SPI::SPI(gpio_num_t mosi, gpio_num_t clk, spi_host_device_t host)
+SPI::SPI(gpio_num_t mosi, gpio_num_t clk)
 {
   m_mosi = mosi;
   m_clk = clk;
-  m_host = host;
 }
 
-bool SPI::init()
+void SPI::init()
 {
-  if (m_spiDev) return true;
+  if (m_spiDev) return;
 
   spi_bus_config_t bus_cfg = {};
   bus_cfg.mosi_io_num   = m_mosi;
@@ -23,16 +45,14 @@ bool SPI::init()
   bus_cfg.sclk_io_num   = m_clk;
   bus_cfg.quadwp_io_num = -1;
   bus_cfg.quadhd_io_num = -1;
-  ESP_ERROR_CHECK(spi_bus_initialize(m_host, &bus_cfg, SPI_DMA_CH_AUTO));
+  ESP_ERROR_CHECK(spi_bus_initialize(SPI3_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
 
   spi_device_interface_config_t dev_cfg = {};
   dev_cfg.clock_speed_hz = SPI_MASTER_FREQ_10M;
   dev_cfg.mode           = 0;
   dev_cfg.spics_io_num   = -1;
   dev_cfg.queue_size     = 3;
-  ESP_ERROR_CHECK(spi_bus_add_device(m_host, &dev_cfg, &m_spiDev));
-
-  return true;
+  ESP_ERROR_CHECK(spi_bus_add_device(SPI3_HOST, &dev_cfg, &m_spiDev));
 }
 
 void SPI::deinit()

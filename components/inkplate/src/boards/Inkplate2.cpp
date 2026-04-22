@@ -1,18 +1,37 @@
+/**
+ * @file Inkplate2.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Inkplate 2 board.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "Inkplate2.h"
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "esp_log.h"
-#include "esp_rom_sys.h"
 #include "esp_heap_caps.h"
-#include <string.h>
+#include "string.h"
 
 static const char *TAG = "Inkplate2";
 
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
 Inkplate2::Inkplate2() 
 {
@@ -106,7 +125,7 @@ void Inkplate2::writePixelInternal(int16_t x, int16_t y, uint16_t color)
   }
 }
 
-esp_err_t Inkplate2::display(bool leaveOn)
+void Inkplate2::display(bool leaveOn)
 {
   const size_t plane_bytes = E_INK_WIDTH * E_INK_HEIGHT / 8;
 
@@ -127,8 +146,6 @@ esp_err_t Inkplate2::display(bool leaveOn)
 
   if (!leaveOn)
     setPanelDeepSleep(true);
-
-  return ESP_OK;
 }
 
 void Inkplate2::clearDisplay()
@@ -143,11 +160,9 @@ void Inkplate2::fillDisplay()
     memset(m_framebufferColor, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 4);
 }
 
-/**
- * ============================================================
- * Private functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Private functions                             */
+/* -------------------------------------------------------------------------- */
 
 bool Inkplate2::waitForEpd(uint32_t timeout)
 {

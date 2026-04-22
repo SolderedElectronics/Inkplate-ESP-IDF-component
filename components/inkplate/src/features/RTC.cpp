@@ -1,27 +1,36 @@
+/**
+ * @file RTC.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Driver for PCF85063A RTC.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "time.h"
 #include "esp_log.h"
-#include "esp_check.h"
-#include "driver/i2c_master.h"
 
-#include "rtc.h"
+#include "RTC.h"
 
 static const char* TAG = "ESP_RTC";
 
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  Add the RTC to the shared I2C bus and initialise it.
- *
- * @param  i2c_master_bus_handle_t bus_handle
- *         Handle to the shared I2C master bus.
- *
- * @return esp_err_t
- *         ESP_OK on success.
- */
 esp_err_t RTC::begin(i2c_master_bus_handle_t bus_handle)
 {
   i2c_device_config_t dev_cfg = {};
@@ -42,18 +51,6 @@ esp_err_t RTC::begin(i2c_master_bus_handle_t bus_handle)
   return ret;
 }
 
-/**
- * @brief  Sets the time.
- *
- * @param  tm time
- *         struct containing time information to set
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- *
- * @note   PCF85063A datasheet pg. 23; read or write access should be performed in one go. If the full struct is not
- * provided the values will be undefinined (values of struct members that were not provided).
- */
 esp_err_t RTC::setTime(tm time)
 {
   esp_err_t ret = ESP_OK;
@@ -72,7 +69,7 @@ esp_err_t RTC::setTime(tm time)
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   uint8_t data_[2] = { RTC_RAM, RTC_SET };
   ret = i2c_master_transmit(m_devHandle, data_, sizeof(data_), -1);
@@ -80,40 +77,17 @@ esp_err_t RTC::setTime(tm time)
   return ret;
 }
 
-/**
- * @brief  Get the time set.
- *
- * @param  tm *time
- *         pointer to struct to which time information will be written
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- *
- * @note   PCF85063A datasheet pg. 26; read or write access should be performed in one go.
- */
 esp_err_t RTC::getTime(tm *time)
 {
   esp_err_t ret = updateTime();
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   memcpy(time, &m_time, sizeof(tm));
 
   return ret;
 }
 
-/**
- * @brief  Sets the time using epoch.
- *
- * @param  time_t epoch
- *         time in epoch
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- *
- * @note   PCF85063A datasheet pg. 23; read or write access should be performed in one go. If the full struct is not
- * provided the values will be undefinined (values of struct members that were not provided).
- */
 esp_err_t RTC::setTime(time_t epoch)
 {
   tm time;
@@ -123,22 +97,11 @@ esp_err_t RTC::setTime(time_t epoch)
   return setTime(time);
 }
 
-/**
- * @brief  Get the time set in epoch.
- *
- * @param  time_t epoch
- *         pointer to epoch to which time information will be written
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- *
- * @note   PCF85063A datasheet pg. 26; read or write access should be performed in one go.
- */
 esp_err_t RTC::getTime(time_t *epoch)
 {
   esp_err_t ret = updateTime();
   if (ret != ESP_OK)
-  return ret;
+    return ret;
   
   m_time.tm_year -= 1900;
   *epoch = mktime(&m_time);
@@ -146,15 +109,6 @@ esp_err_t RTC::getTime(time_t *epoch)
   return ret;
 }
 
-/**
- * @brief  Changes the RTC time format.
- *
- * @param  rtcHourFormat_t format
- *         hour format to set
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::changeTimeFormat(rtcHourFormat_t format)
 {
   esp_err_t ret = ESP_OK;
@@ -164,18 +118,14 @@ esp_err_t RTC::changeTimeFormat(rtcHourFormat_t format)
 
   ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl1, 1, -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   if (format == RTC_FORMAT_12H)
-  ctrl1 |=  RTC_12_24;
+    ctrl1 |=  RTC_12_24;
   else
-  ctrl1 &= ~RTC_12_24;
+    ctrl1 &= ~RTC_12_24;
 
-  uint8_t data[2] =
-  {
-  RTC_CTRL_1,
-  ctrl1
-  };
+  uint8_t data[2] = { RTC_CTRL_1, ctrl1 };
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
   if (ret != ESP_OK)
@@ -186,15 +136,6 @@ esp_err_t RTC::changeTimeFormat(rtcHourFormat_t format)
   return ret;
 }
 
-/**
- * @brief  Sets the alarm in seconds.
- *
- * @param  uint8_t second
- *         at what second to trigger the alarm
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setAlarm(uint8_t second)
 {
   esp_err_t ret = ESP_OK;
@@ -202,26 +143,14 @@ esp_err_t RTC::setAlarm(uint8_t second)
 
   uint8_t data[2] =
   {
-  RTC_SECOND_ALARM,
-  (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
+    RTC_SECOND_ALARM,
+    (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE)
   };
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
   return ret;
 }
 
-/**
- * @brief  Sets the alarm in seconds and minutes.
- *
- * @param  uint8_t second
- *         at what second to trigger the alarm
- *
- * @param  uint8_t minute
- *         at what minute to trigger the alarm
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute)
 {
   esp_err_t ret = ESP_OK;
@@ -229,30 +158,15 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute)
 
   uint8_t data[3] =
   {
-  RTC_SECOND_ALARM,
-  (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
-  (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE),
+    RTC_SECOND_ALARM,
+    (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE)
   };
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
   return ret;
 }
 
-/**
- * @brief  Sets the alarm in seconds, minutes and hours.
- *
- * @param  uint8_t second
- *         at what second to trigger the alarm
- *
- * @param  uint8_t minute
- *         at what minute to trigger the alarm
- *
- * @param  uint8_t hour
- *         at what hour to trigger the alarm
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour)
 {
   esp_err_t ret = ESP_OK;
@@ -261,33 +175,15 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour)
   uint8_t data[4] =
   {
   RTC_SECOND_ALARM,
-  (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
-  (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE),
-  (uint8_t)(encodeHour(hour)   & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE),
+    (uint8_t)(encodeHour(hour) & ~RTC_ALARM_AIE)
   };
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
   return ret;
 }
 
-/**
- * @brief  Sets the alarm in seconds, minutes, hours and day.
- *
- * @param  uint8_t second
- *         at what second to trigger the alarm
- *
- * @param  uint8_t minute
- *         at what minute to trigger the alarm
- *
- * @param  uint8_t hour
- *         at what hour to trigger the alarm
- *
- * @param  uint8_t mday
- *         at what day of month to trigger the alarm
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t mday)
 {
   esp_err_t ret = ESP_OK;
@@ -296,37 +192,16 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t md
   uint8_t data[5] =
   {
   RTC_SECOND_ALARM,
-  (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
-  (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE),
-  (uint8_t)(encodeHour(hour)   & ~RTC_ALARM_AIE),
-  (uint8_t)(decToBcd(mday)   & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE),
+    (uint8_t)(encodeHour(hour) & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(mday)   & ~RTC_ALARM_AIE)
   };
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
   return ret;
 }
 
-/**
- * @brief  Sets the alarm in seconds, minutes, hours and day.
- *
- * @param  uint8_t second
- *         at what second to trigger the alarm
- *
- * @param  uint8_t minute
- *         at what minute to trigger the alarm
- *
- * @param  uint8_t hour
- *         at what hour to trigger the alarm
- *
- * @param  uint8_t mday
- *         at what day of month to trigger the alarm
- *
- * @param  uint8_t wday
- *         at what day of week to trigger the alarm
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t mday, uint8_t wday)
 {
   esp_err_t ret = ESP_OK;
@@ -335,26 +210,17 @@ esp_err_t RTC::setAlarm(uint8_t second, uint8_t minute, uint8_t hour, uint8_t md
   uint8_t data[6] =
   {
   RTC_SECOND_ALARM,
-  (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
-  (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE),
-  (uint8_t)(encodeHour(hour) & ~RTC_ALARM_AIE),
-  (uint8_t)(decToBcd(mday)   & ~RTC_ALARM_AIE),
-  (uint8_t)(decToBcd(wday)   & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(second) & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(minute) & ~RTC_ALARM_AIE),
+    (uint8_t)(encodeHour(hour) & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(mday)   & ~RTC_ALARM_AIE),
+    (uint8_t)(decToBcd(wday)   & ~RTC_ALARM_AIE)
   };
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
   return ret;
 }
 
-/**
- * @brief  Sets the alarm epoch.
- *
- * @param  time_t epoch
- *         when to trigger the alarm in epoch
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setAlarmEpoch(time_t epoch)
 {
   tm time;
@@ -363,18 +229,6 @@ esp_err_t RTC::setAlarmEpoch(time_t epoch)
   return setAlarm(time.tm_sec, time.tm_min, time.tm_hour, time.tm_mday, time.tm_wday);
 }
 
-/**
- * @brief  Gets the alarm values.
- *
- * @param  tm *time
- *         pointer to the struct in which the value will be stored
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- *
- * @note   Trying to display month or year will result in defined behavour as alarm doesn't have month and year
- * registers.
- */
 esp_err_t RTC::getAlarm(tm *time)
 {
   esp_err_t ret = ESP_OK;
@@ -384,7 +238,7 @@ esp_err_t RTC::getAlarm(tm *time)
 
   ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, data, sizeof(data), -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   m_alarmTime.tm_sec  = bcdToDec(data[0]);
   m_alarmTime.tm_min  = bcdToDec(data[1]);
@@ -397,12 +251,6 @@ esp_err_t RTC::getAlarm(tm *time)
   return ret;
 }
 
-/**
- * @brief  Reads the value of alarm flag.
- *
- * @return bool
- *         0 if alarm not triggered
- */
 bool RTC::checkAlarmFlag()
 {
   uint8_t reg = RTC_CTRL_2;
@@ -413,14 +261,6 @@ bool RTC::checkAlarmFlag()
   return (ctrl2 & RTC_ALARM_AF) != 0;
 }
 
-/**
- * @brief  Cleares the alarm interrupt flag.
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- *
- * @note   Need to call this after every interrupt.
- */
 esp_err_t RTC::clearAlarmFlag()
 {
   esp_err_t ret = ESP_OK;
@@ -430,35 +270,15 @@ esp_err_t RTC::clearAlarmFlag()
 
   ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl2, 1, -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   // clear AF bit and write back
-  uint8_t data[2] = {RTC_CTRL_2, (uint8_t)(ctrl2 & ~RTC_ALARM_AF)};
+  uint8_t data[2] = { RTC_CTRL_2, (uint8_t)(ctrl2 & ~RTC_ALARM_AF) };
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 
   return ret;
 }
 
-/**
- * @brief  Sets the timer.
- *
- * @param  rtcCountdownSrcClock sourceClock
- *         timer clock frequency
- *
- * @param  uint8_t value
- *         timer value
- *
- * @param  bool intEnable
- *         timer interrupt enable
- *
- * @param  bool intPulse
- *         timer interrupt mode
- *         0 - interrupt follows timer flag
- *         1 - interrpt generates a pulse
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setTimer(rtcCountdownSrcClock_t sourceClock, uint8_t value, bool intEnable, bool intPulse)
 {
   esp_err_t ret = ESP_OK;
@@ -467,13 +287,13 @@ esp_err_t RTC::setTimer(rtcCountdownSrcClock_t sourceClock, uint8_t value, bool 
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   uint8_t mode = RTC_TIMER_TE;
   if (intEnable)
-  mode |= RTC_TIMER_TIE;
+    mode |= RTC_TIMER_TIE;
   if (intPulse)
-  mode |= RTC_TIMER_TI_TP;
+    mode |= RTC_TIMER_TI_TP;
   mode |= sourceClock << 3;
 
   uint8_t data_[3] = { RTC_TIMER_VALUE, value, mode };
@@ -483,12 +303,6 @@ esp_err_t RTC::setTimer(rtcCountdownSrcClock_t sourceClock, uint8_t value, bool 
   return ret;
 }
 
-/**
- * @brief  Disables the timer.
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::disableTimer()
 {
   esp_err_t ret = ESP_OK;
@@ -498,7 +312,7 @@ esp_err_t RTC::disableTimer()
   
   ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &mode, 1, -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   uint8_t data[2] = { RTC_TIMER_MODE, (uint8_t)(mode & ~RTC_TIMER_TE) };
 
@@ -507,12 +321,6 @@ esp_err_t RTC::disableTimer()
   return ret;
 }
 
-/**
- * @brief  Reads the value of timer flag.
- *
- * @return bool
- *         0 if timer not triggered
- */
 bool RTC::checkTimerFlag()
 {
   uint8_t reg = RTC_CTRL_2;
@@ -523,14 +331,6 @@ bool RTC::checkTimerFlag()
   return (ctrl2 & RTC_TIMER_TF) != 0;
 }
 
-/**
- * @brief  Cleares the timer interrupt flag.
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- *
- * @note   Need to call this after every interrupt.
- */
 esp_err_t RTC::clearTimerFlag()
 {
   esp_err_t ret = ESP_OK;
@@ -540,41 +340,26 @@ esp_err_t RTC::clearTimerFlag()
 
   ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl2, 1, -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   // clear TF bit and write back
-  uint8_t data[2] = {RTC_CTRL_2, (uint8_t)(ctrl2 & ~RTC_TIMER_TF)};
+  uint8_t data[2] = { RTC_CTRL_2, (uint8_t)(ctrl2 & ~RTC_TIMER_TF) };
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 
   return ret;
 }
 
-/**
- * @brief  Reset RTC.
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::reset()
 {
   esp_err_t ret = ESP_OK;
 
-  uint8_t data[2] = { RTC_CTRL_1,RTC_CTRL_1_DEFAULT, };
+  uint8_t data[2] = { RTC_CTRL_1, RTC_CTRL_1_DEFAULT };
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 
   return ret;
 }
 
-/**
- * @brief  Set internal capacitor value.
- *
- * @param  bool value
- *         0 or 1 which represents 7pF or 12.5pF
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setInternalCapacitor(bool value)
 {
   esp_err_t ret;
@@ -584,12 +369,12 @@ esp_err_t RTC::setInternalCapacitor(bool value)
 
   ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ctrl1, 1, -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   if (value)
-  ctrl1 |=  (1 << 0);
+    ctrl1 |=  (1 << 0);
   else
-  ctrl1 &= ~(1 << 0);
+    ctrl1 &= ~(1 << 0);
 
   uint8_t data[2] =  { RTC_CTRL_1, ctrl1 };
   
@@ -598,42 +383,25 @@ esp_err_t RTC::setInternalCapacitor(bool value)
   return ret;
 }
 
-/**
- * @brief  Offset used to correct frequency of the crystal used for RTC.
- *
- * @param  bool mode
- *         0 - normal mode, offset made once every two hours
- *         1 - couse mode, offset made every four minutes
- *
- * @param  int8_t offsetValue
- *         coded in two's complement
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::setClockOffset(bool mode, int8_t offsetValue)
 {
   if (offsetValue > 63 || offsetValue < -64)
-  return ESP_ERR_INVALID_ARG;
+    return ESP_ERR_INVALID_ARG;
 
   if (offsetValue < 0)
-  offsetValue += 128;
+    offsetValue += 128;
 
   uint8_t regValue = (uint8_t)offsetValue;
   if (mode)
-  regValue |= (1 << 7);
+    regValue |= (1 << 7);
   else
-  regValue &= ~(1 << 7);
+    regValue &= ~(1 << 7);
 
   uint8_t data[2] = { RTC_OFFSET, regValue };
+
   return i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
 }
 
-/**
- * @brief  Check if RTC is set.
- *
- * @return True if set.
- */
 bool RTC::isSet()
 {
   uint8_t reg = RTC_RAM;
@@ -644,148 +412,82 @@ bool RTC::isSet()
   return ramByte == RTC_SET;
 }
 
-/**
- * @brief  Updates RTC and reads value.
- *
- * @return Current second.
- */
 uint8_t RTC::getSecond()
 {
   updateTime();
   return m_time.tm_sec;
 }
 
-/**
- * @brief  Updates RTC and reads value.
- *
- * @return Current minute.
- */
 uint8_t RTC::getMinute()
 {
   updateTime();
   return m_time.tm_min;
 }
 
-/**
- * @brief  Updates RTC and reads value.
- *
- * @return Current hour.
- */
 uint8_t RTC::getHour()
 {
   updateTime();
   return m_time.tm_hour;
 }
 
-/**
- * @brief  Updates RTC and reads value.
- *
- * @return Current day.
- */
 uint8_t RTC::getDay()
 {
   updateTime();
   return m_time.tm_mday;
 }
 
-/**
- * @brief  Updates RTC and reads value.
- *
- * @return Current weekday.
- */
 uint8_t RTC::getWeekday()
 {
   updateTime();
   return m_time.tm_wday;
 }
 
-/**
- * @brief  Updates RTC and reads value.
- *
- * @return Current month.
- */
 uint8_t RTC::getMonth()
 {
   updateTime();
   return m_time.tm_mon;
 }
 
-/**
- * @brief  Updates RTC and reads value.
- *
- * @return Current year.
- */
 uint16_t RTC::getYear()
 {
   updateTime();
   return m_time.tm_year;
 }
 
-/**
- * @brief  Reads alarm value.
- *
- * @return Alarm second.
- */
 uint8_t RTC::getAlarmSecond()
 {
   updateAlarm();
   return m_time.tm_sec;
 }
 
-/**
- * @brief  Reads alarm value.
- *
- * @return Alarm minute.
- */
 uint8_t RTC::getAlarmMinute()
 {
   updateAlarm();
   return m_time.tm_min;
 }
-/**
- * @brief  Reads alarm value.
- *
- * @return Alarm hour.
- */
+
 uint8_t RTC::getAlarmHour()
 {
   updateAlarm();
   return m_time.tm_hour;
 }
-/**
- * @brief  Reads alarm value.
- *
- * @return Alarm day.
- */
+
 uint8_t RTC::getAlarmDay()
 {
   updateAlarm();
   return m_time.tm_mday;
 }
-/**
- * @brief  Reads alarm value.
- *
- * @return Alarm weekday.
- */
+
 uint8_t RTC::getAlarmWeekday()
 {
   updateAlarm();
   return m_time.tm_wday;
 }
-/**
- * ============================================================
- * Private functions
- * ============================================================
- */
 
-/**
- * @brief  Internal function to update values in the class.
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- *
- * @note   PCF85063A datasheet pg. 26; read or write access should be performed in one go.
- */
+/* -------------------------------------------------------------------------- */
+/*                              Private functions                             */
+/* -------------------------------------------------------------------------- */
+
 esp_err_t RTC::updateTime()
 {
   esp_err_t ret = ESP_OK;
@@ -795,10 +497,10 @@ esp_err_t RTC::updateTime()
 
   ret = i2c_master_transmit(m_devHandle, &reg, 1, -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
   ret = i2c_master_receive(m_devHandle, data, sizeof(data), -1);
   if (ret != ESP_OK)
-  return ret;
+    return ret;
 
   // check datasheet to see unused bits in registers
   m_time.tm_sec  = bcdToDec(data[0] & 0x7F);
@@ -811,26 +513,21 @@ esp_err_t RTC::updateTime()
 
   if (m_hourFormat == RTC_FORMAT_12H)
   {
-  bool pm = (data[2] & 0x20) != 0;
-  uint8_t hour = bcdToDec(data[2] & 0x1F);
-  if (pm && hour != 12) hour += 12;
-  if (!pm && hour == 12) hour = 0;
-  m_time.tm_hour = hour;
+    bool pm = (data[2] & 0x20) != 0;
+    uint8_t hour = bcdToDec(data[2] & 0x1F);
+
+    if (pm && hour != 12) hour += 12;
+    if (!pm && hour == 12) hour = 0;
+    m_time.tm_hour = hour;
   }
   else
   {
-  m_time.tm_hour = bcdToDec(data[2] & 0x3F);
+    m_time.tm_hour = bcdToDec(data[2] & 0x3F);
   }
 
   return ret;
 }
 
-/**
- * @brief  Internal function to update values in the class.
- *
- * @return esp_err_t
- *         ESP_OK if no error occured
- */
 esp_err_t RTC::updateAlarm()
 {
   esp_err_t ret = ESP_OK;
@@ -847,25 +544,21 @@ esp_err_t RTC::updateAlarm()
 
   if (m_hourFormat == RTC_FORMAT_12H)
   {
-  bool pm = (data[2] & 0x20) != 0;
-  uint8_t hour = bcdToDec(data[2] & 0x1F);
-  if (pm && hour != 12) hour += 12;
-  if (!pm && hour == 12) hour = 0;
-  m_alarmTime.tm_hour = hour;
+    bool pm = (data[2] & 0x20) != 0;
+    uint8_t hour = bcdToDec(data[2] & 0x1F);
+
+    if (pm && hour != 12) hour += 12;
+    if (!pm && hour == 12) hour = 0;
+    m_alarmTime.tm_hour = hour;
   }
   else
   {
-  m_alarmTime.tm_hour = bcdToDec(data[2] & 0x3F);
+    m_alarmTime.tm_hour = bcdToDec(data[2] & 0x3F);
   }
 
   return ret;
 }
 
-/**
- * @brief  Internal function to enable alarm.
- *
- * @note   PCF85063A datasheet pg. 11.
- */
 void RTC::enableAlarm()
 {
   uint8_t registerMask;
@@ -876,50 +569,24 @@ void RTC::enableAlarm()
   ESP_ERROR_CHECK(i2c_master_transmit(m_devHandle, data, 2, -1));
 }
 
-/**
- * @brief  Handles hour conversion for different time formats.
- *
- * @param  uint8_t hour
- *         hour to convert
- *
- * @return uint8_t
- *         hour in Bcd
- */
 uint8_t RTC::encodeHour(uint8_t hour)
 {
   if (m_hourFormat == RTC_FORMAT_12H)
   {
-  bool pm = hour >= 12;
-  uint8_t hour12 = hour % 12;
-  if (hour12 == 0) hour12 = 12;
-  return decToBcd(hour12) | (pm ? 0x20 : 0x00);
+    bool pm = hour >= 12;
+    uint8_t hour12 = hour % 12;
+    if (hour12 == 0) hour12 = 12;
+      return decToBcd(hour12) | (pm ? 0x20 : 0x00);
   }
 
   return decToBcd(hour);
 }
 
-/**
- * @brief  Converts decimal to BCD.
- *
- * @param  uint8_t val
- *         number which needs to be converted from decimal to Bcd value
- *
- * @return uint8_t
- *         value in Bcd
- */
 uint8_t RTC::decToBcd(uint8_t val)
 {
   return ((val / 10 * 16) + (val % 10));
 }
 
-/**
- * @brief  Converts BCD to decimal.
- *
- * @param  uint8_t val
- *         number which needs to be converted from Bcd to decimal value
- * @return uint8_t
- *         value in Dec
- */
 uint8_t RTC::bcdToDec(uint8_t val)
 {
   return ((val / 16 * 10) + (val % 16));

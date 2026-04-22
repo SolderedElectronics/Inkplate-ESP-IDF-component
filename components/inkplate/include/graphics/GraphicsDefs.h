@@ -1,5 +1,26 @@
-#ifndef GRAPHICSDEFS_H
-#define GRAPHICSDEFS_H
+/**
+ * @file GraphicsDefs.h
+ * @author Fran Fodor for Soldered
+ * @brief LUTs for graphics.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include <stdint.h>
 
@@ -15,5 +36,3 @@ static const uint8_t pixelMaskGLUT[2] = {0xF, 0xF0};
 
 static const uint8_t discharge[16] = {0xFF, 0xFC, 0xF3, 0xF0, 0xCF, 0xCC, 0xC3, 0xC0,
                      0x3F, 0x3C, 0x33, 0x30, 0x0F, 0x0C, 0x03, 0x00};
-
-#endif

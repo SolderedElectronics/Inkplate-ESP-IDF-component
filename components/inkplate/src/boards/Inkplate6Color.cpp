@@ -1,3 +1,25 @@
+/**
+ * @file Inkplate6Color.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Inkplate 6 Color board.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "soc/i2s_struct.h"
 #include "soc/gpio_sig_map.h"
 #include "driver/gpio.h"
@@ -16,18 +38,10 @@ extern I2C    i2c;
 
 static const char *TAG = "INKPLATE6COLOR";
 
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  Inkplate6 constructor.
- *
- * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
- *         initialises GPIO and the PMIC.
- */
 Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12), m_spi(EPAPER_DIN, EPAPER_CLK, SPI3_HOST)
 {
   ESP_ERROR_CHECK(initBuffers());
@@ -60,29 +74,6 @@ Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12
   setIOExpanderForLowPower();
 
   ESP_LOGI(TAG, "Initialization finished!");
-}
-
-/**
- * @brief  Power on the e-ink panel and assert all required control signals.
- *
- * @return esp_err_t
- *         ESP_OK on success, ESP_ERR_TIMEOUT if the PMIC does not reach
- *         power-good within 250 ms.
- */
-esp_err_t Inkplate6Color::einkOn()
-{
-  return ESP_OK;
-}
-
-/**
- * @brief  Power off the e-ink panel and tri-state all data lines.
- *
- * @return esp_err_t
- *         ESP_OK on success, or a TPS driver error code.
- */
-esp_err_t Inkplate6Color::einkOff()
-{
-  return ESP_OK;
 }
 
 /**

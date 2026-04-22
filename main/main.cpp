@@ -17,8 +17,6 @@ void app_main(void)
     display.frontlight.setState(true);
     vTaskDelay(500);
     display.frontlight.setState(false);
-    //display.display();
-    return;
     display.wifi.begin();
     display.wifi.waitForConnect();
 
@@ -28,6 +26,6 @@ void app_main(void)
     //return;
     }
 
-    display.image.draw(IMAGE_PATH, 0, 0, false, true);
+    display.image.draw(IMAGE_PATH, 0, 0, true, false);
     display.display();
 }

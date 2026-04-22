@@ -1,5 +1,26 @@
-#ifndef INKPLATE13_H
-#define INKPLATE13_H
+/**
+ * @file Inkplate13.h
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Inkplate 13 board.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include "soc/gpio_reg.h"
 #include "soc/gpio_struct.h"
@@ -94,12 +115,21 @@ static uint8_t SPECTRA133_REGISTER_BTST_N_V[2] = {0xD8, 0x18};
 static uint8_t SPECTRA133_REGISTER_BUCK_BOOST_VDDN_V[1] = {0x01};
 static uint8_t SPECTRA133_REGISTER_TFT_VCOM_POWER_V[1] = {0x02};
 
+/**
+ * @brief Class for Inkplate 13.
+ * 
+ */
 class Inkplate13 : public BoardCommon
 {
 public:
+  /**
+   * @brief Construct a new Inkplate 13 object.
+   * 
+   */
   Inkplate13();
   
-  uint32_t  partialUpdate(bool forced = false, bool leaveOn = false) {return 0;};
+  // not used
+  uint32_t partialUpdate(bool forced = false, bool leaveOn = false) {return 0;};
   esp_err_t einkOn() {return ESP_OK};
   esp_err_t einkOff() {return ESP_OK};
 
@@ -112,23 +142,75 @@ private:
     eChipIdSlave = 2,
     eChipIdBoth = eChipIdMaster | eChipIdSlave
   };
+
+  /**
+   * @brief Allocate framebuffers.
+   * 
+   * @return esp_err_t error code.
+   */
   esp_err_t initBuffers();
+
+  /**
+   * @brief Drive the panel using 3-bit (8-level grayscale) waveform.
+   * 
+   * @param leaveOn if true, leave the panel powered on after the update.
+   * @return esp_err_t error code
+   */
   esp_err_t display3b(bool leaveOn);
-  bool      waitForEpd(uint32_t timeout);
-  void      resetPanel();
-  bool      setPanelDeepSleep(bool state);
-  void      setPanelPinsToLow();
-  void      screenInit();
+
+  /**
+   * @brief Polls the busy pin until the panel is ready or the timeout expires.
+   * 
+   * @param timeout maximum wait time in milliseconds.
+   * @return bool true if the panel became ready, false on timeout.
+   */
+  bool waitForEpd(uint32_t timeout);
+
+  /**
+   * @brief Issues a hardware reset pulse to the panel.
+   * 
+   */
+  void resetPanel();
+
+  /**
+   * @brief Wakes or puts the panel into deep sleep.
+   * 
+   * @param state true to enter deep sleep, false to wake.
+   * @return bool true on success, false if the busy timeout expired during wake.
+   */
+  bool setPanelDeepSleep(bool state);
+
+  /**
+   * @brief Turns off pins to save power.
+   * 
+   */
+  void setPanelPinsToLow();
+
+  /**
+   * @brief Initializes the screen.
+   * 
+   */
+  void screenInit();
+
+  /**
+   * @brief Sends command and data.
+   * 
+   * @param cmd command to send.
+   * @param data pointer to the data buffer.
+   * @param n number of bytes to send.
+   * @param chipId chip to send to (master, slave or both).
+   */
   void sendCommandData(uint8_t cmd, uint8_t *data, int n, enum eSpectraChipID chipId);
 
-  void      calculateLUTs() {return;};
+  // not used
+  void calculateLUTs() {return;};
   esp_err_t display1b(bool leaveOn) {return ESP_OK;};
-  void      gpioInit() {return;};
-  void      clean(uint8_t c, uint8_t rep) {return;};
-  void      pinsAsOutputs() {return;};
-  void      pinsZstate() {return;};
+  void gpioInit() {return;};
+  void clean(uint8_t c, uint8_t rep) {return;};
+  void pinsAsOutputs() {return;};
+  void pinsZstate() {return;};
 
-  SPI       m_spi;
+  SPI m_spi;
 };
 
 #endif

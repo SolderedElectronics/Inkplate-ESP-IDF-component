@@ -1,3 +1,25 @@
+/**
+ * @file BoardCommon.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Shared functions for inkplates.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "string.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
@@ -8,23 +30,6 @@
 #include "esp_rom_sys.h"
 #include "nvs_flash.h"
 #include "nvs.h"
-
-// Include the active board's pins.h for WAKEUP_SET/CLEAR, CKV_SET, LE_SET, etc.
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK) 
-  #include "Inkplate6.h"
-#elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-  #include "Inkplate6Color.h"
-#elif CONFIG_INKPLATE_BOARD_INKPLATE10
-  #include "Inkplate10.h"
-#elif CONFIG_INKPLATE_BOARD_INKPLATE13
-  #include "Inkplate13.h"
-#elif CONFIG_INKPLATE_BOARD_INKPLATE5
-  #include "Inkplate5.h"
-#elif CONFIG_INKPLATE_BOARD_INKPLATE4
-  #include "Inkplate4.h"
-#elif CONFIG_INKPLATE_BOARD_INKPLATE2
-  #include "Inkplate2.h"
-#endif
 
 #include "BoardCommon.h"
 #include "I2C.h"
@@ -38,14 +43,29 @@
 
 static const char *TAG = "INKPLATE";
 
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK)
+  #include "Inkplate6.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
+  #include "Inkplate6Color.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE10)
+  #include "Inkplate10.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+  #include "Inkplate13.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE5)
+  #include "Inkplate5.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE4)
+  #include "Inkplate4.h"
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
+  #include "Inkplate2.h"
+#endif
+
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
 #define _swap_int16_t(a, b) { int16_t t = (a); (a) = (b); (b) = t; }
 
-/**
- * ============================================================
- * Global peripheral instances — shared by all board implementations
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                         Global peripheral instances                        */
+/*           shared by all board implementations (except Inkplate2)           */
+/* -------------------------------------------------------------------------- */
 
 I2C     i2c;
 PCAL    expander1(IO_INT_ADDR, i2c);
@@ -56,24 +76,10 @@ TPS     tps(i2c);
 SDCard  sdCard(expander1, SD_PMOS_PIN);
 #endif 
 
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
 
-/**
- * @brief  BoardCommon constructor.
- *
- * @param  uint16_t einkWidth
- *         Panel width in pixels.
- * @param  uint16_t einkHeight
- *         Panel height in pixels.
- * @param  uint8_t cleanCycles1
- *         Number of full-white cleaning passes in cleanBurnIn().
- * @param  uint8_t cleanCycles0
- *         Number of full-black cleaning passes in cleanBurnIn().
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
 BoardCommon::BoardCommon(uint16_t einkWidth, uint16_t einkHeight,
                          uint8_t cleanCycles1, uint8_t cleanCycles0)
@@ -84,12 +90,6 @@ BoardCommon::BoardCommon(uint16_t einkWidth, uint16_t einkHeight,
 {
 }
 
-/**
- * @brief  Select the active display mode (black-and-white or grayscale).
- *
- * @param  displayMode_t mode
- *         BLACK_AND_WHITE or GRAYSCALE.
- */
 void BoardCommon::setDisplayMode(displayMode_t mode)
 {
   const char *name;
@@ -104,9 +104,7 @@ void BoardCommon::setDisplayMode(displayMode_t mode)
   m_displayMode = mode;
 }
 
-/**
- * @brief  Fill the framebuffer with white (erase all content).
- */
+
 void BoardCommon::clearDisplay()
 {
   if (m_displayMode == BLACK_AND_WHITE)
@@ -117,9 +115,6 @@ void BoardCommon::clearDisplay()
   ESP_LOGI(TAG, "Display cleared.");
 }
 
-/**
- * @brief  Fill the framebuffer with black (all pixels on).
- */
 void BoardCommon::fillDisplay()
 {
   if (m_displayMode == BLACK_AND_WHITE)
@@ -130,16 +125,6 @@ void BoardCommon::fillDisplay()
   ESP_LOGI(TAG, "Display filled.");
 }
 
-/**
- * @brief  Write a single pixel into the framebuffer after applying display rotation.
- *
- * @param  int16_t x
- *         Logical X coordinate.
- * @param  int16_t y
- *         Logical Y coordinate.
- * @param  uint16_t color
- *         Pixel value (0–7 for grayscale; 0 or 1 for B&W).
- */
 void BoardCommon::writePixelInternal(int16_t x, int16_t y, uint16_t color)
 {
   int16_t x0 = x, y0 = y;
@@ -194,15 +179,6 @@ void BoardCommon::writePixelInternal(int16_t x, int16_t y, uint16_t color)
   #endif
 }
 
-/**
- * @brief  Push the framebuffer to the e-ink panel.
- *
- * @param  bool leaveOn
- *         If true, leave the panel powered on after the update.
- *
- * @return esp_err_t
- *         ESP_OK on success, or an error code from the active display driver.
- */
 esp_err_t BoardCommon::display(bool leaveOn)
 {
   esp_err_t ret = ESP_OK;
@@ -215,12 +191,6 @@ esp_err_t BoardCommon::display(bool leaveOn)
   return ret;
 }
 
-/**
- * @brief  Mark all PMIC control pins on expander1 as blocked so user code
- *         cannot accidentally modify them via the PCAL API.
- *
- * @note   Called automatically from each board constructor after gpioInit().
- */
 void BoardCommon::blockGpioPins()
 {
   #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
@@ -233,13 +203,6 @@ void BoardCommon::blockGpioPins()
   #endif
 }
 
-/**
- * @brief  Set the number of partial updates allowed before a forced full refresh.
- *
- * @param  uint16_t numberOfPartialUpdates
- *         Maximum consecutive partial updates; 0 disables the limit.
-
- */
 void BoardCommon::setFullUpdateThreshold(uint16_t numberOfPartialUpdates)
 {
   m_partialUpdateLimiter = numberOfPartialUpdates;
@@ -248,14 +211,6 @@ void BoardCommon::setFullUpdateThreshold(uint16_t numberOfPartialUpdates)
     m_blockPartial = true;
 }
 
-/**
- * @brief  Run multiple full-panel cleaning cycles to reduce burn-in.
- *
- * @param  uint8_t clearCycles
- *         Number of cleaning iterations.
- * @param  uint16_t cyclesDelay
- *         Delay in milliseconds between iterations.
- */
 void BoardCommon::cleanBurnIn(uint8_t clearCycles, uint16_t cyclesDelay)
 {
   einkOn();
@@ -275,13 +230,8 @@ void BoardCommon::cleanBurnIn(uint8_t clearCycles, uint16_t cyclesDelay)
     clearCycles--;
   }
 }
+
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE13
-/**
- * @brief  Read the LiPo battery voltage via the ESP32 ADC.
- *
- * @return double
- *         Battery voltage in volts (approximately 3.0–4.2 V when charged).
- */
 double BoardCommon::readBattery()
 {
   expander1.setLevel(IO_NUM_B1, 1, true);
@@ -319,16 +269,6 @@ double BoardCommon::readBattery()
 }
 #endif
 
-/**
- * @brief  Program a new VCOM voltage into the TPS65186 and persist it in NVS.
- *
- * @param  double vcom
- *         VCOM in volts; must be in the range -5.0 to 0.0.
- *
- * @return esp_err_t
- *         ESP_OK on success, ESP_ERR_INVALID_ARG if out of range,
- *         or an error from einkOn()/TPS.
- */
 esp_err_t BoardCommon::setVCOM(double vcom)
 {
   if (vcom < -5.0 || vcom > 0.0)
@@ -378,14 +318,16 @@ double BoardCommon::getVCOM()
   return stored / 100.0;
 }
 
-/**
- * @brief  Read the e-ink panel temperature from the TPS65186 thermistor.
- *
- * @return int8_t
- *         Temperature in degrees Celsius, or 0 if the panel could not be powered on.
- *
- * @note   Briefly powers the panel on to communicate with the TPS65186.
- */
+double BoardCommon::getStoredVCOM()
+{
+  if (einkOn() != ESP_OK)
+    return 0.0;
+
+  double vcom = tps.readVCOM();
+  einkOff();
+  return vcom;
+}
+
 int8_t BoardCommon::readTemperature()
 {
   if (einkOn() != ESP_OK)
@@ -397,68 +339,25 @@ int8_t BoardCommon::readTemperature()
   return temp;
 }
 
-/**
- * @brief  Read the VCOM currently programmed into the TPS65186 hardware registers.
- *
- * @return double
- *         Live VCOM in volts, or 0.0 on error.
- *
- * @note   Briefly powers the panel on to read the TPS registers.
- */
-double BoardCommon::getStoredVCOM()
-{
-  if (einkOn() != ESP_OK)
-    return 0.0;
-
-  double vcom = tps.readVCOM();
-  einkOff();
-  return vcom;
-}
-
-/**
- * @brief  Mount the SD card and make it accessible via the VFS.
- *
- * @return esp_err_t
- *         ESP_OK on success, or an SD driver error code.
- */
 esp_err_t BoardCommon::sdCardInit()
 {
   return sdCard.sdCardInit();
 }
 
-/**
- * @brief  Put the SD card into low-power sleep mode.
- *
- * @return esp_err_t
- *         ESP_OK on success, or an SD driver error code.
- */
 esp_err_t BoardCommon::sdCardSleep()
 {
   return sdCard.sdCardSleep();
 }
 
-/**
- * @brief  Return the VFS mount point for the SD card (e.g. "/sdcard").
- *
- * @return const char*
- *         Null-terminated mount point string.
- */
 const char* BoardCommon::getMountPoint()
 {
   return sdCard.getMountPoint();
 }
 
-/**
- * ============================================================
- * Protected functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                             Protected functions                            */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  Assert the vertical scan start pulse (SPV strobed via CKV).
- *
- * @note   Timing values derived from ED060SC4 panel datasheet.
- */
 void BoardCommon::vscanStart()
 {
   #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
@@ -486,9 +385,6 @@ void BoardCommon::vscanStart()
   #endif
 }
 
-/**
- * @brief  Latch the current scan line into the panel (CKV low, LE pulse).
- */
 void BoardCommon::vscanEnd()
 {
   #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
@@ -499,36 +395,16 @@ void BoardCommon::vscanEnd()
   #endif
 }
 
-/**
- * @brief  Set the cached panel power state.
- *
- * @param  bool state
- *         true = panel on, false = panel off.
- */
 void BoardCommon::setPanelState(bool state)
 {
   m_panelState = state;
 }
 
-/**
- * @brief  Return the cached panel power state.
- *
- * @return bool
- *         true = panel on, false = panel off.
- */
 bool BoardCommon::getPanelState()
 {
   return m_panelState;
 }
 
-/**
- * @brief  Initialise the TPS65186 PMIC with the default power sequences.
- *
- * @return esp_err_t
- *         ESP_OK on success, or an I2C error code.
- *
- * @note   Pulses WAKEUP briefly to allow I2C communication with the TPS65186.
- */
 esp_err_t BoardCommon::pmicBegin()
 {
   #if !defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) && !defined(CONFIG_INKPLATE_BOARD_INKPLATE13)

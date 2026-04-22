@@ -1,17 +1,31 @@
+/**
+ * @file Inkplate.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Inkplate fuctions for Adafruit_GFX overrides.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "Inkplate.h"
 
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  Construct the Inkplate object.
- *
- * @note   Initialises Adafruit_GFX and Graphics with the panel dimensions,
- *         binds the Image helper to this instance, then clears the frame buffer.
- */
 Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_WIDTH, E_INK_HEIGHT), image(this)
 {
   clearDisplay();
@@ -20,41 +34,20 @@ Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_W
 #endif
 }
 
-/**
- * @brief  Draw a single pixel — Adafruit_GFX override.
- *
- * @param  x      X coordinate.
- * @param  y      Y coordinate.
- * @param  color  Pixel value (0-7 in grayscale mode, 0-1 in B&W mode).
- */
 void Inkplate::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
   writePixel(x, y, color);
 }
 
-/**
- * @brief  Return the current display rotation (0-3, matching Adafruit_GFX convention).
- *
- * @return uint8_t  Rotation index.
- */
 uint8_t Inkplate::getRotation()
 {
   return rotation;
 }
 
-/**
- * ============================================================
- * Private functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Private functions                             */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  Write a single pixel to the frame buffer.
- *
- * @param  x      X coordinate.
- * @param  y      Y coordinate.
- * @param  color  Pixel value.
- */
 void Inkplate::writePixel(int16_t x, int16_t y, uint16_t color)
 {
   writePixelInternal(x, y, color);

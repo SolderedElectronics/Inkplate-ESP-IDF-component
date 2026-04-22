@@ -1,11 +1,33 @@
+/**
+ * @file Inkplate4.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Inkplate 4 board.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
 #include "string.h"
 #include "esp_log.h"
 #include "driver/i2c_master.h"
 
-#include "I2C.h"
 #include "Inkplate4.h"
+#include "I2C.h"
 #include "TPS.h"
 
 // Peripherals defined in BoardCommon.cpp
@@ -15,22 +37,10 @@ extern I2C  i2c;
 
 static const char *TAG = "INKPLATE4";
 
-static const uint8_t waveform3Bit[8][9] =
-  {{0, 0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 2, 1, 1, 0, 0}, {2, 1, 1, 0, 2, 1, 1, 0},
-   {0, 0, 0, 1, 1, 1, 2, 0}, {2, 1, 1, 2, 1, 1, 2, 0}, {1, 2, 1, 1, 2, 1, 2, 0},
-   {1, 1, 1, 2, 1, 2, 2, 0}, {0, 0, 0, 0, 0, 2, 2, 0}};
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  Inkplate4 constructor.
- *
- * @note   Allocates framebuffers in PSRAM, pre-computes grayscale waveform LUTs,
- *         initialises GPIO and the PMIC.
- */
 Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0)//, frontlight(i2c, expander1)
 {
   ESP_ERROR_CHECK(initBuffers());
@@ -51,17 +61,6 @@ Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0)//, frontli
   ESP_LOGI(TAG, "Initialization finished!");
 }
 
-/**
- * @brief  Send only the changed pixels to the display (1-bit mode only).
- *
- * @param  bool forced
- *         If true, bypasses the partial update block flag
- * @param  bool leaveOn
- *         If true, leaves the e-ink panel powered on after the update
- *
- * @return uint32_t
- *         Number of pixels that changed; 0 if a full update was performed instead
- */
 uint32_t Inkplate4::partialUpdate(bool forced, bool leaveOn)
 {
   if (m_displayMode == GRAYSCALE)
@@ -154,13 +153,6 @@ uint32_t Inkplate4::partialUpdate(bool forced, bool leaveOn)
   return changeCount;
 }
 
-/**
- * @brief  Power on the e-ink panel and assert all required control signals.
- *
- * @return esp_err_t
- *         ESP_OK on success, ESP_ERR_TIMEOUT if the PMIC does not reach
- *         power-good within 250 ms.
- */
 esp_err_t Inkplate4::einkOn()
 {
   if (getPanelState())
@@ -198,12 +190,6 @@ esp_err_t Inkplate4::einkOn()
   return ESP_OK;
 }
 
-/**
- * @brief  Power off the e-ink panel and tri-state all data lines.
- *
- * @return esp_err_t
- *         ESP_OK on success, or a TPS driver error code.
- */
 esp_err_t Inkplate4::einkOff()
 {
   if (!getPanelState())
@@ -231,18 +217,10 @@ esp_err_t Inkplate4::einkOff()
   return ret;
 }
 
-/**
- * ============================================================
- * Private functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Private functions                             */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  Allocate framebuffers in PSRAM.
- *
- * @return esp_err_t
- *         ESP_OK on success, ESP_ERR_NO_MEM if allocation fails.
- */
 esp_err_t Inkplate4::initBuffers()
 {
   m_framebufferColor = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM);
@@ -272,9 +250,7 @@ esp_err_t Inkplate4::initBuffers()
 
   return ESP_OK;
 }
-/**
- * @brief  Pre-compute the grayscale waveform lookup tables.
- */
+
 void Inkplate4::calculateLUTs()
 {
   for (int j = 0; j < 9; ++j)
@@ -289,15 +265,6 @@ void Inkplate4::calculateLUTs()
     }
 }
 
-/**
- * @brief  Drive the panel using 3-bit (8-level grayscale) waveform.
- *
- * @param  bool leaveOn
- *         If true, leave the panel powered on after the update.
- *
- * @return esp_err_t
- *         ESP_OK on success.
- */
 esp_err_t Inkplate4::display3b(bool leaveOn)
 {
   esp_err_t ret = einkOn();
@@ -356,15 +323,6 @@ esp_err_t Inkplate4::display3b(bool leaveOn)
   return ESP_OK;
 }
 
-/**
- * @brief  Drive the panel using 1-bit (black and white) waveform.
- *
- * @param  bool leaveOn
- *         If true, leave the panel powered on after the update.
- *
- * @return esp_err_t
- *         ESP_OK on success.
- */
 esp_err_t Inkplate4::display1b(bool leaveOn)
 {
   esp_err_t ret = einkOn();
@@ -455,12 +413,6 @@ esp_err_t Inkplate4::display1b(bool leaveOn)
   return ESP_OK;
 }
 
-/**
- * @brief  Latch one word of pixel data and advance the horizontal scan.
- *
- * @param  uint32_t data
- *         Pre-computed GPIO bitmask for the pixel data to send
- */
 void Inkplate4::hscanStart(uint32_t data)
 {
   SPH_CLEAR;
@@ -470,9 +422,6 @@ void Inkplate4::hscanStart(uint32_t data)
   CKV_SET;
 }
 
-/**
- * @brief  Initialise all GPIO pins and IO expander directions.
- */
 void Inkplate4::gpioInit()
 {
   for (uint32_t i = 0; i < 256; ++i)
@@ -509,9 +458,6 @@ void Inkplate4::gpioInit()
 
   expander1.setDirection(SD_PMOS_PIN, IO_MODE_INPUT, true);
 
-  //expander1.setPort(IO_PORT_1, (uint8_t)(0xFF & ~(1 << (FRONTLIGHT % 8))));
-  //expander1.setDirection(FRONTLIGHT, IO_MODE_OUTPUT, true);
-  
   expander2.setPort(IO_PORT_0, 0x00);
   expander2.setPort(IO_PORT_1, 0x00);
   expander2.setPortDirection(IO_PORT_0, 0x00);
@@ -523,14 +469,6 @@ void Inkplate4::gpioInit()
   pinsAsOutputs();
 }
 
-/**
- * @brief  Run a single cleaning pass on the panel.
- *
- * @param  uint8_t c
- *         Pixel value to write (0 = black, 1 = white, 2 = discharge, 3 = skip).
- * @param  uint8_t rep
- *         Number of times to repeat the pass.
- */
 void Inkplate4::clean(uint8_t c, uint8_t rep)
 {
   einkOn();
@@ -566,9 +504,6 @@ void Inkplate4::clean(uint8_t c, uint8_t rep)
   }
 }
 
-/**
- * @brief  Set all e-ink data and control GPIOs to output mode.
- */
 void Inkplate4::pinsAsOutputs()
 {
   gpio_set_direction(GPIO_NUM_0,  GPIO_MODE_OUTPUT);
@@ -590,9 +525,6 @@ void Inkplate4::pinsAsOutputs()
   gpio_set_direction(GPIO_NUM_27, GPIO_MODE_OUTPUT);
 }
 
-/**
- * @brief  Set all e-ink data and control GPIOs to high-impedance (input) mode.
- */
 void Inkplate4::pinsZstate()
 {
   gpio_set_direction(GPIO_NUM_2,  GPIO_MODE_INPUT);

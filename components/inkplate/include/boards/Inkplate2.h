@@ -1,11 +1,31 @@
-#ifndef INKPLATE_2_H
-#define INKPLATE_2_H
+/**
+ * @file Inkplate2.h
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Inkplate 2 board.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include "esp_err.h"
 #include "esp_rom_sys.h"
 #include "soc/gpio_reg.h"
 #include "soc/gpio_struct.h"
-
 #include "driver/spi_master.h"
 
 #include "BoardBase.h"
@@ -36,20 +56,69 @@
 #define E_INK_WIDTH  104
 #define E_INK_HEIGHT 212
 
+/**
+ * @brief Class for Inkplate 2.
+ * 
+ */
 class Inkplate2 : BoardBase
 {
 public:
+  /**
+   * @brief Construct a new Inkplate 2 object.
+   * 
+   */
   Inkplate2();
 
-  void      writePixelInternal(int16_t x, int16_t y, uint16_t color);
-  esp_err_t display(bool leaveOn = false);
-  void      clearDisplay();
-  void      fillDisplay();
+  /**
+   * @brief Writes a single pixel to the framebuffer.
+   * 
+   * @param x x coordinate.
+   * @param y y coordinate.
+   * @param color INKPLATE2_WHITE, INKPLATE2_BLACK, or INKPLATE2_RED.
+   */
+  void writePixelInternal(int16_t x, int16_t y, uint16_t color);
 
-  void      setDisplayMode(displayMode_t mode) override{}
+  /**
+   * @brief Sends both framebuffer planes to the panel and triggers a refresh.
+   * 
+   * @param leaveOn if true, the panel is left powered on after refresh.
+   */
+  void display(bool leaveOn = false);
+
+  /**
+   * @brief Fill the framebuffer with white (erase all content).
+   * 
+   */
+  void clearDisplay();
+
+  /**
+   * @brief Fill the framebuffer with black (all pixels on).
+   */
+  void fillDisplay();
+
+  /**
+   * @brief Inkplate 2 does not support display mode switching.
+   */
+  void setDisplayMode(displayMode_t mode) override{}
+
+  /**
+   * @brief Power is managed internally per display() call.
+   * 
+   * @return esp_err_t ESP_OK
+   */
   esp_err_t einkOn() override{return ESP_OK;}
+
+  /**
+   * @brief Power is managed internally per display() call.
+   * 
+   * @return esp_err_t ESP_OK
+   */
   esp_err_t einkOff() override{return ESP_OK;}
-  void      setFullUpdateThreshold(uint16_t numberOfPartialUpdates) override{}
+
+  /**
+   * @brief Inkplate 2 does not support partial updates.
+   */
+  void setFullUpdateThreshold(uint16_t numberOfPartialUpdates) override{}
 
   uint8_t   m_displayMode = 0;
 
@@ -58,14 +127,49 @@ public:
   uint8_t   m_einkWidth = E_INK_WIDTH;
 
 private:
-  bool      waitForEpd(uint32_t timeout);
-  void      resetPanel();
-  void      sendCommand(uint8_t command);
-  void      sendData(uint8_t *data, int n);
-  void      sendData(uint8_t data);
-  bool      setPanelDeepSleep(bool state);
+  /**
+   * @brief Polls the busy pin until the panel is ready or the timeout expires.
+   * 
+   * @param timeout maximum wait time in milliseconds.
+   * @return bool true if the panel became ready, false on timeout.
+   */
+  bool waitForEpd(uint32_t timeout);
+
+  /**
+   * @brief Issues a hardware reset pulse to the panel.
+   * 
+   */
+  void resetPanel();
+
+  /**
+   * @brief Sends a single command byte to the panel.
+   * 
+   * @param command command byte to send.
+   */
+  void sendCommand(uint8_t command);
+
+  /**
+   * @brief Sends a data buffer to the panel in 4092-byte chunks.
+   * 
+   * @param data pointer to the data buffer.
+   * @param n number of bytes to send.
+   */
+  void sendData(uint8_t *data, int n);
+
+  /**
+   * @brief Sends a single data byte to the panel.
+   * 
+   * @param data byte to send.
+   */
+  void sendData(uint8_t data);
+
+  /**
+   * @brief Wakes or puts the panel into deep sleep.
+   * 
+   * @param state true to enter deep sleep, false to wake.
+   * @return bool true on success, false if the busy timeout expired during wake.
+   */
+  bool setPanelDeepSleep(bool state);
   
   spi_device_handle_t m_spiDev = nullptr;
 };
-
-#endif
