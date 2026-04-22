@@ -1,5 +1,26 @@
-#include <string.h>
-#include <stdlib.h>
+/**
+ * @file BMP.cpp
+ * @author Fran Fodor for Soldered
+ * @brief BMP image decoder.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include "string.h"
 
 #include "Inkplate.h"
 #include "BMP.h"
@@ -10,7 +31,7 @@ BMP::BMP(Inkplate *inkplate) : m_inkplate(inkplate)
   memset(m_paletteRGB,  0, sizeof(m_paletteRGB));
 }
 
-bool BMP::draw(uint8_t *buf, int x, int y, bool invert, bool dither)
+bool BMP::draw(uint8_t *buf, int x, int y, bool dither, bool invert)
 {
   BitmapHeader header;
   readHeader(buf, &header);
@@ -22,7 +43,7 @@ bool BMP::draw(uint8_t *buf, int x, int y, bool invert, bool dither)
   for (int i = 0; i < header.height; ++i)
   {
     memcpy(m_pixelBuffer, bufferPtr, BMP_ROWSIZE(header.width, header.color));
-    drawLine(x, y + i, &header, invert, dither);
+    drawLine(x, y + i, &header, dither, invert);
     if (dither)
       m_inkplate->image.ditherSwap(header.width);
     bufferPtr += BMP_ROWSIZE(header.width, header.color);
@@ -59,7 +80,7 @@ bool BMP::isValid(BitmapHeader *header)
           header->color == 24 || header->color == 32);
 }
 
-void BMP::drawLine(int16_t x, int16_t y, BitmapHeader *header, bool invert, bool dither)
+void BMP::drawLine(int16_t x, int16_t y, BitmapHeader *header, bool dither, bool invert)
 {
   int16_t w = header->width;
   int16_t h = header->height;
@@ -129,7 +150,7 @@ void BMP::drawLine(int16_t x, int16_t y, BitmapHeader *header, bool invert, bool
 #else
   // Grayscale boards: requires Image class in Inkplate.h
   if (dither)
-    val = m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), j, 0, w, false);
+    val = m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), j, w, false);
   else
     val = RGB3BIT(r, g, b);
   if (invert) val ^= 7;

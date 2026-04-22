@@ -1,3 +1,25 @@
+/**
+ * @file PNG.cpp
+ * @author Fran Fodor for Soldered
+ * @brief PNG image decoder.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_timer.h"
@@ -13,13 +35,13 @@ PNG::PNG(Inkplate *inkplate) : m_inkplate(inkplate), m_x(0), m_y(0), m_invert(fa
 {
 }
 
-bool PNG::draw(uint8_t *buf, int32_t len, int x, int y, bool invert, bool dither)
+bool PNG::draw(uint8_t *buf, int32_t len, int x, int y, bool dither, bool invert)
 {
   m_instance    = this;
   m_x           = x;
   m_y           = y;
-  m_invert      = invert;
   m_dither      = dither;
+  m_invert      = invert;
   m_lastYieldUs = esp_timer_get_time();
   m_lastDitherY = UINT32_MAX;
 
@@ -79,7 +101,7 @@ void PNG::drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint3
       val = m_instance->m_inkplate->image.getDitheredPixel(r, g, b, x + i, ihdr->width);
       if (m_instance->m_invert && val < 2) val ^= 1;
 #else
-      val = m_instance->m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), x + i, 0, ihdr->width, false);
+      val = m_instance->m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), x + i, ihdr->width, false);
       if (m_instance->m_invert) val ^= 7;
       if (m_instance->m_inkplate->getDisplayMode() == BLACK_AND_WHITE)
         val = (~val >> 2) & 1;

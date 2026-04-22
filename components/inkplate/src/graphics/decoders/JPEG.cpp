@@ -1,5 +1,26 @@
-#include <stdlib.h>
-#include <string.h>
+/**
+ * @file JPEG.cpp
+ * @author Fran Fodor for Soldered
+ * @brief JPEG image decoder.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include "string.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -13,26 +34,19 @@ static const char *TAG = "JPEG";
 
 JPEG *JPEG::m_instance = nullptr;
 
-struct JpegSrc
-{
-  const uint8_t *data;
-  uint32_t       index;
-  uint32_t       size;
-};
-
 JPEG::JPEG(Inkplate *inkplate)
     : m_inkplate(inkplate), m_x(0), m_y(0), m_invert(false), m_dither(false),
       m_lastYieldUs(0), m_lineBuf(nullptr), m_lineBufH(0), m_lineBufY(0)
 {
 }
 
-bool JPEG::draw(uint8_t *buf, int32_t len, int x, int y, bool invert, bool dither)
+bool JPEG::draw(uint8_t *buf, int32_t len, int x, int y, bool dither, bool invert)
 {
   m_instance    = this;
   m_x           = x;
   m_y           = y;
-  m_invert      = invert;
   m_dither      = dither;
+  m_invert      = invert;
   m_lastYieldUs = esp_timer_get_time();
   m_lineBuf     = nullptr;
   m_lineBufH    = 0;
@@ -142,7 +156,7 @@ UINT JPEG::outputCallback(JDEC *jdec, void *bitmap, JRECT *rect)
         val = m_instance->m_inkplate->image.getDitheredPixel(r, g, b, i, jdec->width);
         if (m_instance->m_invert && val < 2) val ^= 1;
 #else
-        val = m_instance->m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), i, 0, jdec->width, false);
+        val = m_instance->m_inkplate->image.getDitheredPixel(RGB8BIT(r, g, b), i, jdec->width, false);
         if (m_instance->m_invert) val ^= 7;
         if (m_instance->m_inkplate->getDisplayMode() == BLACK_AND_WHITE)
           val = (~val >> 2) & 1;

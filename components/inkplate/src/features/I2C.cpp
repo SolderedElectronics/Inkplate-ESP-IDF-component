@@ -1,21 +1,35 @@
-#include "driver/i2c_master.h"
+/**
+ * @file I2C.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Helper for I2C communication.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "esp_log.h"
 
 #include "I2C.h"
 
 static const char *TAG = "I2C";
 
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  I2C constructor.
- *
- * @note   Sets up the I2C bus.
- */
 I2C::I2C()
 {
   i2c_master_bus_config_t bus_config  = {};

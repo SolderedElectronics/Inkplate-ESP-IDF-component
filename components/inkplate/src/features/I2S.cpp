@@ -1,3 +1,25 @@
+/**
+ * @file I2S.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Helper for I2S communication.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "esp_private/periph_ctrl.h"
 #include "esp_private/i2s_platform.h"
 #include "soc/gpio_struct.h"
@@ -7,25 +29,13 @@
 #include "soc/gpio_periph.h"
 
 #include "I2S.h"
-#include "Inkplate6.h"
 
-// static const char* TAG = "ESP_I2S";
+static const char* TAG = "ESP_I2S";
 
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
-/**
- * @brief  I2S constructor.
- *
- * @param  uint8_t clockDivider
- *         I2S master clock divider; BCK frequency = 80 MHz / clockDivider
- *
- * @note   Acquires I2S1 peripheral, resets FIFO/DMA/TX/RX, and configures
- *         LCD parallel mode for EPD data output.
- */
 I2S::I2S(uint8_t clockDivider)
 {
   m_i2s = &I2S1;
@@ -93,12 +103,6 @@ I2S::I2S(uint8_t clockDivider)
   m_i2s->timing.val = 0;
 }
 
-/**
- * @brief  Transmit one DMA descriptor's worth of data over I2S to the EPD.
- *
- * @note   Resets the FIFO, DMA, and TX module before each transfer.
- *         Blocks until the DMA out_total_eof interrupt fires.
- */
 void I2S::sendDataI2S()
 {
   // Stop any on-going transmission (just in case).
@@ -145,18 +149,6 @@ void I2S::sendDataI2S()
   m_i2s->out_link.start = 0;
 }
 
-/**
- * @brief  Route an I2S1 signal to a GPIO pin via the GPIO matrix.
- *
- * @param  uint32_t pin
- *         GPIO number (0–39)
- *
- * @param  uint32_t function
- *         I2S signal index from gpio_sig_map.h (e.g. I2S1O_DATA_OUT0_IDX)
- *
- * @param  uint32_t inv
- *         set to 1 to invert the output signal, 0 for normal polarity
- */
 void I2S::setI2S1pin(uint32_t pin, uint32_t function, uint32_t inv)
 {
   // Check if valid pin is selected

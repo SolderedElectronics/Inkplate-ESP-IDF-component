@@ -1,4 +1,26 @@
-#include "TouchscreenElan.h"
+/**
+ * @file TouchElan.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Elan touchscreen.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include "TouchElan.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
@@ -7,20 +29,20 @@
 
 static const char *TAG = "TouchElan";
 
-/* ── ISR ─────────────────────────────────────────────────────────────────── */
-
 static volatile bool tsFlag = false;
 
 static void IRAM_ATTR tsInt(void * /*arg*/)
 {
-    tsFlag = true;
+  tsFlag = true;
 }
 
-/* ── Lifecycle ───────────────────────────────────────────────────────────── */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
 
 esp_err_t TouchElan::begin(I2C &i2c, PCAL &expander, uint8_t powerState)
 {
-    m_expander = &expander;
+  m_expander = &expander;
 
     esp_err_t ret = i2c.addDevice(TOUCHSCREEN_I2C_ADDR, &m_devHandle);
     if (ret != ESP_OK)
@@ -67,8 +89,6 @@ void TouchElan::shutdown()
     end();
 }
 
-/* ── Public runtime API ──────────────────────────────────────────────────── */
-
 bool TouchElan::available()
 {
     return tsFlag;
@@ -108,7 +128,7 @@ bool TouchElan::touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h)
     return false;
 }
 
-uint8_t TouchElan::getData(uint16_t *xPos, uint16_t *yPos)
+uint8_t TouchElan::getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z)
 {
     uint8_t  raw[8]  = {0};
     uint16_t xRaw[2] = {0, 0};
@@ -155,7 +175,7 @@ uint8_t TouchElan::getData(uint16_t *xPos, uint16_t *yPos)
 
 void TouchElan::getRawData(uint8_t *b)
 {
-    tsReadRegs(TOUCHSCREEN_I2C_ADDR, b, 8);
+    tsReadRegs(b, 8);
 }
 
 void TouchElan::setPowerState(uint8_t s)
@@ -163,22 +183,24 @@ void TouchElan::setPowerState(uint8_t s)
     s &= 1;
     uint8_t reg[4] = {0x54, 0x50, 0x00, 0x01};
     reg[1] |= (s << 3);
-    tsWriteRegs(TOUCHSCREEN_I2C_ADDR, reg, 4);
+    tsWriteRegs(reg, 4);
 }
 
 uint8_t TouchElan::getPowerState()
 {
     const uint8_t reg[4] = {0x53, 0x50, 0x00, 0x01};
     uint8_t buf[4]        = {0};
-    tsWriteRegs(TOUCHSCREEN_I2C_ADDR, reg, 4);
+    tsWriteRegs(reg, 4);
     tsFlag = false;
-    tsReadRegs(TOUCHSCREEN_I2C_ADDR, buf, 4);
+    tsReadRegs(buf, 4);
     return (buf[1] >> 3) & 1;
 }
 
-/* ── Private helpers ─────────────────────────────────────────────────────── */
+/* -------------------------------------------------------------------------- */
+/*                              Private functions                             */
+/* -------------------------------------------------------------------------- */
 
-uint8_t TouchElan::tsWriteRegs(uint8_t /*addr*/, const uint8_t *buff, uint8_t size)
+uint8_t TouchElan::tsWriteRegs(const uint8_t *buff, uint8_t size)
 {
     esp_err_t ret = i2c_master_transmit(m_devHandle, buff, size, -1);
     if (ret != ESP_OK)
@@ -188,7 +210,7 @@ uint8_t TouchElan::tsWriteRegs(uint8_t /*addr*/, const uint8_t *buff, uint8_t si
     return (ret == ESP_OK) ? 0 : 1;
 }
 
-void TouchElan::tsReadRegs(uint8_t /*addr*/, uint8_t *buff, uint8_t size)
+void TouchElan::tsReadRegs(uint8_t *buff, uint8_t size)
 {
     esp_err_t ret = i2c_master_receive(m_devHandle, buff, size, -1);
     if (ret != ESP_OK)
@@ -210,7 +232,7 @@ bool TouchElan::tsSoftwareReset()
 {
     const uint8_t softRstCmd[4] = {0x77, 0x77, 0x77, 0x77};
 
-    if (tsWriteRegs(TOUCHSCREEN_I2C_ADDR, softRstCmd, 4) != 0)
+    if (tsWriteRegs(softRstCmd, 4) != 0)
     {
         ESP_LOGE(TAG, "Software reset write failed");
         return false;
@@ -229,7 +251,7 @@ bool TouchElan::tsSoftwareReset()
         tsFlag = true;
 
     uint8_t rb[4] = {0};
-    tsReadRegs(TOUCHSCREEN_I2C_ADDR, rb, 4);
+    tsReadRegs(rb, 4);
     tsFlag = false;
 
     if (memcmp(rb, hello_packet, 4) != 0)
@@ -256,12 +278,12 @@ void TouchElan::tsGetResolution(uint16_t *xRes, uint16_t *yRes)
     const uint8_t cmdY[4] = {0x53, 0x63, 0x00, 0x00};
     uint8_t rec[4] = {0};
 
-    tsWriteRegs(TOUCHSCREEN_I2C_ADDR, cmdX, 4);
-    tsReadRegs(TOUCHSCREEN_I2C_ADDR, rec, 4);
+    tsWriteRegs(cmdX, 4);
+    tsReadRegs(rec, 4);
     *xRes = (uint16_t)(rec[2]) | (uint16_t)((rec[3] & 0xF0) << 4);
 
-    tsWriteRegs(TOUCHSCREEN_I2C_ADDR, cmdY, 4);
-    tsReadRegs(TOUCHSCREEN_I2C_ADDR, rec, 4);
+    tsWriteRegs(cmdY, 4);
+    tsReadRegs(rec, 4);
     *yRes = (uint16_t)(rec[2]) | (uint16_t)((rec[3] & 0xF0) << 4);
 
     tsFlag = false;

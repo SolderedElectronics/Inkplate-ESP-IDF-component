@@ -1,5 +1,26 @@
-#ifndef INKPLATE_6_COLOR_H
-#define INKPLATE_6_COLOR_H
+/**
+ * @file Inkplate6Color.h
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Inkplate 6 Color board.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
 
 #include "esp_err.h"
 #include "esp_rom_sys.h"
@@ -65,37 +86,113 @@ extern PCAL expander1;
 #define INKPLATE_YELLOW 0b00000101
 #define INKPLATE_ORANGE 0b00000110
 
+/**
+ * @brief Class for Inkplate 6 Color.
+ * 
+ */
 class Inkplate6Color : public BoardCommon
 {
 public:
+  /**
+   * @brief Construct a new Inkplate 6 Color object.
+   * 
+   */
   Inkplate6Color();
+
+  /**
+   * @brief Inkplate 6 Color does not support partial updates.
+   */
+  uint32_t partialUpdate(bool forced = false, bool leaveOn = false) { return 0; };
   
-  uint32_t  partialUpdate(bool forced = false, bool leaveOn = false) {return 0;};
-  esp_err_t einkOn() override;
-  esp_err_t einkOff() override;
+  /**
+   * @brief Power is managed internally per display() call.
+   * 
+   * @return esp_err_t ESP_OK
+   */
+  esp_err_t einkOn() { return ESP_OK; };
+
+  /**
+   * @brief Power is managed internally per display() call.
+   * 
+   * @return esp_err_t ESP_OK
+   */
+  esp_err_t einkOff() { return ESP_OK; };
 
   RTC       rtc;
 
 private:
+  /**
+   * @brief Allocate framebuffers.
+   * 
+   * @return esp_err_t error code.
+   */
   esp_err_t initBuffers();
+
+  /**
+   * @brief Drive the panel using 3-bit (8-level grayscale) waveform.
+   * 
+   * @param leaveOn if true, leave the panel powered on after the update.
+   * @return esp_err_t error code
+   */
   esp_err_t display3b(bool leaveOn);
-  bool      waitForEpd(uint32_t timeout);
-  void      resetPanel();
-  void      sendCommand(uint8_t command);
-  void      sendData(uint8_t *data, int n);
-  void      sendData(uint8_t data);
-  bool      setPanelDeepSleep(bool state);
 
-  void      setIOExpanderForLowPower();
+  /**
+   * @brief Polls the busy pin until the panel is ready or the timeout expires.
+   * 
+   * @param timeout maximum wait time in milliseconds.
+   * @return bool true if the panel became ready, false on timeout.
+   */
+  bool waitForEpd(uint32_t timeout);
 
-  void      calculateLUTs() {return;};
+  /**
+   * @brief Issues a hardware reset pulse to the panel.
+   * 
+   */
+  void resetPanel();
+
+  /**
+   * @brief Sends a single command byte to the panel.
+   * 
+   * @param command command byte to send.
+   */
+  void sendCommand(uint8_t command);
+
+  /**
+   * @brief Sends a data buffer to the panel in 4092-byte chunks.
+   * 
+   * @param data pointer to the data buffer.
+   * @param n number of bytes to send.
+   */
+  void sendData(uint8_t *data, int n);
+
+  /**
+   * @brief Sends a single data byte to the panel.
+   * 
+   * @param data byte to send.
+   */
+  void sendData(uint8_t data);
+
+  /**
+   * @brief Wakes or puts the panel into deep sleep.
+   * 
+   * @param state true to enter deep sleep, false to wake.
+   * @return bool true on success, false if the busy timeout expired during wake.
+   */
+  bool setPanelDeepSleep(bool state);
+
+  /**
+   * @brief Turns off pins to save power.
+   * 
+   */
+  void setIOExpanderForLowPower();
+
+  // not used
+  void calculateLUTs() {return;};
   esp_err_t display1b(bool leaveOn) {return ESP_OK;};
-  void      gpioInit() {return;};
-  void      clean(uint8_t c, uint8_t rep) {return;};
-  void      pinsAsOutputs() {return;};
-  void      pinsZstate() {return;};
+  void gpioInit() {return;};
+  void clean(uint8_t c, uint8_t rep) {return;};
+  void pinsAsOutputs() {return;};
+  void pinsZstate() {return;};
 
-  SPI       m_spi;
+  SPI m_spi;
 };
-
-#endif

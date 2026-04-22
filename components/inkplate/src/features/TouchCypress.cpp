@@ -1,4 +1,26 @@
-#include "Touchscreen.h"
+/**
+ * @file TouchCypress.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Driver for Cypress touchscreen.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include "TouchCypress.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include <string.h>
@@ -15,7 +37,11 @@ static void IRAM_ATTR tsInt(void *arg)
   tsFlag = true;
 }
 
-esp_err_t Touch::begin(I2C &i2c, PCAL &expander, uint8_t powerState)
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
+
+esp_err_t TouchCypress::begin(I2C &i2c, PCAL &expander, uint8_t powerState)
 {
   m_expander = &expander;
 
@@ -73,7 +99,18 @@ esp_err_t Touch::begin(I2C &i2c, PCAL &expander, uint8_t powerState)
   return ESP_OK;
 }
 
-bool Touch::touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h)
+void TouchCypress::shutdown()
+{
+    // Turn off the touchscreen power supply.
+    power(false);
+}
+
+bool TouchCypress::available()
+{
+  return tsFlag;
+}
+
+bool TouchCypress::touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h)
 {
   int16_t x2 = x1 + w, y2 = y1 +  h;
   if (available())
@@ -109,46 +146,7 @@ bool Touch::touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h)
   return false;
 }
 
-void Touch::shutdown()
-{
-    // Turn off the touchscreen power supply.
-    power(false);
-}
-
-/**
- * @brief       Set power mode of the Touchscreen Controller. There are 3 modes
- *              CYPRESS_TOUCH_OPERATE_MODE - Normal mode (fast response, higher accuracy, higher power consumption).
- *                                           Current ~ 15mA.
- *              CYPRESS_TOUCH_LOW_POWER_MODE - After few seconds of inactivity, TSC goes into low power ode and
- * periodically goes into operating mode to check for touch event. Current ~4mA. CYPRESS_TOUCH_DEEP_SLEEP_MODE - Disable
- * TSC. Current ~25uA.
- *
- * @param       uint8_t _s
- *              Power mode - Can only be CYPRESS_TOUCH_OPERATE_MODE, CYPRESS_TOUCH_LOW_POWER_MODE or
- * CYPRESS_TOUCH_DEEP_SLEEP_MODE. [defined in TouchCypress.h]
- */
-void Touch::setPowerState(uint8_t s)
-{
-    // Check for the parameters.
-    if ((s == CYPRESS_TOUCH_DEEP_SLEEP_MODE) || (s == CYPRESS_TOUCH_LOW_POWER_MODE) ||
-        (s == CYPRESS_TOUCH_OPERATE_MODE))
-    {
-        // Set new power mode setting.
-        sendCommand(s);
-    }
-}
-
-uint8_t Touch::getPowerState()
-{
-    uint8_t reg = CYPRESS_TOUCH_BASE_ADDR;
-    uint8_t result = 0;
-
-    ESP_ERROR_CHECK(i2c_master_transmit_receive(m_devHandle, &reg, 1, &result, 1, -1));
-
-    return result;
-}
-
-uint8_t Touch::getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z)
+uint8_t TouchCypress::getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z)
 {
   // Struct typedef for touch data report from the touchscreen controller IC.
   struct cypressTouchData touchReport;
@@ -207,9 +205,79 @@ uint8_t Touch::getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z)
   return touchReport.fingers;
 }
 
+void TouchCypress::getRawData(uint8_t *b)
+{
+    readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, b, 16);
+}
 
+void TouchCypress::setPowerState(uint8_t s)
+{
+    // Check for the parameters.
+    if ((s == CYPRESS_TOUCH_DEEP_SLEEP_MODE) || (s == CYPRESS_TOUCH_LOW_POWER_MODE) ||
+        (s == CYPRESS_TOUCH_OPERATE_MODE))
+    {
+        // Set new power mode setting.
+        sendCommand(s);
+    }
+}
 
-bool Touch::getTouchData(struct cypressTouchData *touchData)
+uint8_t TouchCypress::getPowerState()
+{
+    uint8_t reg = CYPRESS_TOUCH_BASE_ADDR;
+    uint8_t result = 0;
+
+    ESP_ERROR_CHECK(i2c_master_transmit_receive(m_devHandle, &reg, 1, &result, 1, -1));
+
+    return result;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                              Private functions                             */
+/* -------------------------------------------------------------------------- */
+
+bool TouchCypress::ping(int retries)
+{
+  for (int i = 0; i < retries; i++)
+  {
+    uint8_t reg = 0x00;
+
+    esp_err_t ret = i2c_master_transmit(m_devHandle, &reg, 1, 50);
+
+    if (ret == ESP_OK)
+      return true;
+
+    vTaskDelay(pdMS_TO_TICKS(20));
+  }
+
+  return false;
+}
+
+void TouchCypress::handshake()
+{
+  uint8_t hstModeReg = 0;
+  ESP_ERROR_CHECK(readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, &hstModeReg, 1));
+  hstModeReg ^= 0x80;
+  ESP_ERROR_CHECK(writeI2CRegs(CYPRESS_TOUCH_BASE_ADDR, &hstModeReg, 1));
+}
+
+void TouchCypress::power(bool power)
+{
+  if (power)
+  {
+    m_expander->setLevel(TOUCHSCREEN_EN, 1);
+    vTaskDelay(pdMS_TO_TICKS(50));
+    m_expander->setLevel(TOUCHSCREEN_RST, 1);
+    vTaskDelay(pdMS_TO_TICKS(50));
+  }
+  else
+  {
+    m_expander->setLevel(TOUCHSCREEN_EN, 0);
+    vTaskDelay(pdMS_TO_TICKS(50));
+    m_expander->setLevel(TOUCHSCREEN_RST, 0);
+  }
+}
+
+bool TouchCypress::getTouchData(struct cypressTouchData *touchData)
 {
   // Check for the null-pointer trap.
   if (touchData == NULL)
@@ -257,8 +325,7 @@ bool Touch::getTouchData(struct cypressTouchData *touchData)
   return true;
 }
 
-
-void Touch::scale(struct cypressTouchData *touchData, uint16_t xSize, uint16_t ySize, bool flipX, bool flipY, bool swapXY)
+void TouchCypress::scale(struct cypressTouchData *touchData, uint16_t xSize, uint16_t ySize, bool flipX, bool flipY, bool swapXY)
 {
   // Temp. variables for the mapped value.
   uint16_t mappedX = 0;
@@ -297,29 +364,20 @@ void Touch::scale(struct cypressTouchData *touchData, uint16_t xSize, uint16_t y
   }
 }
 
-bool Touch::available()
+void TouchCypress::end()
 {
-  return tsFlag;
+  if (m_tsInitDone)
+  {
+    gpio_isr_handler_remove(TOUCHSCREEN_INT);
+    gpio_set_intr_type(TOUCHSCREEN_INT, GPIO_INTR_DISABLE);
+  }
+
+  tsFlag = false;
+  power(false);
+  m_tsInitDone = false;
 }
 
-void Touch::power(bool power)
-{
-  if (power)
-  {
-    m_expander->setLevel(TOUCHSCREEN_EN, 1);
-    vTaskDelay(pdMS_TO_TICKS(50));
-    m_expander->setLevel(TOUCHSCREEN_RST, 1);
-    vTaskDelay(pdMS_TO_TICKS(50));
-  }
-  else
-  {
-    m_expander->setLevel(TOUCHSCREEN_EN, 0);
-    vTaskDelay(pdMS_TO_TICKS(50));
-    m_expander->setLevel(TOUCHSCREEN_RST, 0);
-  }
-}
-
-void Touch::reset()
+void TouchCypress::reset()
 {
   m_expander->setLevel(TOUCHSCREEN_RST, 1);
   vTaskDelay(pdMS_TO_TICKS(10));
@@ -329,11 +387,7 @@ void Touch::reset()
   vTaskDelay(pdMS_TO_TICKS(10));
 }
 
-/**
- * @brief       Method executes a SW reset by using I2C command.
- *
- */
-void Touch::swReset()
+void TouchCypress::swReset()
 {
     // Issue a command for SW reset.
     sendCommand(CYPRESS_TOUCH_SOFT_RST_MODE);
@@ -342,29 +396,7 @@ void Touch::swReset()
     vTaskDelay(pdMS_TO_TICKS(20));
 }
 
-bool Touch::ping(int retries)
-{
-  for (int i = 0; i < retries; i++)
-  {
-    uint8_t reg = 0x00;
-
-    esp_err_t ret = i2c_master_transmit(m_devHandle, &reg, 1, 50);
-
-    if (ret == ESP_OK)
-      return true;
-
-    vTaskDelay(pdMS_TO_TICKS(20));
-  }
-
-  return false;
-}
-
-void Touch::getRawData(uint8_t *b)
-{
-    readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, b, 16);
-}
-
-esp_err_t Touch::sendCommand(uint8_t cmd)
+esp_err_t TouchCypress::sendCommand(uint8_t cmd)
 {
   uint8_t buf[2] = { CYPRESS_TOUCH_BASE_ADDR, cmd };
   esp_err_t ret = i2c_master_transmit(m_devHandle, buf, sizeof(buf), -1);
@@ -372,7 +404,7 @@ esp_err_t Touch::sendCommand(uint8_t cmd)
   return ret;
 }
 
-esp_err_t Touch::loadBootloaderRegs(struct cyttspBootloaderData *blDataPtr)
+esp_err_t TouchCypress::loadBootloaderRegs(struct cyttspBootloaderData *blDataPtr)
 {
   uint8_t bootloaderData[16];
 
@@ -383,13 +415,13 @@ esp_err_t Touch::loadBootloaderRegs(struct cyttspBootloaderData *blDataPtr)
   return ESP_OK;
 }
 
-esp_err_t Touch::readI2CRegs(uint8_t cmd, uint8_t *buffer, int len)
+esp_err_t TouchCypress::readI2CRegs(uint8_t cmd, uint8_t *buffer, int len)
 {
     //ESP_LOGI(TAG, "read");
   return (i2c_master_transmit_receive(m_devHandle, &cmd, 1, buffer, len, -1));
 }
 
-esp_err_t Touch::writeI2CRegs(uint8_t cmd, uint8_t *buffer, int len)
+esp_err_t TouchCypress::writeI2CRegs(uint8_t cmd, uint8_t *buffer, int len)
 {
     //ESP_LOGI(TAG, "write");
   uint8_t *writeBuf = (uint8_t *)malloc(len + 1);
@@ -405,7 +437,7 @@ esp_err_t Touch::writeI2CRegs(uint8_t cmd, uint8_t *buffer, int len)
   return err;
 }
 
-esp_err_t Touch::exitBootloaderMode()
+esp_err_t TouchCypress::exitBootloaderMode()
 {
   uint8_t blCommandArray[] =  {
         0x00,                     // File offset.
@@ -428,7 +460,7 @@ esp_err_t Touch::exitBootloaderMode()
   return ESP_OK;
 }
 
-esp_err_t Touch::setSysInfoMode(struct cyttspSysinfoData *sysDataPtr)
+esp_err_t TouchCypress::setSysInfoMode(struct cyttspSysinfoData *sysDataPtr)
 {
   sendCommand(CYPRESS_TOUCH_SYSINFO_MODE);
 
@@ -451,7 +483,7 @@ esp_err_t Touch::setSysInfoMode(struct cyttspSysinfoData *sysDataPtr)
   return ESP_OK;
 }
 
-esp_err_t Touch::setSysInfoRegs(struct cyttspSysinfoData *sysDataPtr)
+esp_err_t TouchCypress::setSysInfoRegs(struct cyttspSysinfoData *sysDataPtr)
 {
   // Modify registers to the default values.
   sysDataPtr->act_intrvl = CYPRESS_TOUCH_ACT_INTRVL_DFLT;
@@ -470,23 +502,3 @@ esp_err_t Touch::setSysInfoRegs(struct cyttspSysinfoData *sysDataPtr)
   return err;
 }
 
-void Touch::handshake()
-{
-  uint8_t hstModeReg = 0;
-  ESP_ERROR_CHECK(readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, &hstModeReg, 1));
-  hstModeReg ^= 0x80;
-  ESP_ERROR_CHECK(writeI2CRegs(CYPRESS_TOUCH_BASE_ADDR, &hstModeReg, 1));
-}
-
-void Touch::end()
-{
-  if (m_tsInitDone)
-  {
-    gpio_isr_handler_remove(TOUCHSCREEN_INT);
-    gpio_set_intr_type(TOUCHSCREEN_INT, GPIO_INTR_DISABLE);
-  }
-
-  tsFlag = false;
-  power(false);
-  m_tsInitDone = false;
-}

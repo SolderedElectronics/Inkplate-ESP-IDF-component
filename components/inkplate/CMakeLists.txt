@@ -43,22 +43,21 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE2)
 endif()
 
 set(DECODER_SRCS
-    "src/graphics/Decoders/BMP.cpp"
-    "src/graphics/Decoders/JPEG.cpp"
-    "src/graphics/Decoders/PNG.cpp"
-    "src/graphics/Decoders/pngle/pngle.c"
+    "src/graphics/decoders/BMP.cpp"
+    "src/graphics/decoders/JPEG.cpp"
+    "src/graphics/decoders/PNG.cpp"
+    "src/graphics/decoders/pngle/pngle.c"
 )
 
 set(DECODER_INCLUDES
-    "include/graphics/Decoders"
-    "include/graphics/Decoders/pngle"
+    "include/graphics/decoders"
+    "include/graphics/decoders/pngle"
 )
 
 set(GRAPHICS_SRCS
     "src/graphics/Graphics.cpp"
     "src/graphics/Adafruit_GFX/Adafruit_GFX.cpp"
     "src/graphics/Shapes.cpp"
-    "src/graphics/ShapesPolygon.cpp"
 )
 
 set(GRAPHICS_INCLUDES
@@ -66,7 +65,7 @@ set(GRAPHICS_INCLUDES
     "include/graphics/Adafruit_GFX"
 )
 if(CONFIG_INKPLATE_BOARD_INKPLATE2)
-idf_component_register(SRCS "src/features/Network.cpp"
+idf_component_register(SRCS "src/features/WiFi.cpp"
                             "src/boards/Inkplate.cpp"
                             ${BOARD_SRC}
                             ${GRAPHICS_SRCS}
@@ -85,8 +84,8 @@ idf_component_register(SRCS "src/features/Network.cpp"
 else()
 idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" 
                             "src/features/PCAL.cpp" "src/features/TPS.cpp"
-                            "src/features/Network.cpp" "src/features/SDCard.cpp"
-                            "src/boards/BoardCommon.cpp" "src/features/Touchscreen.cpp" "src/features/TouchscreenElan.cpp"
+                            "src/features/WiFi.cpp" "src/features/SDCard.cpp"
+                            "src/boards/BoardCommon.cpp" "src/features/TouchCypress.cpp" "src/features/TouchElan.cpp"
                             "src/boards/Inkplate.cpp"
                             ${BOARD_SRC}
                             ${SENSOR_SRCS}

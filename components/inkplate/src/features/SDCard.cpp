@@ -1,32 +1,40 @@
-#include "SDCard.h"
+/**
+ * @file SDCard.cpp
+ * @author Fran Fodor for Soldered
+ * @brief Helper for SD card communication.
+ * 
+ * https://github.com/SolderedElectronics/Inkplate-Esp-library
+ * For more info about the product, please check: https://docs.soldered.com/inkplate/
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
 #include "driver/sdspi_host.h"
 #include "driver/gpio.h"
 #include "esp_vfs_fat.h"
 #include "esp_rom_sys.h"
 
-/**
- * ============================================================
- * Public functions
- * ============================================================
- */
+#include "SDCard.h"
 
-/**
- * @brief  Store a reference to the IO expander used to control the SD power
- *         switch.
- *
- * @param  PCAL &expander
- *         Reference to the PCAL expander that has SD_PMOS_PIN.
- */
+/* -------------------------------------------------------------------------- */
+/*                              Public functions                              */
+/* -------------------------------------------------------------------------- */
+
 SDCard::SDCard(PCAL &expander, IOPin_t pin) : m_expander(expander), m_pin(pin)
 {
 }
 
-/**
- * @brief  Power on the SD card and mount the FAT filesystem via VFS.
- *
- * @return esp_err_t
- *         ESP_OK on success, or an error code from the SPI/VFS driver.
- */
 esp_err_t SDCard::sdCardInit()
 {
   m_expander.setDirection(m_pin, IO_MODE_OUTPUT, true);
@@ -62,14 +70,6 @@ esp_err_t SDCard::sdCardInit()
   return ret;
 }
 
-/**
- * @brief  Unmount the filesystem, free the SPI bus, and cut power to the card.
- *         Sets all SPI lines and the power switch pin as inputs to minimise
- *         current draw.
- *
- * @return esp_err_t
- *         ESP_OK on success, or an error code if unmounting failed.
- */
 esp_err_t SDCard::sdCardSleep()
 {
   esp_err_t ret = ESP_OK;
@@ -87,15 +87,4 @@ esp_err_t SDCard::sdCardSleep()
   m_expander.setDirection(m_pin, IO_MODE_INPUT, true);
 
   return ret;
-}
-
-/**
- * @brief  Get the mount point string for constructing file paths.
- *
- * @return const char*
- *         Mount point, e.g. "/sdcard".
- */
-const char *SDCard::getMountPoint()
-{
-  return SD_MOUNT_POINT;
 }
