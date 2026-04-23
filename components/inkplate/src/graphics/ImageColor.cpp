@@ -55,38 +55,37 @@ ImageColor::ImageColor(Inkplate *inkplate)
 
 uint8_t ImageColor::findClosestPalette(int16_t r, int16_t g, int16_t b)
 {
-    int32_t minDistance = INT32_MAX;
-    uint8_t contenderCount = 0;
-    uint8_t contenderList[7]; // sized for max palette (7 colors)
+  int32_t minDistance = INT32_MAX;
+  uint8_t contenderCount = 0;
+   uint8_t contenderList[7]; // sized for max palette (7 colors)
 
-    for (uint8_t i = 0; i < palletteSize; ++i)
+  for (uint8_t i = 0; i < palletteSize; ++i)
+  {
+    int16_t dr = r - (int16_t)RED8(pallete[i]);
+    int16_t dg = g - (int16_t)GREEN8(pallete[i]);
+    int16_t db = b - (int16_t)BLUE8(pallete[i]);
+    int32_t currentDistance = dr*dr + dg*dg + db*db;
+
+    if (currentDistance < minDistance)
     {
-        int16_t dr = r - (int16_t)RED8(pallete[i]);
-        int16_t dg = g - (int16_t)GREEN8(pallete[i]);
-        int16_t db = b - (int16_t)BLUE8(pallete[i]);
-
-        int32_t currentDistance = dr*dr + dg*dg + db*db;
-
-        if (currentDistance < minDistance)
-        {
-            minDistance = currentDistance;
-            contenderList[0] = i;
-            contenderCount = 1;
-        }
-        else if (currentDistance == minDistance)
-        {
-            if (contenderCount < palletteSize)
-                contenderList[contenderCount++] = i;
-        }
+      minDistance = currentDistance;
+      contenderList[0] = i;
+      contenderCount = 1;
     }
+    else if (currentDistance == minDistance)
+    {
+      if (contenderCount < palletteSize)
+        contenderList[contenderCount++] = i;
+    }
+  }
 
-    return contenderList[0];
+  return contenderList[0];
 }
 
 void ImageColor::setDitherKernel(DitherKernel kernel)
 {
-    if ((uint8_t)kernel < DITHER_KERNEL_COUNT)
-        m_currentKernel = &DITHER_KERNELS[(uint8_t)kernel];
+  if ((uint8_t)kernel < DITHER_KERNEL_COUNT)
+    m_currentKernel = &DITHER_KERNELS[(uint8_t)kernel];
 }
 
 uint8_t ImageColor::getDitheredPixel(uint8_t r, uint8_t g, uint8_t b, int i, int w)
@@ -120,20 +119,20 @@ uint8_t ImageColor::getDitheredPixel(uint8_t r, uint8_t g, uint8_t b, int i, int
 
   for (int ky = 0; ky < k->height; ++ky)
   {
-      const int nextRowIdx = (rowIdx + ky) & DITHER_ROW_MASK;
-      int16_t *nextRowR = m_ditherR[nextRowIdx];
-      int16_t *nextRowG = m_ditherG[nextRowIdx];
-      int16_t *nextRowB = m_ditherB[nextRowIdx];
-      for (int l = minOffset; l <= maxOffset; ++l)
-      {
-          const int weight = k->data[ky * k->width + (l + k->x)];
-          if (!weight)
-              continue;
-          const int idx = i + l;
-          nextRowR[idx] += (int16_t)((weight * rErr) / k->coef);
-          nextRowG[idx] += (int16_t)((weight * gErr) / k->coef);
-          nextRowB[idx] += (int16_t)((weight * bErr) / k->coef);
-      }
+    const int nextRowIdx = (rowIdx + ky) & DITHER_ROW_MASK;
+    int16_t *nextRowR = m_ditherR[nextRowIdx];
+    int16_t *nextRowG = m_ditherG[nextRowIdx];
+    int16_t *nextRowB = m_ditherB[nextRowIdx];
+    for (int l = minOffset; l <= maxOffset; ++l)
+    {
+      const int weight = k->data[ky * k->width + (l + k->x)];
+      if (!weight)
+        continue;
+      const int idx = i + l;
+      nextRowR[idx] += (int16_t)((weight * rErr) / k->coef);
+      nextRowG[idx] += (int16_t)((weight * gErr) / k->coef);
+      nextRowB[idx] += (int16_t)((weight * bErr) / k->coef);
+    }
   }
 
   return (uint8_t)closest;
@@ -234,35 +233,36 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
   return result;
 }
 
-bool ImageColor::draw(const uint8_t *buf, int x, int y, int w, int h, bool invert, bool dither)
+bool ImageColor::draw(uint8_t *buf, int w, int h, int x, int y, int c)
 {
-  if (dither) beginDither();
+  #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+  int rowBytes = (w + 7) / 8; // bytes per row, rounded up
 
-  const int bytesPerRow = (w + 3) / 4;
-  for (int row = 0; row < h; ++row)
+  for (int i = 0; i < h; i++)
   {
-      for (int col = 0; col < w; ++col)
-      {
-          int byteIdx = row * bytesPerRow + col / 4;
-          int shift   = 6 - (col % 4) * 2;
-          uint8_t px  = (buf[byteIdx] >> shift) & 0x03;
+    for (int j = 0; j < w; j++)
+    {
+      // extract the bit for pixel (j, i)
+      uint8_t byte = buf[i * rowBytes + (j / 8)];
+      bool bit = (byte >> (7 - (j % 8))) & 1;
 
-          // Map 2bpp -> RGB using simple greyscale ramp
-          uint8_t luma = px * 85;
-          if (invert) luma = 255 - luma;
-
-          uint8_t out;
-          if (dither)
-              out = getDitheredPixel(luma, luma, luma, col, w);
-          else
-              out = findClosestPalette(luma, luma, luma);
-
-          m_inkplate->drawPixel(x + col, y + row, out);
-      }
-      if (dither) ditherSwap(w);
+      m_inkplate->drawPixel(x + j, y + i, bit ? c : 0xFF);
+    }
   }
+  #else
+  uint16_t scaledW = ceil(w / 4.0);
+  for (int i = 0; i < h; i++)
+  {
+    for (int j = 0; j < scaledW; j++)
+    {
+      m_inkplate->drawPixel(4 * j + x + 0, i + y, (buf[scaledW * i + j] & 0xC0) >> 6);
+      m_inkplate->drawPixel(4 * j + x + 1, i + y, (buf[scaledW * i + j] & 0x30) >> 4);
+      m_inkplate->drawPixel(4 * j + x + 2, i + y, (buf[scaledW * i + j] & 0x0C) >> 2);
+      m_inkplate->drawPixel(4 * j + x + 3, i + y, (buf[scaledW * i + j] & 0x03));
+    }
+  }
+  #endif
 
-  if (dither) endDither();
   return true;
 }
 

@@ -39,20 +39,22 @@ void SPI::init()
 {
   if (m_spiDev) return;
 
+  m_host = SPI3_HOST;
+
   spi_bus_config_t bus_cfg = {};
   bus_cfg.mosi_io_num   = m_mosi;
   bus_cfg.miso_io_num   = -1;
   bus_cfg.sclk_io_num   = m_clk;
   bus_cfg.quadwp_io_num = -1;
   bus_cfg.quadhd_io_num = -1;
-  ESP_ERROR_CHECK(spi_bus_initialize(SPI3_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
+  ESP_ERROR_CHECK(spi_bus_initialize(m_host, &bus_cfg, SPI_DMA_CH_AUTO));
 
   spi_device_interface_config_t dev_cfg = {};
   dev_cfg.clock_speed_hz = SPI_MASTER_FREQ_10M;
   dev_cfg.mode           = 0;
   dev_cfg.spics_io_num   = -1;
   dev_cfg.queue_size     = 3;
-  ESP_ERROR_CHECK(spi_bus_add_device(SPI3_HOST, &dev_cfg, &m_spiDev));
+  ESP_ERROR_CHECK(spi_bus_add_device(m_host, &dev_cfg, &m_spiDev));
 }
 
 void SPI::deinit()

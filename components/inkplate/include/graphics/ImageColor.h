@@ -147,11 +147,10 @@ public:
    * @param h image height in pixels.
    * @param x x coordinate of the top-left corner.
    * @param y y coordinate of the top-left corner.
-   * @param dither true to apply Floyd-Steinberg dithering.
-   * @param invert true to invert pixel colours.
+   * @param c color.
    * @return bool true always
    */
-  bool draw(const uint8_t *buf, int x, int y, int w, int h, bool dither = false, bool invert = false);
+  bool draw(uint8_t *buf, int w, int h, int x, int y, int c);
 
   /**
    * @brief Sets the active dithering kernel.

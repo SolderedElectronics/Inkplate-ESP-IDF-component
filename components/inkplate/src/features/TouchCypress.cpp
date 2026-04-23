@@ -101,8 +101,8 @@ esp_err_t TouchCypress::begin(I2C &i2c, PCAL &expander, uint8_t powerState)
 
 void TouchCypress::shutdown()
 {
-    // Turn off the touchscreen power supply.
-    power(false);
+  // Turn off the touchscreen power supply.
+  power(false);
 }
 
 bool TouchCypress::available()
@@ -122,12 +122,12 @@ bool TouchCypress::touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h)
     uint64_t tsIntTimeout = esp_timer_get_time() / 1000;
     while ((esp_timer_get_time() / 1000 - tsIntTimeout) < 100ULL)
     {
-        if (tsFlag)
-        {
-            tsIntTimeout = esp_timer_get_time() / 1000;
-            tsFlag = false;
-            handshake();
-        }
+      if (tsFlag)
+      {
+        tsIntTimeout = esp_timer_get_time() / 1000;
+        tsFlag = false;
+        handshake();
+      }
     }
     touchT = esp_timer_get_time() / 1000;
     touchN = n;
@@ -137,12 +137,13 @@ bool TouchCypress::touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h)
 
   if ((esp_timer_get_time() / 1000 - touchT) < 150ULL)
   {
-      if (touchN == 1 && BOUND(x1, touchX[0], x2) && BOUND(y1, touchY[0], y2))
-          return true;
-      if (touchN == 2 && ((BOUND(x1, touchX[0], x2) && BOUND(y1, touchY[0], y2)) ||
-                          (BOUND(x1, touchX[1], x2) && BOUND(y1, touchY[1], y2))))
-          return true;
+    if (touchN == 1 && BOUND(x1, touchX[0], x2) && BOUND(y1, touchY[0], y2))
+      return true;
+    if (touchN == 2 && ((BOUND(x1, touchX[0], x2) && BOUND(y1, touchY[0], y2)) ||
+                        (BOUND(x1, touchX[1], x2) && BOUND(y1, touchY[1], y2))))
+      return true;
   }
+
   return false;
 }
 
@@ -207,28 +208,28 @@ uint8_t TouchCypress::getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z)
 
 void TouchCypress::getRawData(uint8_t *b)
 {
-    readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, b, 16);
+  readI2CRegs(CYPRESS_TOUCH_BASE_ADDR, b, 16);
 }
 
 void TouchCypress::setPowerState(uint8_t s)
 {
-    // Check for the parameters.
-    if ((s == CYPRESS_TOUCH_DEEP_SLEEP_MODE) || (s == CYPRESS_TOUCH_LOW_POWER_MODE) ||
-        (s == CYPRESS_TOUCH_OPERATE_MODE))
-    {
-        // Set new power mode setting.
-        sendCommand(s);
-    }
+  // Check for the parameters.
+  if ((s == CYPRESS_TOUCH_DEEP_SLEEP_MODE) || (s == CYPRESS_TOUCH_LOW_POWER_MODE) ||
+      (s == CYPRESS_TOUCH_OPERATE_MODE))
+  {
+    // Set new power mode setting.
+    sendCommand(s);
+  }
 }
 
 uint8_t TouchCypress::getPowerState()
 {
-    uint8_t reg = CYPRESS_TOUCH_BASE_ADDR;
-    uint8_t result = 0;
+  uint8_t reg = CYPRESS_TOUCH_BASE_ADDR;
+  uint8_t result = 0;
 
-    ESP_ERROR_CHECK(i2c_master_transmit_receive(m_devHandle, &reg, 1, &result, 1, -1));
+  ESP_ERROR_CHECK(i2c_master_transmit_receive(m_devHandle, &reg, 1, &result, 1, -1));
 
-    return result;
+  return result;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -389,11 +390,11 @@ void TouchCypress::reset()
 
 void TouchCypress::swReset()
 {
-    // Issue a command for SW reset.
-    sendCommand(CYPRESS_TOUCH_SOFT_RST_MODE);
+  // Issue a command for SW reset.
+  sendCommand(CYPRESS_TOUCH_SOFT_RST_MODE);
 
-    // Wait a little bit.
-    vTaskDelay(pdMS_TO_TICKS(20));
+  // Wait a little bit.
+  vTaskDelay(pdMS_TO_TICKS(20));
 }
 
 esp_err_t TouchCypress::sendCommand(uint8_t cmd)
@@ -417,13 +418,13 @@ esp_err_t TouchCypress::loadBootloaderRegs(struct cyttspBootloaderData *blDataPt
 
 esp_err_t TouchCypress::readI2CRegs(uint8_t cmd, uint8_t *buffer, int len)
 {
-    //ESP_LOGI(TAG, "read");
+  //ESP_LOGI(TAG, "read");
   return (i2c_master_transmit_receive(m_devHandle, &cmd, 1, buffer, len, -1));
 }
 
 esp_err_t TouchCypress::writeI2CRegs(uint8_t cmd, uint8_t *buffer, int len)
 {
-    //ESP_LOGI(TAG, "write");
+  //ESP_LOGI(TAG, "write");
   uint8_t *writeBuf = (uint8_t *)malloc(len + 1);
   if (writeBuf == NULL)
     return ESP_FAIL;

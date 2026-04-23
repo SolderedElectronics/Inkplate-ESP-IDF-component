@@ -91,7 +91,7 @@ void PNG::drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint3
        uint32_t rowY = y + j;
 
     if (rowY != m_lastDitherY && m_lastDitherY != UINT32_MAX)
-      m_instance->m_inkplate->image.ditherSwap(ihdr->width);
+      m_instance->m_inkplate->image.ditherSwap();
     m_lastDitherY = rowY;
 
     for (uint32_t i = 0; i < w; ++i)
