@@ -23,6 +23,7 @@
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "esp_rom_sys.h"
+#include "freertos/FreeRTOS.h"
 
 #include "TPS.h"
 
@@ -135,7 +136,9 @@ double TPS::readVCOM()
 int8_t TPS::readTemperature()
 {
   writeReg(0x0D, 0x80);
-  return (int8_t)readReg(0x00);
+  vTaskDelay(pdMS_TO_TICKS(50));
+  uint8_t raw = readReg(0x00);
+  return (int8_t)raw;
 }
 
 /* -------------------------------------------------------------------------- */

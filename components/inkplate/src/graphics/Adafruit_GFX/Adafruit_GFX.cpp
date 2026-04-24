@@ -1170,6 +1170,10 @@ void Adafruit_GFX::print(const char *s) {
         write(*s);
 }
 
+void Adafruit_GFX::print(char c) {
+    write(c);
+}
+
 void Adafruit_GFX::print(int n, int base) {
     char buf[16];
     if      (base == 16) snprintf(buf, sizeof(buf), "%x",  n);

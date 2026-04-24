@@ -163,7 +163,7 @@ UINT JPEG::outputCallback(JDEC *jdec, void *bitmap, JRECT *rect)
 #endif
         m_instance->m_inkplate->drawPixel(m_instance->m_x + i, rowBaseY + j, val);
       }
-      m_instance->m_inkplate->image.ditherSwap();
+      m_instance->m_inkplate->image.ditherSwap(jdec->width);
     }
 
     m_instance->m_lineBufY += m_instance->m_lineBufH;

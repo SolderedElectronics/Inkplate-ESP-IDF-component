@@ -45,7 +45,7 @@ bool BMP::draw(uint8_t *buf, int x, int y, bool dither, bool invert)
     memcpy(m_pixelBuffer, bufferPtr, BMP_ROWSIZE(header.width, header.color));
     drawLine(x, y + i, &header, dither, invert);
     if (dither)
-      m_inkplate->image.ditherSwap();
+      m_inkplate->image.ditherSwap(header.width);
     bufferPtr += BMP_ROWSIZE(header.width, header.color);
   }
 

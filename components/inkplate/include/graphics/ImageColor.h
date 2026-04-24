@@ -94,8 +94,9 @@ public:
   /**
    * @brief Advances the dither error buffer to the next row.
    * 
+   * @param w unused.
    */
-  void ditherSwap();
+  void ditherSwap(int w);
   
   /**
    * @brief Draws a image from a raw buffer.

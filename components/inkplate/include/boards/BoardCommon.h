@@ -119,6 +119,12 @@ public:
   void fillDisplay();
 
   /**
+   * @brief Copy data from partial to data buffer.
+   * 
+   */
+  void preloadScreen();
+
+  /**
    * @brief Write a single pixel into the framebuffer after applying display rotation.
    * 
    * @param x logical x coordinate.

@@ -138,7 +138,7 @@ uint8_t ImageColor::getDitheredPixel(uint8_t r, uint8_t g, uint8_t b, int i, int
   return (uint8_t)closest;
 }
 
-void ImageColor::ditherSwap()
+void ImageColor::ditherSwap(int w)
 {
   m_rowIdx = (m_rowIdx + 1) & DITHER_ROW_MASK;
 }
@@ -236,18 +236,20 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
 bool ImageColor::draw(uint8_t *buf, int w, int h, int x, int y, int c)
 {
   #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
-  int rowBytes = (w + 7) / 8; // bytes per row, rounded up
+  uint8_t rem = w & 1;
+  int xSize = (w >> 1) + rem;
+  int i, j;
 
-  for (int i = 0; i < h; i++)
+  for (i = 0; i < h; i++)
   {
-    for (int j = 0; j < w; j++)
+    for (j = 0; j < xSize - 1; j++)
     {
-      // extract the bit for pixel (j, i)
-      uint8_t byte = buf[i * rowBytes + (j / 8)];
-      bool bit = (byte >> (7 - (j % 8))) & 1;
-
-      m_inkplate->drawPixel(x + j, y + i, bit ? c : 0xFF);
+      m_inkplate->drawPixel((j * 2) + x, i + y, (*(buf + xSize * i + j) >> 4) >> 1);
+      m_inkplate->drawPixel((j * 2) + 1 + x, i + y, (*(buf + xSize * i + j) & 0x0f) >> 1);
     }
+    m_inkplate->drawPixel((j * 2) + x, i + y, (*(buf + xSize * i + j) >> 4) >> 1);
+    if (rem == 0)
+      m_inkplate->drawPixel((j * 2) + 1 + x, i + y, (*(buf + xSize * i + j) & 0x0f) >> 1);
   }
   #else
   uint16_t scaledW = ceil(w / 4.0);

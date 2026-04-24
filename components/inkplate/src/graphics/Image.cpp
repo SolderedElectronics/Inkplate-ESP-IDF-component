@@ -177,18 +177,20 @@ bool Image::draw(uint8_t *buf, int x, int y, int w, int h, int c)
   }
   else
   {
-    int rowBytes = (w + 7) / 8; // bytes per row, rounded up
+    uint8_t rem = w & 1;
+    int xSize = (w >> 1) + rem;
+    int i, j;
 
-    for (int i = 0; i < h; i++)
+    for (i = 0; i < h; i++)
     {
-      for (int j = 0; j < w; j++)
+      for (j = 0; j < xSize - 1; j++)
       {
-        // extract the bit for pixel (j, i)
-        uint8_t byte = buf[i * rowBytes + (j / 8)];
-        bool bit = (byte >> (7 - (j % 8))) & 1;
-
-        m_inkplate->drawPixel(x + j, y + i, bit ? c : 0xFF);
+        m_inkplate->drawPixel((j * 2) + x, i + y, (*(buf + xSize * i + j) >> 4) >> 1);
+        m_inkplate->drawPixel((j * 2) + 1 + x, i + y, (*(buf + xSize * i + j) & 0x0f) >> 1);
       }
+      m_inkplate->drawPixel((j * 2) + x, i + y, (*(buf + xSize * i + j) >> 4) >> 1);
+      if (rem == 0)
+        m_inkplate->drawPixel((j * 2) + 1 + x, i + y, (*(buf + xSize * i + j) & 0x0f) >> 1);
     }
   }
 

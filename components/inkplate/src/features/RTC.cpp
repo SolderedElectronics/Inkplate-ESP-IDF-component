@@ -64,7 +64,7 @@ esp_err_t RTC::setTime(tm time)
    decToBcd(time.tm_mday),
    decToBcd(time.tm_wday),
    decToBcd(time.tm_mon - 1),
-   decToBcd(time.tm_year - 1900)
+   decToBcd(time.tm_year % 100)
   };
 
   ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
@@ -103,8 +103,10 @@ esp_err_t RTC::getTime(time_t *epoch)
   if (ret != ESP_OK)
     return ret;
   
-  m_time.tm_year -= 1900;
-  *epoch = mktime(&m_time);
+  tm t = m_time;
+  t.tm_year -= 1900;  // 2023 - 1900 = 123, correct for mktime
+  t.tm_mon  -= 1;     // driver stores 1-based, mktime needs 0-based
+  *epoch = mktime(&t);
 
   return ret;
 }
@@ -509,7 +511,7 @@ esp_err_t RTC::updateTime()
   m_time.tm_mday = bcdToDec(data[3] & 0x3F);
   m_time.tm_wday = bcdToDec(data[4] & 0x07);
   m_time.tm_mon  = bcdToDec(data[5] & 0x1F) + 1;
-  m_time.tm_year = bcdToDec(data[6]) + 1900;
+  m_time.tm_year = bcdToDec(data[6]) + 2000;
 
   if (m_hourFormat == RTC_FORMAT_12H)
   {
