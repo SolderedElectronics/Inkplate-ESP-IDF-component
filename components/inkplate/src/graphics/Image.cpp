@@ -171,7 +171,7 @@ bool Image::draw(const char *src, int x, int y, bool dither, bool invert)
   return result;
 }
 
-bool Image::draw(uint8_t *buf, int x, int y, int w, int h, int c)
+bool Image::draw(const uint8_t *buf, int x, int y, int w, int h, int c)
 {
   int64_t lastYieldUs = esp_timer_get_time();
 

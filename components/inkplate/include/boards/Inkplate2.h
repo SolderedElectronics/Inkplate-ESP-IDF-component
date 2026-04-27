@@ -26,10 +26,10 @@
 #include "esp_rom_sys.h"
 #include "soc/gpio_reg.h"
 #include "soc/gpio_struct.h"
-#include "driver/spi_master.h"
 
 #include "BoardBase.h"
 #include "GraphicsDefs.h"
+#include "SPI.h"
 
 #define EPAPER_RST_PIN  GPIO_NUM_19
 #define EPAPER_DC_PIN   GPIO_NUM_33
@@ -82,8 +82,9 @@ public:
    * @brief Sends both framebuffer planes to the panel and triggers a refresh.
    * 
    * @param leaveOn if true, the panel is left powered on after refresh.
+   * @return esp_err_t ESP_OK
    */
-  void display(bool leaveOn = false);
+  esp_err_t display(bool leaveOn = false);
 
   /**
    * @brief Fill the framebuffer with white (erase all content).
@@ -171,5 +172,5 @@ private:
    */
   bool setPanelDeepSleep(bool state);
   
-  spi_device_handle_t m_spiDev = nullptr;
+  SPI m_spi;
 };

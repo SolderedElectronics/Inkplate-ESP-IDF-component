@@ -152,7 +152,7 @@ UINT JPEG::outputCallback(JDEC *jdec, void *bitmap, JRECT *rect)
         uint8_t b   = m_instance->m_lineBuf[idx + 2];
 
         uint8_t val;
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13) 
+#ifdef COLOR_IMAGE
         val = m_instance->m_inkplate->image.getDitheredPixel(r, g, b, i, jdec->width);
         if (m_instance->m_invert && val < 2) val ^= 1;
 #else
@@ -180,7 +180,7 @@ UINT JPEG::outputCallback(JDEC *jdec, void *bitmap, JRECT *rect)
         uint8_t b   = px[idx + 2];
 
         uint8_t val;
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+#ifdef COLOR_IMAGE
         val = m_instance->m_inkplate->image.findClosestPalette(r, g, b);
         if (m_instance->m_invert && val < 2) val ^= 1;
 #else

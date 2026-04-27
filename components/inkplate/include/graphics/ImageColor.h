@@ -144,14 +144,14 @@ public:
    * @brief Draws a raw 2bpp greyscale bitmap at the given position.
    * 
    * @param buf pointer to the 2bpp bitmap buffer.
-   * @param w image width in pixels.
-   * @param h image height in pixels.
    * @param x x coordinate of the top-left corner.
    * @param y y coordinate of the top-left corner.
+   * @param w image width in pixels.
+   * @param h image height in pixels.
    * @param c color.
    * @return bool true always
    */
-  bool draw(uint8_t *buf, int w, int h, int x, int y, int c);
+  bool draw(const uint8_t *buf, int x, int y, int w, int h, int c);
 
   /**
    * @brief Sets the active dithering kernel.

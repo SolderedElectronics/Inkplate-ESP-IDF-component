@@ -29,15 +29,20 @@
 Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_WIDTH, E_INK_HEIGHT), image(this)
 {
   clearDisplay();
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
+  setRotation(3);
+#endif
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
   setRotation(2);
 #endif
 }
 
+#ifndef COLOR_IMAGE
 void Inkplate::preloadScreen()
 {
   memcpy(m_framebuffer, m_newFramebuffer, m_einkWidth * m_einkHeight / 8);
 }
+#endif
 
 void Inkplate::drawPixel(int16_t x, int16_t y, uint16_t color)
 {

@@ -1216,6 +1216,16 @@ void Adafruit_GFX::print(double n, int digits) {
     print(buf);
 }
 
+void Adafruit_GFX::printf(const char *format, ...)
+{
+    char buf[256];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buf, sizeof(buf), format, args);
+    va_end(args);
+    print(buf);
+}
+
 // Draw a character
 /**************************************************************************/
 /*!

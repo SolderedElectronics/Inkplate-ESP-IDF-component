@@ -64,8 +64,8 @@ extern "C" void app_main(void)
     Inkplate display;
 
     display.clearDisplay(); // Clear frame buffer of display
-    // Display selected picture at location X=0, Y=0. All three pictures have resolution of 800x600 pixels
-    display.image.draw((uint8_t*)pictures[slide], 50, 0, 1100, 825, BLACK);
+    // Display selected picture at location X=0, Y=0. 
+    display.image.draw(pictures[slide], 50, 0, 1100, 825, BLACK);
     display.display(); // Refresh the screen with new picture
 
     slide++;

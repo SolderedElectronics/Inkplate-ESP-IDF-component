@@ -121,7 +121,7 @@ public:
    * @param c color.
    * @return bool true always
    */
-  bool draw(uint8_t *buf, int x, int y, int w, int h, int c);
+  bool draw(const uint8_t *buf, int x, int y, int w, int h, int c);
 
 
 private:

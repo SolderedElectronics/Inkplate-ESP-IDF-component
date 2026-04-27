@@ -33,7 +33,7 @@ static const char *TAG = "Inkplate2";
 /*                              Public functions                              */
 /* -------------------------------------------------------------------------- */
 
-Inkplate2::Inkplate2() 
+Inkplate2::Inkplate2() : m_spi(EPAPER_DIN, EPAPER_CLK)
 {
   m_framebufferColor = (uint8_t *)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!m_framebufferColor)
@@ -55,23 +55,6 @@ Inkplate2::Inkplate2()
 
   gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
   gpio_pullup_en(EPAPER_BUSY_PIN);
-
-  //vTaskDelay(pdMS_TO_TICKS(5000));
-
-  spi_bus_config_t bus_cfg = {};
-  bus_cfg.mosi_io_num     = EPAPER_DIN;
-  bus_cfg.miso_io_num     = -1;
-  bus_cfg.sclk_io_num     = EPAPER_CLK;
-  bus_cfg.quadwp_io_num   = -1;
-  bus_cfg.quadhd_io_num   = -1;
-  ESP_ERROR_CHECK(spi_bus_initialize(SPI3_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
-
-  spi_device_interface_config_t dev_cfg = {};
-  dev_cfg.clock_speed_hz = SPI_MASTER_FREQ_10M;
-  dev_cfg.mode           = 0;
-  dev_cfg.spics_io_num   = EPAPER_CS_PIN;
-  dev_cfg.queue_size     = 3;
-  ESP_ERROR_CHECK(spi_bus_add_device(SPI3_HOST, &dev_cfg, &m_spiDev));
 
   if (!setPanelDeepSleep(false))
     ESP_LOGE(TAG, "Panel init failed");
@@ -125,7 +108,7 @@ void Inkplate2::writePixelInternal(int16_t x, int16_t y, uint16_t color)
   }
 }
 
-void Inkplate2::display(bool leaveOn)
+esp_err_t Inkplate2::display(bool leaveOn)
 {
   const size_t plane_bytes = E_INK_WIDTH * E_INK_HEIGHT / 8;
 
@@ -146,6 +129,8 @@ void Inkplate2::display(bool leaveOn)
 
   if (!leaveOn)
     setPanelDeepSleep(true);
+
+  return ESP_OK;
 }
 
 void Inkplate2::clearDisplay()
@@ -193,49 +178,17 @@ void Inkplate2::resetPanel()
 
 void Inkplate2::sendCommand(uint8_t command)
 {
-  //gpio_set_level(EPAPER_CS_PIN, 0);
-  gpio_set_level(EPAPER_DC_PIN, 0);
-  esp_rom_delay_us(10);
-
-  spi_transaction_t t = {};
-  t.length    = 8;
-  t.tx_buffer = &command;
-  spi_device_polling_transmit(m_spiDev, &t);
-
-  //gpio_set_level(EPAPER_CS_PIN, 1);
-  vTaskDelay(pdMS_TO_TICKS(1));
+  m_spi.sendCommand(command, EPAPER_DC_PIN);
 }
 
 void Inkplate2::sendData(uint8_t *data, int n)
 {
-  if (n == 0) return;
-
-  //gpio_set_level(EPAPER_CS_PIN, 0);
-  gpio_set_level(EPAPER_DC_PIN, 1);
-  esp_rom_delay_us(10);
-
-  const size_t chunkSize = 4092;
-
-  for (int i = 0; i < n; i += chunkSize)
-  {
-    int len = (n - i > chunkSize) ? chunkSize : (n - i);
-
-    spi_transaction_t trans;
-    memset(&trans, 0, sizeof(trans));
-
-    trans.tx_buffer = data + i;
-    trans.length = len * 8;
-
-    ESP_ERROR_CHECK(spi_device_transmit(m_spiDev, &trans));
-  }
-
-  //gpio_set_level(EPAPER_CS_PIN, 1);
-  vTaskDelay(pdMS_TO_TICKS(1));
+  m_spi.sendData(data, n, EPAPER_DC_PIN);
 }
 
 void Inkplate2::sendData(uint8_t data)
 {
-  sendData(&data, 1);
+  m_spi.sendData(data, EPAPER_DC_PIN);
 }
 
 bool Inkplate2::setPanelDeepSleep(bool sleep)
@@ -243,6 +196,9 @@ bool Inkplate2::setPanelDeepSleep(bool sleep)
   if (!sleep)
   {
     // Wake
+    if (!m_spi.isInitialized())
+      m_spi.init();
+
     gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
     gpio_pullup_en(EPAPER_BUSY_PIN);
     resetPanel();
@@ -280,6 +236,8 @@ bool Inkplate2::setPanelDeepSleep(bool sleep)
     vTaskDelay(pdMS_TO_TICKS(1));
 
     gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
+
+    m_spi.deinit();
 
     return true;
   }

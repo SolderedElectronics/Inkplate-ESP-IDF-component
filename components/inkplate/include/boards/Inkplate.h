@@ -27,6 +27,10 @@
 #include "sdkconfig.h"
 
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+#define COLOR_IMAGE
+#endif
+
+#ifdef COLOR_IMAGE
 #include "ImageColor.h"
 #else
 #include "Image.h"
@@ -70,8 +74,13 @@ public:
    */
   Inkplate();
 
+#ifndef COLOR_IMAGE
+  /**
+   * @brief Copies the framebuffer to partial for deepsleep restore.
+   * 
+   */
   void preloadScreen();
-
+#endif
   /**
    * @brief Draw a single pixel — Adafruit_GFX override.
    * 
@@ -88,7 +97,7 @@ public:
    */
   uint8_t getRotation() override;
 
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE2) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+#ifdef COLOR_IMAGE
   ImageColor image;
 #else
   Image image;

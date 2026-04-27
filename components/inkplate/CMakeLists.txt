@@ -65,8 +65,8 @@ set(GRAPHICS_INCLUDES
     "include/graphics/Adafruit_GFX"
 )
 if(CONFIG_INKPLATE_BOARD_INKPLATE2)
-idf_component_register(SRCS "src/features/WiFi.cpp"
-                            "src/boards/Inkplate.cpp"
+idf_component_register(SRCS "src/features/WiFi.cpp" "src/features/SPI.cpp"
+                            "src/boards/Inkplate.cpp" "src/features/I2C.cpp"
                             ${BOARD_SRC}
                             ${GRAPHICS_SRCS}
                             ${IMAGE_SRCS}

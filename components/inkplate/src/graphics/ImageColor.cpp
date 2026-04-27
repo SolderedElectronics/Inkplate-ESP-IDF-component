@@ -20,10 +20,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
+#include "string.h"
 #include "esp_log.h"
 #include "esp_timer.h"
 #include "freertos/FreeRTOS.h"
+#include "math.h"
 
 #include "Inkplate.h"
 #include "ImageColor.h"
@@ -199,6 +200,7 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
       return false;
     }
   }
+  #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
   else
   {
     char fullPath[256];
@@ -229,17 +231,23 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
     fread(buf, 1, len, f);
     fclose(f);
   }
+  #else
+  else
+  { 
+    ESP_LOGE(TAG, "SD card not supported on this board.");
+  }
+  #endif
 
   bool result = draw(buf, len, x, y, dither, invert);
   free(buf);
   return result;
 }
 
-bool ImageColor::draw(uint8_t *buf, int w, int h, int x, int y, int c)
+bool ImageColor::draw(const uint8_t *buf, int x, int y, int w, int h, int c)
 {
   int64_t lastYieldUs = esp_timer_get_time();
 
-  #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+  #if defined(CONFIG_INKPLATE_BORAD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   uint8_t rem = w & 1;
   int xSize = (w >> 1) + rem;
   int i, j;

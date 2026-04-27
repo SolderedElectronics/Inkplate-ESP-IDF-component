@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <string.h>
+#include <stdarg.h>
 
 #include "gfxfont.h"
 
@@ -93,6 +94,7 @@ class Adafruit_GFX
     void print(unsigned int n, int base = 10);
     void print(unsigned long n,int base = 10);
     void print(double n,       int digits = 2);
+    void printf(const char *format, ...);
 
     void println(const char *s) { print(s); write('\n'); }
     void println(int n) { print(n); write('\n'); }
