@@ -1,3 +1,49 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       Simple HTTP web content fetch example for Soldered Inkplate 10.
+ *
+ * @details     Demonstrates how to connect Inkplate 10 to a WiFi network,
+ *              perform a basic HTTP request to retrieve data from the Internet,
+ *              and display the received content on the e-paper display.
+ *              This example does NOT parse HTML content; it simply prints the
+ *              raw HTTP response body on the screen.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable
+ * - Extra:      Stable WiFi connection
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ * - Menuconfig -> WiFi Configuration -> Enter your credentials
+ *
+ * How to use:
+ * 1) Build and flash to Inkplate 10.
+ * 2) The board connects to the WiFi network.
+ * 3) Data is fetched from a remote web server using HTTP.
+ * 4) The received content is printed on the e-paper display.
+ *
+ * Expected output:
+ * - Inkplate display shows raw text/HTML fetched from the web.
+ *
+ * Notes:
+ * - This example is intended to demonstrate basic HTTP communication only.
+ * - No HTML parsing or content extraction is performed.
+ * - Displaying large responses may require text size adjustments.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
+
 #include "Inkplate.h"
 #include "WiFi.h"
 #include "esp_log.h"

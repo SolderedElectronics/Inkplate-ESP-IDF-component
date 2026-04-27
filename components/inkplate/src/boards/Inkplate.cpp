@@ -34,6 +34,11 @@ Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_W
 #endif
 }
 
+void Inkplate::preloadScreen()
+{
+  memcpy(m_framebuffer, m_newFramebuffer, m_einkWidth * m_einkHeight / 8);
+}
+
 void Inkplate::drawPixel(int16_t x, int16_t y, uint16_t color)
 {
   writePixel(x, y, color);

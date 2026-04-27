@@ -1,6 +1,6 @@
 /**
- **************************************************
- * @file        Inkplate10_Black_And_White.ino
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
  * @brief       Black & white drawing demo using Adafruit GFX on Soldered Inkplate 10.
  *
  * @details     Demonstrates basic drawing and text rendering on the Inkplate 10
@@ -12,12 +12,12 @@
  *
  * Requirements:
  * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
  * - Hardware:   Inkplate 10, USB cable
  * - Extra:      Optional bitmap header file (e.g. logo.h)
  *
  * Configuration:
  * - Menuconfig -> Inkplate Boards -> Inkplate10
- *
  *
  * How to use:
  * 1) Build and flash to Inkplate 10.
@@ -36,14 +36,9 @@
  * - For faster updates, use partial update (see partial update examples).
  *
  * Docs:         https://docs.soldered.com/inkplate
- * Adafruit GFX: https://learn.adafruit.com/adafruit-gfx-graphics-library
  * Support:      https://forum.soldered.com/
  * Image tool:   https://tools.soldered.com/tools/image-converter/
- *
- * @author      Soldered
- * @date        2026-22-04
- * @license     GNU GPL V3
- **************************************************/
+ */
 
 #include "Inkplate.h"
 #include "logo.h"
@@ -51,17 +46,17 @@
 #include "freertos/FreeRTOS.h"
 #include "esp_random.h"
 
-// Helper to keep it clean
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
+
 int random(int min, int max) {
     return (esp_random() % (max - min + 1)) + min;
 }
 
 #define DELAY_MS 5000
 // Delay in milliseconds between screen refresh. Refreshing e-paper screens more often than 5s is not
-// recommended
-// Want to refresh faster? Use partial update! Find example in "3-Inkplate-basic_partial_update"
-
-#include "logo.h"
+// recommended. Want to refresh faster? Use partial update!
 
 int logo_w = 1100;
 int logo_h = 221;

@@ -44,8 +44,19 @@ esp_err_t RTC::begin(i2c_master_bus_handle_t bus_handle)
 
   m_hourFormat = RTC_FORMAT_24H;
 
-  uint8_t data[2] = { RTC_RAM, RTC_NOT_SET };
-  ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  // Only clear the RAM flag if it hasn't been set yet,
+  // so it survives deep sleep wake-ups
+  uint8_t reg = RTC_RAM;
+  uint8_t ramByte = 0;
+  ret = i2c_master_transmit_receive(m_devHandle, &reg, 1, &ramByte, 1, -1);
+  if (ret != ESP_OK)
+      return ret;
+
+  if (ramByte != RTC_SET)
+  {
+      uint8_t data[2] = { RTC_RAM, RTC_NOT_SET };
+      ret = i2c_master_transmit(m_devHandle, data, sizeof(data), -1);
+  }
 
   ESP_LOGI(TAG, "I2C initilization finished!");
   return ret;

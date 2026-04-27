@@ -1,110 +1,99 @@
-#include "Inkplate.h"
-#include "WiFi.h"
-#include "esp_http_client.h"
-#include "esp_log.h"
+/**
+ **************************************************
+ * @file        main.cpp
+ * @brief       Partial e-paper update with ESP32 deep sleep — ESP-IDF port.
+ *
+ * @details     Inkplate is instantiated locally in app_main() and passed by
+ *              pointer to all helper functions. No global Inkplate object.
+ *
+ *              RTC_DATA_ATTR variables survive deep sleep and are used to
+ *              recreate the screen buffer before calling partialUpdate().
+ *
+ * Requirements:
+ * - ESP-IDF >= 5.x
+ * - Board: Soldered Inkplate 10
+ *
+ * Notes:
+ * - Partial update works only in 1-bit (B/W) mode.
+ * - Always call preloadScreen() + rebuild before partialUpdate() after deep sleep.
+ * - Perform a full refresh every 5–10 partial updates to maintain image quality.
+ *
+ * @author      Ported from Arduino sketch by Soldered
+ * @license     GNU GPL V3
+ **************************************************/
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <string.h>
-#include <stdio.h>
+#include "esp_sleep.h"
+#include "esp_attr.h"       // RTC_DATA_ATTR
+#include "rom/rtc.h"        // rtc_get_reset_reason(), DEEPSLEEP_RESET
 
-static const char *TAG = "HTTPS_POST";
+#include "Inkplate.h"
 
-#define DELAY_BETWEEN_REQUESTS_MS 10000
-#define API_URL "https://jsonplaceholder.typicode.com/posts"
+#define TIME_TO_SLEEP_US (10ULL * 1000000ULL)   // 10 seconds in microseconds
 
-// Response buffer
-static char s_responseBuf[4096];
-static int  s_responseLen = 0;
+/* ── Variables stored in RTC RAM — survive deep sleep ───────────────────── */
+RTC_DATA_ATTR static int   counter = 0;
+RTC_DATA_ATTR static float decimal = 3.14159265f;   // M_PI equivalent
 
-static esp_err_t httpEventHandler(esp_http_client_event_t *evt)
+/* ── Forward declarations ───────────────────────────────────────────────── */
+static void createScreen(Inkplate *display);
+
+/* ═══════════════════════════════════════════════════════════════════════════
+ * app_main  —  called on every boot / wake-up
+ * ═══════════════════════════════════════════════════════════════════════════ */
+extern "C" void app_main(void)
 {
-    switch (evt->event_id)
+    Inkplate display;
+    display.setDisplayMode(BLACK_AND_WHITE);
+
+    createScreen(&display);
+
+    if (rtc_get_reset_reason(0) == DEEPSLEEP_RESET)
     {
-    case HTTP_EVENT_ON_DATA:
-        if (s_responseLen + evt->data_len < (int)sizeof(s_responseBuf) - 1)
-        {
-            memcpy(s_responseBuf + s_responseLen, evt->data, evt->data_len);
-            s_responseLen += evt->data_len;
-            s_responseBuf[s_responseLen] = '\0';
-        }
-        break;
-    case HTTP_EVENT_ON_FINISH:
-        s_responseLen = 0; // reset for next request
-        break;
-    default:
-        break;
-    }
-    return ESP_OK;
-}
+        /* Woken from deep sleep:
+         * 1. Restore the framebuffer to match what's physically on the panel.
+         * 2. Update variables.
+         * 3. Rebuild the screen with new values.
+         * 4. Partial update — only changed pixels are redrawn. */
+        display.preloadScreen();
 
-static void sendPost()
-{
-    // Build JSON payload manually — no ArduinoJson in ESP-IDF
-    char jsonBody[128];
-    snprintf(jsonBody, sizeof(jsonBody), "{\"title\":\"Hello Inkplate\"}");
+        counter++;
+        decimal *= 1.23f;
 
-    s_responseLen = 0;
-    memset(s_responseBuf, 0, sizeof(s_responseBuf));
-
-    esp_http_client_config_t config = {};
-    config.url             = API_URL;
-    config.method          = HTTP_METHOD_POST;
-    config.timeout_ms      = 10000;
-    config.event_handler   = httpEventHandler;
-    // Skip certificate validation — same as client.setInsecure() in Arduino
-    config.skip_cert_common_name_check = true;
-    config.transport_type  = HTTP_TRANSPORT_OVER_SSL;
-
-    esp_http_client_handle_t client = esp_http_client_init(&config);
-    if (!client)
-    {
-        ESP_LOGE(TAG, "Failed to init HTTP client");
-        return;
-    }
-
-    esp_http_client_set_header(client, "Content-Type", "application/json");
-    esp_http_client_set_post_field(client, jsonBody, strlen(jsonBody));
-
-    esp_err_t ret = esp_http_client_perform(client);
-    if (ret == ESP_OK)
-    {
-        int statusCode = esp_http_client_get_status_code(client);
-        ESP_LOGI(TAG, "Status code: %d", statusCode);
-        ESP_LOGI(TAG, "Response: %s", s_responseBuf);
+        display.clearDisplay();
+        createScreen(&display);
+        display.partialUpdate(true);
     }
     else
     {
-        ESP_LOGE(TAG, "HTTPS POST failed: %s", esp_err_to_name(ret));
+        /* First boot or manual reset — full refresh */
+        display.display();
     }
 
-    esp_http_client_cleanup(client);
+    esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_US);
+    esp_deep_sleep_start();
 }
 
-extern "C" void app_main(void)
+/* ═══════════════════════════════════════════════════════════════════════════
+ * createScreen
+ *   Draws the current state of all variables into the framebuffer.
+ *   Must be called both before the initial display() AND before every
+ *   partialUpdate() after deep sleep.
+ *
+ *   @param display  Pointer to the caller-owned Inkplate object.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+static void createScreen(Inkplate *display)
 {
-    static Inkplate display;
-    display.setDisplayMode(BLACK_AND_WHITE);
-    display.setTextColor(BLACK, WHITE);
-    display.setTextWrap(true);
+    display->setFont(NULL);
+    display->setTextSize(3);
+    display->setTextColor(BLACK, WHITE);
 
-    display.setTextSize(5);
-    display.setCursor(0, 0);
-    display.print("HTTPS POST\nRequest example\n");
-    display.setTextSize(3);
-    display.print("\nCheck ESP-IDF logs\nfor response");
-    display.display();
+    display->setCursor(200, 300);
+    display->print("First variable:");
+    display->print(counter, 10);
 
-    WiFi wifi;
-    if (wifi.begin() != ESP_OK || !wifi.waitForConnect(50000))
-    {
-        ESP_LOGE(TAG, "WiFi connection failed");
-        return;
-    }
-    ESP_LOGI(TAG, "WiFi connected");
-
-    while (true)
-    {
-        sendPost();
-        vTaskDelay(pdMS_TO_TICKS(DELAY_BETWEEN_REQUESTS_MS));
-    }
+    display->setCursor(200, 340);
+    display->print("Second variable:");
+    display->print(decimal, 2);
 }

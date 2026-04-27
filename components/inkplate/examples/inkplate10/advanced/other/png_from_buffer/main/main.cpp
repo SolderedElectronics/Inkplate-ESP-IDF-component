@@ -1,3 +1,47 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       Display a PNG image loaded into a RAM buffer on Soldered Inkplate 10.
+ *
+ * @details     Demonstrates how to read a PNG file from an SD card into a RAM
+ *              buffer and then display it using drawPngFromBuffer(). The same
+ *              technique applies to PNG data received from any source — a network
+ *              socket, a serial transfer, a flash partition, etc.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable, microSD card
+ * - Extra:      SD card containing a file named "image.png"
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ *
+ * How to use:
+ * 1) Copy a PNG file named "image.png" to a FAT-formatted SD card.
+ * 2) Insert the SD card into the Inkplate.
+ * 3) Build and flash to Inkplate 10.
+ * 4) The PNG is read into RAM and rendered on the e-paper display.
+ *
+ * Expected output:
+ * - The PNG image is shown on the Inkplate display.
+ *
+ * Notes:
+ * - The entire PNG file is loaded into heap memory before decoding.
+ *   Make sure the file fits in available RAM (ESP32 has ~300 KB free heap).
+ * - Dithering is enabled by default; pass false as the fifth argument to disable it.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"
@@ -54,7 +98,7 @@ void app_main(void)
 
     ESP_LOGI(TAG, "PNG file size: %ld bytes", fileSize);
 
-    // Allocate buffer
+    // Allocate a buffer large enough for the whole file
     uint8_t *buf = (uint8_t *)malloc((size_t)fileSize);
     if (!buf)
     {

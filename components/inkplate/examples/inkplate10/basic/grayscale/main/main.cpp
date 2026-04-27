@@ -1,6 +1,6 @@
 /**
- **************************************************
- * @file        Inkplate10_Grayscale.ino
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
  * @brief       Grayscale (3-bit) drawing demo using Adafruit GFX on Soldered Inkplate 10.
  *
  * @details     Demonstrates drawing and text rendering on the Inkplate 10 in
@@ -13,22 +13,21 @@
  *
  * Requirements:
  * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
  * - Hardware:   Inkplate 10, USB cable
- * - Extra:      Optional grayscale bitmap header file (e.g. image.h)
+ * - Extra:      Optional bitmap header file (e.g. image_ex.h)
  *
  * Configuration:
  * - Menuconfig -> Inkplate Boards -> Inkplate10
  *
- * Don't have Inkplate Boards in Arduino Boards Manager?
- * See https://docs.soldered.com/inkplate/10/quick-start-guide/
- *
  * How to use:
  * 1) Build and flash to Inkplate 10.
- * 2) The example cycles through multiple grayscale drawing demonstrations.
+ * 2) The example cycles through multiple drawing demonstrations.
  * 3) Each demo renders to the framebuffer and then updates the e-paper display.
  *
  * Expected output:
- * - A sequence of grayscale graphics demos (0–7 shades) and text rendering.
+ * - A sequence of graphics demos: pixels, lines, rectangles, circles, triangles,
+ *   rounded rectangles, ellipses, polygons, bitmap drawing, and text rendering.
  * - Final part continuously rotates and displays text.
  *
  * Notes:
@@ -38,12 +37,15 @@
  * - Partial update is primarily intended for 1-bit mode; see partial update examples.
  *
  * Docs:         https://docs.soldered.com/inkplate
- * Adafruit GFX: https://learn.adafruit.com/adafruit-gfx-graphics-library
  * Support:      https://forum.soldered.com/
- *
- * @author      Soldered
- * @date        2026-04-22
- **************************************************/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
 
 #include "Inkplate.h"
 #include "image_ex.h"    //Include image file that holds gray image data.

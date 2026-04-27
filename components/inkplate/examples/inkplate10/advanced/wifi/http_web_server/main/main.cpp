@@ -1,3 +1,50 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       Standalone WiFi web server example for Soldered Inkplate 10.
+ *
+ * @details     Demonstrates how to use Inkplate 10 as a simple standalone
+ *              WiFi access point and HTTP web server. After connecting a PC,
+ *              smartphone, or other WiFi-capable device to the Inkplate’s
+ *              access point, a web page can be opened in a browser where text
+ *              can be entered and sent directly to the Inkplate e-paper display.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable
+ * - Extra:      WiFi-capable device with a web browser (PC, laptop, smartphone)
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ *
+ * How to use:
+ * 1) Build and flash to Inkplate 10.
+ * 2) Connect your device to the Inkplate WiFi access point.
+ * 3) Open the IP address shown on the Inkplate display in a web browser.
+ * 4) Enter text into the web page and press “Send to display”.
+ * 5) The submitted text appears on the Inkplate display.
+ *
+ * Expected output:
+ * - Inkplate display shows its IP address and received text.
+ * - Web page allows sending custom text to the display.
+ *
+ * Notes:
+ * - This is a basic demonstration of using Inkplate as a web server.
+ * - Intended for simple interaction and prototyping.
+ * - More advanced web interfaces and logic can be built on top of this example.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
+
 #include "Inkplate.h"
 #include "esp_wifi.h"
 #include "esp_netif.h"
@@ -18,7 +65,6 @@ static Inkplate *g_display  = nullptr;
 static char      g_userText[512] = {};
 static esp_ip4_addr_t g_serverIP = {};
 
-// ------------------------------------------------------------------ HTML page
 static const char HTML_PAGE[] =
     "<!DOCTYPE html><html><body>"
     "<h2>Inkplate 10 Web Server</h2>"
@@ -28,7 +74,6 @@ static const char HTML_PAGE[] =
     "</form>"
     "</body></html>";
 
-// ------------------------------------------------------------------ display update
 static void updatePaper()
 {
     if (!g_display) return;
@@ -66,7 +111,6 @@ static void updatePaper()
     g_display->display();
 }
 
-// ------------------------------------------------------------------ HTTP handlers
 static esp_err_t handle_root(httpd_req_t *req)
 {
     httpd_resp_send(req, HTML_PAGE, HTTPD_RESP_USE_STRLEN);
@@ -106,7 +150,6 @@ static esp_err_t handle_string(httpd_req_t *req)
     return ESP_OK;
 }
 
-// ------------------------------------------------------------------ AP init
 static void startAP()
 {
     esp_err_t ret = nvs_flash_init();
@@ -143,7 +186,6 @@ static void startAP()
     ESP_LOGI(TAG, "AP started, IP: " IPSTR, IP2STR(&g_serverIP));
 }
 
-// ------------------------------------------------------------------ HTTP server init
 static httpd_handle_t startHTTPServer()
 {
     httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -172,7 +214,6 @@ static httpd_handle_t startHTTPServer()
     return server;
 }
 
-// ------------------------------------------------------------------ app_main
 extern "C" void app_main(void)
 {
     Inkplate display;

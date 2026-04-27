@@ -1,3 +1,47 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       Battery voltage reading example for Soldered Inkplate 10.
+ *
+ * @details     Demonstrates how to read the connected Li-ion/Li-Po battery
+ *              voltage using Inkplate’s built-in battery measurement circuitry.
+ *              The example shows how to obtain the battery voltage value in
+ *              software and display or process it as needed.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable, 3.6–4.2 V Li-ion/Li-Po battery (JST connector)
+ * - Extra:      None
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ *
+ * How to use:
+ * 1) Connect a supported Li-ion/Li-Po battery to the Inkplate battery connector.
+ * 2) Build and flash to Inkplate 10.
+ * 3) The battery voltage is read and can be displayed or logged by the sketch.
+ *
+ * Expected output:
+ * - Measured battery voltage value reported by the program.
+ *
+ * Notes:
+ * - Battery voltage reading is enabled through the onboard circuitry.
+ * - Accuracy depends on battery condition and load.
+ * - Battery reading typically requires enabling the battery measurement path
+ *   in hardware (see Inkplate documentation).
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_log.h"

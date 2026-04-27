@@ -1,3 +1,55 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       Secure HTTPS image download using a pinned certificate (Inkplate 10).
+ *
+ * @details     Demonstrates how to securely download and display a BMP image
+ *              over HTTPS by providing a trusted certificate for server
+ *              validation. The example connects Inkplate 10 to WiFi, applies
+ *              a PEM certificate (certificate pinning / trust anchor), then
+ *              downloads and renders a BMP image from a website that matches
+ *              the provided certificate. It also shows a failed download case
+ *              when attempting to load an image from a different host where
+ *              the certificate is not valid.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable
+ * - Extra:      Stable WiFi connection
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ * - Menuconfig -> WiFi Configuration -> Enter your credentials
+ *
+ * How to use:
+ * 1) Provide the correct PEM certificate for the website you want to access.
+ * 2) Build and flash to Inkplate 10.
+ * 3) The board connects to WiFi, applies the certificate, and downloads a BMP image.
+ * 4) A second download attempt demonstrates failure when the certificate does not match.
+ *
+ * Expected output:
+ * - First HTTPS image download succeeds and is displayed.
+ * - Second HTTPS image download fails due to invalid certificate for that host,
+ *   and an error message is shown on the display.
+ *
+ * Notes:
+ * - This example validates the remote server using the provided certificate.
+ * - The certificate must match the target host; it cannot be reused for unrelated domains.
+ * - Supported BMP formats: Windows BMP, 1/4/8/24-bit color depth, no compression.
+ * - If the certificate is outdated/rotated by the server, you must update it in the sketch.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
+
 #include "Inkplate.h"
 #include "WiFi.h"
 #include "esp_log.h"

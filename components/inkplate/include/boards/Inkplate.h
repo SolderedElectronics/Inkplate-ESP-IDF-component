@@ -70,6 +70,8 @@ public:
    */
   Inkplate();
 
+  void preloadScreen();
+
   /**
    * @brief Draw a single pixel — Adafruit_GFX override.
    * 

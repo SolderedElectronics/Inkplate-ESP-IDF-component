@@ -1,3 +1,48 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       I2C (Qwiic) scanner example for Soldered Inkplate 10.
+ *
+ * @details     Scans the I2C bus for connected Qwiic/I2C devices and displays
+ *              detected device addresses both on the Serial Monitor and on
+ *              the Inkplate 10 e-paper display. Useful for validating proper
+ *              wiring and confirming device communication.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable, optional Qwiic/I2C device
+ * - Extra:      None
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ *
+ * How to use:
+ * 1) Build and flash to Inkplate 10.
+ * 2) Connect a Qwiic/I2C device to the Inkplate.
+ * 3) Upload the sketch to Inkplate 10.
+ * 4) Open the Serial Monitor (115200 baud).
+ * 5) Detected I2C addresses will be shown on both the display and Serial.
+ *
+ * Expected output:
+ * - Inkplate display lists detected I2C device addresses
+ * - Serial Monitor logs scanning progress and addresses
+ *
+ * Notes:
+ * - Valid I2C addresses range from 0x01 to 0x7E.
+ * - Scan repeats every 5 seconds.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
+
 #include "Inkplate.h"
 #include "esp_log.h"
 #include "driver/i2c_master.h"

@@ -1,5 +1,6 @@
 /**
- **************************************************
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
  * @brief       Partial update text scrolling example for Soldered Inkplate 10.
  *
  * @details     Demonstrates how to use partial update functionality on the
@@ -11,17 +12,15 @@
  *
  * Requirements:
  * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
  * - Hardware:   Inkplate 10, USB cable
  * - Extra:      None
  *
  * Configuration:
- * - Boards Manager -> Inkplate Boards -> Soldered Inkplate10
- *
- * Don't have Inkplate Boards in Arduino Boards Manager?
- * See https://docs.soldered.com/inkplate/10/quick-start-guide/
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
  *
  * How to use:
- * 1) Upload the sketch to Inkplate 10.
+ * 1) Build and flash to Inkplate 10.
  * 2) The display performs an initial full refresh.
  * 3) Text scrolls across the screen using partial updates.
  * 4) A full refresh is automatically forced after a defined number of partial updates.
@@ -40,15 +39,11 @@
  *
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
- *
- * @author      Soldered
- * @date        2021-02-11
- * @license     GNU GPL V3
- **************************************************/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
 
 #include "sdkconfig.h"
 
- // Next 3 lines are a precaution, you can ignore those, and the example would also work without them
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
 #error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
 #endif

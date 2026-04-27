@@ -1,3 +1,45 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       RTC alarm with interrupt example for Soldered Inkplate 10.
+ *
+ * @details     Demonstrates how to use the PCF85063A real-time clock (RTC)
+ *              alarm functionality together with its interrupt output on
+ *              Inkplate 10. The example shows how to set time and date,
+ *              configure an alarm, read current time, print it on the display
+ *              using partial updates, and handle the RTC interrupt event.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable
+ * - Extra:      None
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ *
+ * How to use:
+ * 1) Build and flash to Inkplate 10.
+ * 2) Initialize RTC time and date if not already set.
+ * 3) Configure the RTC alarm and enable interrupt handling.
+ * 4) When the alarm triggers, the interrupt is handled in software.
+ * 5) Current time and alarm status are displayed on the screen.
+ *
+ * Expected output:
+ * - Inkplate display shows current date and time.
+ * - Alarm interrupt is triggered at the configured time.
+ *
+ * Notes:
+ * - Inkplate 10 uses the PCF85063A RTC chip.
+ * - Partial update works only in 1-bit (black & white) mode.
+ * - It is not recommended to use partial update on the first refresh after power-up.
+ * - Perform a full refresh every 5–10 partial updates to maintain display quality.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
@@ -108,7 +150,6 @@ extern "C" void app_main(void)
 
         if (s_alarmFlag)
         {
-            // s_alarmFlag = 0; // uncomment to clear flag like original
             display.rtc.clearAlarmFlag();
             display.setCursor(200, 200);
             display.print("ALARM");

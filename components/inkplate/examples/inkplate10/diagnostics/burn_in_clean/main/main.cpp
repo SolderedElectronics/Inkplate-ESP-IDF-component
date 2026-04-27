@@ -1,6 +1,6 @@
 /**
- **************************************************
- * @file        Inkplate10_Burn_In_Clean.ino
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
  * @brief       Run a burn-in cleaning cycle to reduce ghosting/burn-in on the
  *              Inkplate 10 e-paper panel.
  *
@@ -17,20 +17,17 @@
  *
  * Requirements:
  * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
  * - Hardware:   Inkplate 10, USB cable
- * - Extra:      none
+ * - Extra:      None.
  *
  * Configuration:
- * - Boards Manager -> Inkplate Boards -> Soldered Inkplate10
- * - Serial settings (if relevant): none
- *
- * Don't have Inkplate Boards in Arduino Boards Manager?
- * See https://docs.soldered.com/inkplate/10/quick-start-guide/
- *
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ * 
  * How to use:
  * 1) Set CLEAR_CYCLES to the number of cleaning refresh cycles you want.
  * 2) Set CYCLES_DELAY (ms) between cycles (keep it >= 5000 ms).
- * 3) Upload the sketch and keep the device powered for the entire process.
+ * 3) Build and flash to Inkplate10 and keep the device powered for the entire process.
  * 4) Wait until the screen shows "Clearing done."
  *
  * Expected output:
@@ -49,11 +46,14 @@
  *
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
- *
- * @author      Soldered
- * @date        2026-02-19
- * @license     GNU GPL V3
- **************************************************/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
 
 #include "Inkplate.h"
 

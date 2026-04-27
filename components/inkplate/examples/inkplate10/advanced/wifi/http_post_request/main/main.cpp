@@ -1,3 +1,51 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       WiFi HTTP POST request example using webhook.site (Inkplate 10).
+ *
+ * @details     Demonstrates how to connect Inkplate 10 to a WiFi network and
+ *              send periodic HTTP POST requests to webhook.site. This free
+ *              online service allows real-time inspection of HTTP requests,
+ *              making it useful for testing IoT data transmission.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable
+ * - Extra:      Stable WiFi connection, webhook.site URL
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ * - Menuconfig -> WiFi Configuration -> Enter your credentials
+ *
+ * How to use:
+ * 1) Visit https://webhook.site and copy your unique webhook URL.
+ * 2) Paste only the path part (e.g. "/abcd-1234-efgh") into WEBHOOK_PATH.
+ * 3) Build and flash to Inkplate 10.
+ * 4) Open Serial Monitor to observe connection status.
+ * 5) Watch incoming POST requests live on webhook.site.
+ *
+ * Expected output:
+ * - Inkplate display shows example information.
+ * - Serial Monitor logs WiFi connection and POST status.
+ * - webhook.site displays incoming POST requests every 20 seconds.
+ *
+ * Notes:
+ * - Example uses HTTP (port 80) for simplicity.
+ * - Data is sent in URL-encoded format (application/x-www-form-urlencoded).
+ * - Replace example data with real sensor readings if needed.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
+
 #include "Inkplate.h"
 #include "WiFi.h"
 #include "esp_http_client.h"

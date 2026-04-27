@@ -1,3 +1,44 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       RTC timer functionality example for Soldered Inkplate 10.
+ *
+ * @details     Demonstrates how to use the PCF85063A real-time clock (RTC)
+ *              timer functionality on the Inkplate 10 board. The example shows
+ *              how to set time and date, configure the RTC timer, read current
+ *              time values, and display them on the e-paper screen using
+ *              partial updates.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable
+ * - Extra:      None
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ *
+ * How to use:
+ * 1) Build and flash to Inkplate 10.
+ * 2) Initialize RTC time and date if not already configured.
+ * 3) Configure the RTC timer in the code.
+ * 4) The timer event is handled while current time is read and displayed.
+ *
+ * Expected output:
+ * - Inkplate display shows the current date and time.
+ * - Timer functionality operates according to configured interval.
+ *
+ * Notes:
+ * - Inkplate 10 uses the PCF85063A RTC chip.
+ * - Partial update works only in 1-bit (black & white) mode.
+ * - It is not recommended to use partial update on the first refresh after power-up.
+ * - Perform a full refresh every 5–10 partial updates to maintain display quality.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10

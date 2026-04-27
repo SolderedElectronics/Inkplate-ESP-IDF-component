@@ -1,3 +1,43 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       RTC time and alarm example for Soldered Inkplate 10.
+ *
+ * @details     Demonstrates how to use the PCF85063 real-time clock (RTC)
+ *              integrated on the Inkplate 10 board. The example shows how
+ *              to set time and date, configure an alarm, read current time,
+ *              and display it on the e-paper screen using partial updates.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable
+ * - Extra:      None
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ *
+ * How to use:
+ * 1) Build and flash to Inkplate 10.
+ * 2) If RTC is not set, initialize time and date in the code.
+ * 3) The program configures an RTC alarm.
+ * 4) Current time is periodically read and displayed on the screen.
+ *
+ * Expected output:
+ * - Inkplate display shows current date and time.
+ * - Alarm event can be detected and handled in the sketch.
+ *
+ * Notes:
+ * - Inkplate 10 uses the PCF85063 RTC chip.
+ * - Partial update works only in 1-bit (black & white) mode.
+ * - It is not recommended to use partial update on the first refresh after power-up.
+ * - Perform a full refresh every 5–10 partial updates to maintain display quality.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
@@ -14,7 +54,6 @@
 static const char *TAG = "RTC_ALARM";
 
 #define REFRESH_DELAY_MS 1000
-
 
 // Set clock
 static uint8_t s_hour    = 12;
@@ -74,15 +113,14 @@ extern "C" void app_main(void)
     display.setTextColor(BLACK, WHITE);
 
     // Build tm struct for setTime()
-    // tm_year = years since 1900, tm_mon = 0-based
     tm t = {};
     t.tm_hour  = s_hour;
     t.tm_min   = s_minutes;
     t.tm_sec   = s_seconds;
     t.tm_wday  = s_weekday;
     t.tm_mday  = s_day;
-    t.tm_mon   = s_month - 1; // PCF85063 months are 1-based, tm is 0-based
-    t.tm_year  = s_year; // 23 -> 123 (years since 1900)
+    t.tm_mon   = s_month;
+    t.tm_year  = s_year;
 
     esp_err_t err = display.rtc.setTime(t);
     if (err != ESP_OK)
@@ -114,7 +152,7 @@ extern "C" void app_main(void)
         uint8_t seconds = (uint8_t)now.tm_sec;
         uint8_t day     = (uint8_t)now.tm_mday;
         uint8_t weekday = (uint8_t)now.tm_wday;
-        uint8_t month   = (uint8_t)(now.tm_mon + 1); // back to 1-based for display
+        uint8_t month   = (uint8_t)(now.tm_mon); // back to 1-based for display
         uint16_t year   = (uint16_t)(now.tm_year); // back to 2-digit year for display
 
         display.clearDisplay();

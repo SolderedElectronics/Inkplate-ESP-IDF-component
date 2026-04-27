@@ -1,3 +1,43 @@
+/**
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
+ * @brief       EEPROM read/write example for Soldered Inkplate 10.
+ *
+ * @details     Demonstrates how to use the built-in EEPROM on Inkplate 10 to
+ *              store data that persists across resets and power cycles.
+ *              The example shows how to safely clear, write, and read user data
+ *              from EEPROM, while respecting reserved address ranges used by
+ *              the e-paper waveform data.
+ *
+ * Requirements:
+ * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
+ * - Hardware:   Inkplate 10, USB cable
+ * - Extra:      None
+ *
+ * Configuration:
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
+ *
+ * How to use:
+ * 1) Build and flash to Inkplate 10.
+ * 2) The display will first clear user EEPROM data.
+ * 3) Sample data is written to EEPROM.
+ * 4) Stored data is read back and shown on the display.
+ *
+ * Expected output:
+ * - Messages indicating EEPROM clearing, writing, and reading.
+ * - A list of values read from EEPROM displayed on the screen.
+ *
+ * Notes:
+ * - EEPROM addresses 0–75 are reserved for waveform data.
+ * - DO NOT read from or write to addresses below 76.
+ * - Changing EEPROM size may erase waveform data and affect display operation.
+ *
+ * Docs:         https://docs.soldered.com/inkplate
+ * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
@@ -13,9 +53,6 @@
 
 static const char *TAG = "EEPROM_EXAMPLE";
 
-// In the Arduino version, addresses 0-75 were reserved for waveform data.
-// In the IDF version, waveforms live in NVS under their own namespace,
-// so there is no offset needed — user data starts at key index 0.
 #define DATA_SIZE 128
 #define NVS_NAMESPACE "user_data"
 
@@ -92,13 +129,10 @@ static void printNVS(Inkplate &display)
     display.partialUpdate(false, false);
 }
 
-// ---------------------------------------------------------------------------
-
 extern "C" void app_main(void)
 {
     Inkplate display;
-    // NVS must be initialised before any nvs_open call.
-    // nvs_flash_init() is idempotent if already initialised by another component.
+
     esp_err_t err = nvs_flash_init();
     if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
         // Partition was truncated or version mismatch — erase and retry.

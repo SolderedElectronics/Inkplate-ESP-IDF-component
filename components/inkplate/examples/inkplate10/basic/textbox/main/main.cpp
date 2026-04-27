@@ -1,6 +1,6 @@
 /**
- **************************************************
- * @file        Inkplate10_TextBox.ino
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
  * @brief       TextBox usage example for Soldered Inkplate 10.
  *
  * @details     Demonstrates how to use the drawTextBox() function to render
@@ -17,13 +17,17 @@
  *
  * Requirements:
  * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
  * - Hardware:   Inkplate 10, USB cable
  * - Extra:      Custom font file (e.g. Roboto_Light_36.h)
  *
  * Configuration:
- * - Tools -> Board -> "Soldered Inkplate 10"
+ * - Menuconfig -> Inkplate Boards -> Inkplate10
  *
- * Expected result:
+ * How to use:
+ * 1) Build and flash to Inkplate 10.
+ *
+ * Expected output:
  * - Two text boxes rendered on the screen:
  *   1) Default TextBox
  *   2) Custom styled TextBox using Roboto font
@@ -37,15 +41,19 @@
  *
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
- *
- * @author      Soldered
- * @date        2025-04-24
- * @license     GNU GPL V3
- **************************************************/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
 
 #include "Inkplate.h"
 #include "Roboto_Light_36.h"
 
+// Define the text you will show in the text box
 const char* text="This is an example of a text written in a textbox. When a word doesn't fit into the current row, it goes to the next one."\
 " If the text reaches the lower bound, it ends with three dots (...) to mark that the text isnt displayed fully";
 
@@ -53,7 +61,7 @@ extern "C"
 void app_main(void)
 {
     Inkplate display;
-    display.setDisplayMode(BLACK_AND_WHITE);        // Init Inkplate library (you should call this function ONLY ONCE)
+    display.setDisplayMode(BLACK_AND_WHITE);       
     display.clearDisplay(); // Clear frame buffer of display
     display.display();      // Put clear image on display
 

@@ -1,5 +1,6 @@
 /**
- **************************************************
+ * @file        main.cpp
+ * @author      Fran Fodor for Soldered
  * @brief       Basic "Hello World" example for Soldered Inkplate 10.
  *
  * @details     Demonstrates the most basic usage of the Inkplate 10 by
@@ -9,17 +10,16 @@
  *
  * Requirements:
  * - Board:      Soldered Inkplate 10
+ * - Framework:  ESP-IDF v6.x
  * - Hardware:   Inkplate 10, USB cable
  * - Extra:      None
  *
  * Configuration:
  * - Menuconfig -> Inkplate Boards -> Inkplate10
  *
- *
  * How to use:
- * 1) Select "Inkplate10" board.
- * 2) Build and flash to Inkplate 10.
- * 3) After initialization, "Hello World!" appears on the display.
+ * 1) Build and flash to Inkplate 10.
+ * 2) After initialization, "Hello World!" appears on the display.
  *
  * Expected output:
  * - The text "Hello World!" displayed on the Inkplate screen.
@@ -32,11 +32,13 @@
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
  * Image tool:   https://tools.soldered.com/tools/image-converter/
- *
- * @author      Soldered
- * @date        2026-04-22
- * @license     GNU GPL V3
- **************************************************/
+ */
+
+#include "sdkconfig.h"
+
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#endif
 
 #include "Inkplate.h"
 
