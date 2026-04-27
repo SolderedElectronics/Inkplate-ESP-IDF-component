@@ -22,6 +22,8 @@
 
 #include <string.h>
 #include "esp_log.h"
+#include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
 
 #include "Inkplate.h"
 #include "ImageColor.h"
@@ -235,6 +237,8 @@ bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
 
 bool ImageColor::draw(uint8_t *buf, int w, int h, int x, int y, int c)
 {
+  int64_t lastYieldUs = esp_timer_get_time();
+
   #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   uint8_t rem = w & 1;
   int xSize = (w >> 1) + rem;
@@ -242,6 +246,12 @@ bool ImageColor::draw(uint8_t *buf, int w, int h, int x, int y, int c)
 
   for (i = 0; i < h; i++)
   {
+    int64_t now = esp_timer_get_time();
+    if (now - lastYieldUs >= 1000000LL)
+    {
+      vTaskDelay(1);
+      lastYieldUs = esp_timer_get_time();
+    }
     for (j = 0; j < xSize - 1; j++)
     {
       m_inkplate->drawPixel((j * 2) + x, i + y, (*(buf + xSize * i + j) >> 4) >> 1);

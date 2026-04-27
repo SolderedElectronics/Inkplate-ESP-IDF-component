@@ -22,6 +22,8 @@
 
 #include "string.h"
 #include "esp_log.h"
+#include "esp_timer.h"
+#include "freertos/FreeRTOS.h"
 
 #include "Inkplate.h"
 #include "Image.h"
@@ -171,6 +173,8 @@ bool Image::draw(const char *src, int x, int y, bool dither, bool invert)
 
 bool Image::draw(uint8_t *buf, int x, int y, int w, int h, int c)
 {
+  int64_t lastYieldUs = esp_timer_get_time();
+
   if (m_inkplate->getDisplayMode() == BLACK_AND_WHITE)
   {
     m_inkplate->drawBitmap(x, y, buf, w, h, c);
@@ -183,6 +187,12 @@ bool Image::draw(uint8_t *buf, int x, int y, int w, int h, int c)
 
     for (i = 0; i < h; i++)
     {
+      int64_t now = esp_timer_get_time();
+      if (now - lastYieldUs >= 1000000LL)
+      {
+        vTaskDelay(1);
+        lastYieldUs = esp_timer_get_time();
+      }
       for (j = 0; j < xSize - 1; j++)
       {
         m_inkplate->drawPixel((j * 2) + x, i + y, (*(buf + xSize * i + j) >> 4) >> 1);

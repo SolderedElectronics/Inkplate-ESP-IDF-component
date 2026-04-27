@@ -42,6 +42,7 @@
  * - For grayscale mode use INKPLATE_3BIT instead of INKPLATE_1BIT.
  * - display.clearDisplay() clears only the internal framebuffer.
  * - display.display() must be called to push the framebuffer to the screen.
+ * - To change the display mode, the image has to be compatible with it.
  *
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
@@ -64,7 +65,6 @@
 extern "C" void app_main(void)
 {
     Inkplate display;
-    display.setDisplayMode(BLACK_AND_WHITE);
 
     display.clearDisplay(); // Clear frame buffer of display
     // Display selected picture at location X=0, Y=0. All three pictures have resolution of 800x600 pixels
