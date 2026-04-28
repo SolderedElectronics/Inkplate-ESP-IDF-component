@@ -1,105 +1,54 @@
 #include "sdkconfig.h"
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-#error "Wrong board selection for this example, please select Inkplate2 in the boards menu."
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE4
+#error "Wrong board selection for this example, please select Inkplate4 in the boards menu."
 #endif
+
+#include <stdio.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_log.h"
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+
 #include "Inkplate.h"
 
-static const char *TAG = "MAIN";
+#define VCOM_VALUE (-2.6)
+
+static void display_test_image(Inkplate &inkplate)
+{
+    inkplate.clearDisplay();
+
+    double vcom = inkplate.getStoredVCOM();
+
+    inkplate.setTextColor(0);
+    inkplate.setTextSize(2);
+    inkplate.setCursor(5, 5);
+    inkplate.print("Stored VCOM: ");
+    inkplate.print(vcom);
+    inkplate.print(" V");
+
+    int w = inkplate.width() / 8;
+    int h = inkplate.height();
+
+    for (int i = 0; i < 8; i++)
+    {
+        int x = w * i;
+        inkplate.fillRect(x, 40, w, h, i);
+    }
+
+    inkplate.display();
+}
 
 extern "C"
 void app_main(void)
 {
-    Inkplate display;
+    Inkplate inkplate;
 
-    display.clearDisplay();
+    printf("Setting VCOM to %.2f\n", VCOM_VALUE);
 
-    // Init SD card
-    if (display.sdCardInit() != ESP_OK)
-    {
-        ESP_LOGE(TAG, "SD card init failed");
-        display.setTextSize(2);
-        display.setCursor(10, 10);
-        display.print("SD card error!");
-        display.display();
-        return;
-    }
+    if (inkplate.setVCOM(VCOM_VALUE) == ESP_OK)
+        printf("VCOM programmed OK\n");
+    else
+        printf("VCOM programming failed\n");
 
-    // Open the PNG file
-    FILE *f = fopen("/sdcard/image.png", "rb");
-    if (!f)
-    {
-        ESP_LOGE(TAG, "Cannot open image.png");
-        display.setTextSize(2);
-        display.setCursor(10, 10);
-        display.print("Cannot open image.png");
-        display.display();
-        display.sdCardSleep();
-        return;
-    }
-
-    // Get file size
-    fseek(f, 0, SEEK_END);
-    long fileSize = ftell(f);
-    fseek(f, 0, SEEK_SET);
-
-    if (fileSize <= 0)
-    {
-        ESP_LOGE(TAG, "Invalid file size: %ld", fileSize);
-        fclose(f);
-        display.sdCardSleep();
-        return;
-    }
-
-    ESP_LOGI(TAG, "PNG file size: %ld bytes", fileSize);
-
-    // Allocate a buffer large enough for the whole file
-    uint8_t *buf = (uint8_t *)malloc((size_t)fileSize);
-    if (!buf)
-    {
-        ESP_LOGE(TAG, "Not enough RAM for image buffer! Free heap: %lu",
-                 (unsigned long)esp_get_free_heap_size());
-        display.setTextSize(2);
-        display.setCursor(10, 10);
-        display.print("Not enough RAM!");
-        display.display();
-        fclose(f);
-        display.sdCardSleep();
-        return;
-    }
-
-    // Read entire file into buffer
-    size_t bytesRead = fread(buf, 1, (size_t)fileSize, f);
-    fclose(f);
-    //display.sdCardSleep();
-
-    if (bytesRead != (size_t)fileSize)
-    {
-        ESP_LOGE(TAG, "Read mismatch: expected %ld, got %zu", fileSize, bytesRead);
-        free(buf);
-        return;
-    }
-
-    ESP_LOGI(TAG, "File read OK, decoding PNG...");
-
-    // Draw PNG from buffer
-    if (!display.image.draw(buf, (uint32_t)fileSize, 0, 0, true, false))
-    {
-        ESP_LOGE(TAG, "PNG decode error");
-        display.setTextSize(2);
-        display.setCursor(10, 10);
-        display.print("PNG decode error");
-    }
-
-    free(buf);
-    display.display();
-
-    ESP_LOGI(TAG, "Done");
+    display_test_image(inkplate);
 }

@@ -99,7 +99,7 @@ public:
   LSM6DS3  lsm;
   BME680   bme;
 
-  TouchElan touch;
+  TouchElan touchscreen;
   Frontlight frontlight;
 
 private:

@@ -22,7 +22,7 @@
 
 #pragma once
 
-#if !defined(ARDUINO_INKPLATECOLOR) && !defined(ARDUINO_INKPLATE2) && !defined(ARDUINO_INKPLATE13SPECTRA)
+#if !defined(IMAGE_COLOR)
 #define BLACK 1
 #define WHITE 0
 #else

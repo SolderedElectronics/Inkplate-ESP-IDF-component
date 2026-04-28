@@ -55,8 +55,9 @@ Inkplate4::Inkplate4() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 0, 0)//, frontli
   bq.begin(bus);
   lsm.begin(bus);
   bme.begin(bus);
-  touch.begin(i2c, expander2, true);
+  touchscreen.begin(i2c, expander2, true);
   frontlight.begin(i2c, expander1, FRONTLIGHT_EN);
+  frontlight.setState(false);
 
   ESP_LOGI(TAG, "Initialization finished!");
 }

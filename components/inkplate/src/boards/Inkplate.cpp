@@ -35,6 +35,9 @@ Inkplate::Inkplate() : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT), Graphics(E_INK_W
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
   setRotation(2);
 #endif
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE4)
+  setRotation(1);
+#endif
 }
 
 #ifndef COLOR_IMAGE
