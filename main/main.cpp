@@ -1,54 +1,14 @@
-#include "sdkconfig.h"
-
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE4
-#error "Wrong board selection for this example, please select Inkplate4 in the boards menu."
-#endif
-
-#include <stdio.h>
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-
 #include "Inkplate.h"
-
-#define VCOM_VALUE (-2.6)
-
-static void display_test_image(Inkplate &inkplate)
-{
-    inkplate.clearDisplay();
-
-    double vcom = inkplate.getStoredVCOM();
-
-    inkplate.setTextColor(0);
-    inkplate.setTextSize(2);
-    inkplate.setCursor(5, 5);
-    inkplate.print("Stored VCOM: ");
-    inkplate.print(vcom);
-    inkplate.print(" V");
-
-    int w = inkplate.width() / 8;
-    int h = inkplate.height();
-
-    for (int i = 0; i < 8; i++)
-    {
-        int x = w * i;
-        inkplate.fillRect(x, 40, w, h, i);
-    }
-
-    inkplate.display();
-}
 
 extern "C"
 void app_main(void)
 {
-    Inkplate inkplate;
+  Inkplate display;
 
-    printf("Setting VCOM to %.2f\n", VCOM_VALUE);
-
-    if (inkplate.setVCOM(VCOM_VALUE) == ESP_OK)
-        printf("VCOM programmed OK\n");
-    else
-        printf("VCOM programming failed\n");
-
-    display_test_image(inkplate);
+    display.clearDisplay();      // Clear the frame buffer (does NOT clear the physical screen)
+    display.setCursor(10, 10);   // Set the text position to (10, 10) pixels
+    display.setTextSize(3);      // Set text size to 3 (default is 1)
+    display.setTextColor(BLACK); // Set text color to black (default is white)
+    display.print("Hello World!"); // Print "Hello World!" at the set position
+    display.display();           // Refresh the e-paper display to show changes
 }
