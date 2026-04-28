@@ -7,18 +7,6 @@
 The Soldered Inkplate ESP-IDF component brings full ESP-IDF support to the Soldered Inkplate family of e-paper displays.
 It provides ready-to-use integrations for display control, touch input (where available), and file system (FS) access, so you can focus entirely on designing and implementing your user interface.
 All necessary ESP-IDF initialization is handled internally through the class constructors — meaning you can start building your UI right away without worrying about setup details.
-Below are the color formats used by each Inkplate model:
-
-| Board              | Color Format |
-| ------------------ | ------------ |
-| Inkplate 2         | RGB565       |
-| Inkplate 4TEMPERA  | RGB565       |
-| Inkplate 5V2       | L8           |
-| Inkplate 6         | L8           |
-| Inkplate 6FLICK    | L8           |
-| Inkplate 6COLOR    | RGB565       |
-| Inkplate 10        | L8           |
-| Inkplate 13SPECTRA | RGB565       |
 
 
 ### Source code file structure
@@ -136,7 +124,7 @@ inkplate/
 
 In order to get a head start with Inkplate (any), follow these steps:
 
-1. If you aren't using macOS, install CH340 drivers (in case you don't have them yet) — instructions [here](https://soldered.com/learn/ch340-driver-installation-croduino-basic3-nova2/)
+1. If you aren't using macOS, install CH340 drivers (in case you don't have them yet) — instructions [here](https://soldered.com/blogs/learn/ch340-driver-installation)
 
 2. Install **ESP-IDF v6.0 or newer**. Follow the official [Getting Started guide](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html) for your operating system.
 
