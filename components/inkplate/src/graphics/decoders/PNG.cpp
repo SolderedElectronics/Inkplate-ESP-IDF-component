@@ -23,6 +23,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_timer.h"
+#include "esp_log.h"
 
 #include "Inkplate.h"
 #include "PNG.h"
@@ -45,6 +46,8 @@ bool PNG::draw(uint8_t *buf, int32_t len, int x, int y, bool dither, bool invert
   m_lastYieldUs = esp_timer_get_time();
   m_lastDitherY = UINT32_MAX;
 
+  ESP_LOGI("PNG", "Starting draw");
+
   pngle_t *pngle = pngle_new();
   if (!pngle)
     return false;
@@ -54,6 +57,8 @@ bool PNG::draw(uint8_t *buf, int32_t len, int x, int y, bool dither, bool invert
   int result = pngle_feed(pngle, buf, len);
 
   pngle_destroy(pngle);
+
+  ESP_LOGI("PNG", "Draw finished");
 
   return result >= 0;
 }

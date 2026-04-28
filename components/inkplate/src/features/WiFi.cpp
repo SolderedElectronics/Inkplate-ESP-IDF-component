@@ -114,7 +114,7 @@ uint8_t* WiFi::downloadFile(const char *url, int32_t *len)
     return NULL;
   }
 
-  ESP_LOGI(TAG, "Downloading file via HTTPS");
+  ESP_LOGI(TAG, "Downloading file via HTTP");
 
   esp_http_client_config_t config = {};
   config.url         = url;
@@ -160,6 +160,8 @@ uint8_t* WiFi::downloadFile(const char *url, int32_t *len)
 
   esp_http_client_cleanup(client);
   *len = totalRead;
+
+  ESP_LOGI(TAG, "File downloaded");
 
   return buffer;
 }
@@ -223,6 +225,8 @@ uint8_t* WiFi::downloadFileHTTPS(const char *url, int32_t *len)
 
   esp_http_client_cleanup(client);
   *len = totalRead;
+
+  ESP_LOGI(TAG, "File downloaded");
 
   return buffer;
 }

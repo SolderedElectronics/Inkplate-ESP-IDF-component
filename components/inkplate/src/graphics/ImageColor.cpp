@@ -146,7 +146,7 @@ void ImageColor::ditherSwap(int w)
   m_rowIdx = (m_rowIdx + 1) & DITHER_ROW_MASK;
 }
 
-bool ImageColor::draw(uint8_t *buf, int x, int y, bool invert, bool dither)
+bool ImageColor::draw(uint8_t *buf, int x, int y, bool dither, bool invert)
 {
   if (buf[0] != 0x42 || buf[1] != 0x4D)
   {
@@ -159,7 +159,7 @@ bool ImageColor::draw(uint8_t *buf, int x, int y, bool invert, bool dither)
   return result;
 }
 
-bool ImageColor::draw(uint8_t *buf, int32_t len, int x, int y, bool invert, bool dither)
+bool ImageColor::draw(uint8_t *buf, int32_t len, int x, int y, bool dither, bool invert)
 {
   if (dither) beginDither();
 
@@ -177,7 +177,7 @@ bool ImageColor::draw(uint8_t *buf, int32_t len, int x, int y, bool invert, bool
   return result;
 }
 
-bool ImageColor::draw(const char *src, int x, int y, bool invert, bool dither)
+bool ImageColor::draw(const char *src, int x, int y, bool dither, bool invert)
 {
   int32_t  len = 0;
   uint8_t *buf = nullptr;
@@ -247,7 +247,7 @@ bool ImageColor::draw(const uint8_t *buf, int x, int y, int w, int h, int c)
 {
   int64_t lastYieldUs = esp_timer_get_time();
 
-  #if defined(CONFIG_INKPLATE_BORAD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+  #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) || defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
   uint8_t rem = w & 1;
   int xSize = (w >> 1) + rem;
   int i, j;

@@ -56,6 +56,13 @@
 #include "Inkplate.h"
 #include "RTC.h"
 
+static void print2Digits(Inkplate *display, uint8_t d)
+{
+    if (d < 10)
+        display->print('0');
+    display->print(d, 10);
+}
+
 static void printCurrentTime(Inkplate *display)
 {
     display->setCursor(100, 300);
@@ -89,13 +96,6 @@ static void printCurrentTime(Inkplate *display)
     print2Digits(display, t.tm_min);
     display->print(':');
     print2Digits(display, t.tm_sec);
-}
-
-static void print2Digits(Inkplate *display, uint8_t d)
-{
-    if (d < 10)
-        display->print('0');
-    display->print(d, 10);
 }
 
 extern "C" void app_main(void)

@@ -1,90 +1,105 @@
-/**
- * @file        main.cpp
- * @author      Fran Fodor for Soldered
- * @brief       Run a burn-in cleaning cycle to reduce ghosting/burn-in on the
- *              Inkplate 2 e-paper panel.
- *
- * @details     This example calls Inkplate's burnInClean() routine to perform a
- *              repeated full-refresh cleaning sequence intended to reduce heavy
- *              ghosting (burn-in) on the e-paper panel. The cleaning process
- *              runs for a configurable number of cycles, with a fixed delay
- *              between cycles to respect e-paper refresh limitations.
- *
- *              The display is used in 1-bit (BW) mode and the cleaning routine
- *              performs multiple full updates, which may take several minutes
- *              depending on CLEAR_CYCLES and CYCLES_DELAY. When the sequence
- *              finishes, a confirmation message is rendered on the screen.
- *
- * Requirements:
- * - Board:      Soldered Inkplate 2
- * - Framework:  ESP-IDF v6.x
- * - Hardware:   Inkplate 2, USB cable
- * - Extra:      None.
- *
- * Configuration:
- * - Menuconfig -> Inkplate Boards -> Inkplate2
- * 
- * How to use:
- * 1) Set CLEAR_CYCLES to the number of cleaning refresh cycles you want.
- * 2) Set CYCLES_DELAY (ms) between cycles (keep it >= 5000 ms).
- * 3) Build and flash to Inkplate2 and keep the device powered for the entire process.
- * 4) Wait until the screen shows "Clearing done."
- *
- * Expected output:
- * - E-paper: The panel will repeatedly refresh during the cleaning routine.
- *   After completion, the message "Clearing done." is displayed.
- *
- * Notes:
- * - Display mode is 1-bit (BW).
- * - This routine performs many full refreshes; do not interrupt power during
- *   the cleaning sequence.
- * - Use CYCLES_DELAY >= 5 seconds to avoid overstressing the panel and to allow
- *   refresh waveforms to complete properly.
- * - Burn-in/ghosting reduction effectiveness depends on the panel condition and
- *   the content that caused the artifact; multiple runs may be required for
- *   severe cases.
- *
- * Docs:         https://docs.soldered.com/inkplate
- * Support:      https://forum.soldered.com/
- * Image tool:   https://tools.soldered.com/tools/image-converter/
- */
-
 #include "sdkconfig.h"
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
 #error "Wrong board selection for this example, please select Inkplate2 in the boards menu."
 #endif
 
-#include "Inkplate.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "esp_log.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "Inkplate.h"
 
-// Nubmer of clear cycles.
-#define CLEAR_CYCLES 20
-
-// Delay between clear cycles (in milliseconds)
-// NOTE: cycles delay should not be smaller than 5 seconds
-#define CYCLES_DELAY 5000
+static const char *TAG = "MAIN";
 
 extern "C"
 void app_main(void)
 {
-  Inkplate inkplate;
-  inkplate.clearDisplay(); // Clear any data that may have been in (software) frame buffer.
+    Inkplate display;
 
-  int cycles = CLEAR_CYCLES;
+    display.clearDisplay();
 
-  // Clean it by writing clear sequence to the panel.
-  while (cycles)
+    // Init SD card
+    if (display.sdCardInit() != ESP_OK)
     {
-        cycles--;
-        inkplate.display();
-        vTaskDelay(pdMS_TO_TICKS(CYCLES_DELAY));
+        ESP_LOGE(TAG, "SD card init failed");
+        display.setTextSize(2);
+        display.setCursor(10, 10);
+        display.print("SD card error!");
+        display.display();
+        return;
     }
 
-  // Print text when clearing is done.
-  inkplate.setTextSize(4);
-  inkplate.setCursor(10, 15);
-  inkplate.setTextColor(INKPLATE2_RED, INKPLATE2_WHITE);
-  inkplate.print("Clearing done.");
-  inkplate.display();
+    // Open the PNG file
+    FILE *f = fopen("/sdcard/image.png", "rb");
+    if (!f)
+    {
+        ESP_LOGE(TAG, "Cannot open image.png");
+        display.setTextSize(2);
+        display.setCursor(10, 10);
+        display.print("Cannot open image.png");
+        display.display();
+        display.sdCardSleep();
+        return;
+    }
+
+    // Get file size
+    fseek(f, 0, SEEK_END);
+    long fileSize = ftell(f);
+    fseek(f, 0, SEEK_SET);
+
+    if (fileSize <= 0)
+    {
+        ESP_LOGE(TAG, "Invalid file size: %ld", fileSize);
+        fclose(f);
+        display.sdCardSleep();
+        return;
+    }
+
+    ESP_LOGI(TAG, "PNG file size: %ld bytes", fileSize);
+
+    // Allocate a buffer large enough for the whole file
+    uint8_t *buf = (uint8_t *)malloc((size_t)fileSize);
+    if (!buf)
+    {
+        ESP_LOGE(TAG, "Not enough RAM for image buffer! Free heap: %lu",
+                 (unsigned long)esp_get_free_heap_size());
+        display.setTextSize(2);
+        display.setCursor(10, 10);
+        display.print("Not enough RAM!");
+        display.display();
+        fclose(f);
+        display.sdCardSleep();
+        return;
+    }
+
+    // Read entire file into buffer
+    size_t bytesRead = fread(buf, 1, (size_t)fileSize, f);
+    fclose(f);
+    //display.sdCardSleep();
+
+    if (bytesRead != (size_t)fileSize)
+    {
+        ESP_LOGE(TAG, "Read mismatch: expected %ld, got %zu", fileSize, bytesRead);
+        free(buf);
+        return;
+    }
+
+    ESP_LOGI(TAG, "File read OK, decoding PNG...");
+
+    // Draw PNG from buffer
+    if (!display.image.draw(buf, (uint32_t)fileSize, 0, 0, true, false))
+    {
+        ESP_LOGE(TAG, "PNG decode error");
+        display.setTextSize(2);
+        display.setCursor(10, 10);
+        display.print("PNG decode error");
+    }
+
+    free(buf);
+    display.display();
+
+    ESP_LOGI(TAG, "Done");
 }

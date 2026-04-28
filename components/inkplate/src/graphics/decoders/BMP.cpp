@@ -21,6 +21,7 @@
  */
 
 #include "string.h"
+#include "esp_log.h"
 
 #include "Inkplate.h"
 #include "BMP.h"
@@ -33,6 +34,7 @@ BMP::BMP(Inkplate *inkplate) : m_inkplate(inkplate)
 
 bool BMP::draw(uint8_t *buf, int x, int y, bool dither, bool invert)
 {
+  ESP_LOGI("BMP", "Starting draw");
   BitmapHeader header;
   readHeader(buf, &header);
 
@@ -49,6 +51,7 @@ bool BMP::draw(uint8_t *buf, int x, int y, bool dither, bool invert)
     bufferPtr += BMP_ROWSIZE(header.width, header.color);
   }
 
+  ESP_LOGI("BMP", "Draw finished");
   return true;
 }
 
