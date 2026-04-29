@@ -45,8 +45,11 @@
     "Wrong board selection for this example, please select Inkplate10 in the boards menu."
 #endif
 
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include <stdio.h>
+#include <string.h>
 
 #include "Inkplate.h"
 

@@ -56,10 +56,6 @@
 #include "Inkplate.h"
 #include "driver/gpio.h"
 
-#include "picture1.h"
-#include "picture2.h"
-#include "picture3.h"
-
 #define PIN_LED GPIO_NUM_14
 
 extern "C" void app_main(void) {
