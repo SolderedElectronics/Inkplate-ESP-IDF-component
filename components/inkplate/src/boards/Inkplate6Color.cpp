@@ -2,10 +2,11 @@
  * @file Inkplate6Color.cpp
  * @author Fran Fodor for Soldered
  * @brief Driver for Inkplate 6 Color board.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -20,12 +21,12 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "soc/i2s_struct.h"
-#include "soc/gpio_sig_map.h"
 #include "driver/gpio.h"
 #include "esp_heap_caps.h"
-#include "string.h"
 #include "esp_log.h"
+#include "soc/gpio_sig_map.h"
+#include "soc/i2s_struct.h"
+#include "string.h"
 
 #include "freertos/FreeRTOS.h"
 
@@ -33,8 +34,8 @@
 #include "TPS.h"
 
 // Peripherals defined in BoardCommon.cpp
-extern TPS    tps;
-extern I2C    i2c;
+extern TPS tps;
+extern I2C i2c;
 
 static const char *TAG = "INKPLATE6COLOR";
 
@@ -42,28 +43,29 @@ static const char *TAG = "INKPLATE6COLOR";
 /*                              Public functions                              */
 /* -------------------------------------------------------------------------- */
 
-Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12), m_spi(EPAPER_DIN, EPAPER_CLK, SPI3_HOST)
-{
+Inkplate6Color::Inkplate6Color()
+    : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12),
+      m_spi(EPAPER_DIN, EPAPER_CLK) {
   ESP_ERROR_CHECK(initBuffers());
 
   clearDisplay();
 
-  gpio_set_direction(EPAPER_RST_PIN,  GPIO_MODE_OUTPUT);
-  gpio_set_direction(EPAPER_DC_PIN,   GPIO_MODE_OUTPUT);
-  gpio_set_direction(EPAPER_CS_PIN,   GPIO_MODE_OUTPUT);
-  gpio_set_direction(EPAPER_CLK,      GPIO_MODE_OUTPUT);
-  gpio_set_direction(EPAPER_DIN,      GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_RST_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_DC_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_CS_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_CLK, GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_DIN, GPIO_MODE_OUTPUT);
 
   gpio_set_level(EPAPER_RST_PIN, 0);
-  gpio_set_level(EPAPER_DC_PIN,  0);
-  gpio_set_level(EPAPER_CS_PIN,  0);
-  gpio_set_level(EPAPER_CLK,     0);
-  gpio_set_level(EPAPER_DIN,     0);
+  gpio_set_level(EPAPER_DC_PIN, 0);
+  gpio_set_level(EPAPER_CS_PIN, 0);
+  gpio_set_level(EPAPER_CLK, 0);
+  gpio_set_level(EPAPER_DIN, 0);
 
   gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
   gpio_pullup_en(EPAPER_BUSY_PIN);
 
-  //vTaskDelay(pdMS_TO_TICKS(5000));
+  // vTaskDelay(pdMS_TO_TICKS(5000));
 
   if (!setPanelDeepSleep(false))
     ESP_LOGE(TAG, "Panel init failed");
@@ -88,10 +90,11 @@ Inkplate6Color::Inkplate6Color() : BoardCommon(E_INK_WIDTH, E_INK_HEIGHT, 21, 12
  * @return esp_err_t
  *         ESP_OK on success, ESP_ERR_NO_MEM if any allocation fails
  */
-esp_err_t Inkplate6Color::initBuffers()
-{
-  m_framebufferColor = (uint8_t*)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM  | MALLOC_CAP_8BIT);
-  if (!m_framebufferColor) return ESP_ERR_NO_MEM;
+esp_err_t Inkplate6Color::initBuffers() {
+  m_framebufferColor = (uint8_t *)heap_caps_malloc(
+      E_INK_WIDTH * E_INK_HEIGHT / 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  if (!m_framebufferColor)
+    return ESP_ERR_NO_MEM;
   memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 2);
 
   return ESP_OK;
@@ -106,8 +109,7 @@ esp_err_t Inkplate6Color::initBuffers()
  * @return esp_err_t
  *         ESP_OK on success, or an error code if einkOn() failed
  */
-esp_err_t Inkplate6Color::display3b(bool leaveOn)
-{
+esp_err_t Inkplate6Color::display3b(bool leaveOn) {
   setPanelDeepSleep(false);
 
   // set resolution setting
@@ -132,15 +134,12 @@ esp_err_t Inkplate6Color::display3b(bool leaveOn)
   return ESP_OK;
 }
 
-bool Inkplate6Color::waitForEpd(uint32_t timeout)
-{
+bool Inkplate6Color::waitForEpd(uint32_t timeout) {
   uint32_t elapsed = 0;
   const uint32_t STEP = 10;
 
-  while (gpio_get_level(EPAPER_BUSY_PIN) == 0)
-  {
-    if (elapsed >= timeout)
-    {
+  while (gpio_get_level(EPAPER_BUSY_PIN) == 0) {
+    if (elapsed >= timeout) {
       ESP_LOGE(TAG, "EPD busy timeout");
       return false;
     }
@@ -151,36 +150,30 @@ bool Inkplate6Color::waitForEpd(uint32_t timeout)
   return true;
 }
 
-void Inkplate6Color::resetPanel()
-{
+void Inkplate6Color::resetPanel() {
   gpio_set_level(EPAPER_RST_PIN, 0);
   vTaskDelay(pdMS_TO_TICKS(1));
   gpio_set_level(EPAPER_RST_PIN, 1);
   vTaskDelay(pdMS_TO_TICKS(200));
 }
 
-void Inkplate6Color::sendCommand(uint8_t command)
-{
-    m_spi.sendCommand(command, (gpio_num_t)EPAPER_DC_PIN);
+void Inkplate6Color::sendCommand(uint8_t command) {
+  m_spi.sendCommand(command, (gpio_num_t)EPAPER_DC_PIN);
 }
 
-void Inkplate6Color::sendData(uint8_t *data, int n)
-{
-    m_spi.sendData(data, n, (gpio_num_t)EPAPER_DC_PIN);
+void Inkplate6Color::sendData(uint8_t *data, int n) {
+  m_spi.sendData(data, n, (gpio_num_t)EPAPER_DC_PIN);
 }
 
-void Inkplate6Color::sendData(uint8_t data)
-{
-    m_spi.sendData(data, (gpio_num_t)EPAPER_DC_PIN);
+void Inkplate6Color::sendData(uint8_t data) {
+  m_spi.sendData(data, (gpio_num_t)EPAPER_DC_PIN);
 }
 
-bool Inkplate6Color::setPanelDeepSleep(bool sleep)
-{
-  if (!sleep)
-  {
+bool Inkplate6Color::setPanelDeepSleep(bool sleep) {
+  if (!sleep) {
     if (!m_spi.isInitialized())
       m_spi.init();
-      
+
     // Wake
     gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
     gpio_pullup_en(EPAPER_BUSY_PIN);
@@ -224,9 +217,7 @@ bool Inkplate6Color::setPanelDeepSleep(bool sleep)
     sendData(0x37);
 
     return true;
-  }
-  else
-  {
+  } else {
     // Sleep
     vTaskDelay(pdMS_TO_TICKS(10));
     sendCommand(DEEP_SLEEP_REGISTER);
@@ -247,8 +238,7 @@ bool Inkplate6Color::setPanelDeepSleep(bool sleep)
   }
 }
 
-void Inkplate6Color::setIOExpanderForLowPower()
-{
+void Inkplate6Color::setIOExpanderForLowPower() {
   // Battery voltage Switch MOSFET
   expander1.setDirection(IO_NUM_B1, IO_MODE_OUTPUT);
   expander1.setLevel(IO_NUM_B1, 0);

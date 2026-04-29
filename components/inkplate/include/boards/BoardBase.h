@@ -2,10 +2,11 @@
  * @file BoardBase.h
  * @author Fran Fodor for Soldered
  * @brief Collection of functions each board should have.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -26,13 +27,13 @@
 #include "esp_err.h"
 #include <stdint.h>
 
-typedef enum
-{
+typedef enum {
   BLACK_AND_WHITE = 0,
   GRAYSCALE,
 } displayMode_t;
 
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK)
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) ||                                \
+    defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK)
 class BoardBase : public I2S
 #else
 class BoardBase
@@ -46,7 +47,7 @@ public:
   virtual esp_err_t display(bool leaveOn = false) = 0;
   virtual esp_err_t einkOn() = 0;
   virtual esp_err_t einkOff() = 0;
-  virtual void    setFullUpdateThreshold(uint16_t numberOfPartialUpdates) = 0;
+  virtual void setFullUpdateThreshold(uint16_t numberOfPartialUpdates) = 0;
   virtual uint8_t getRotation() { return 0; }
 
   virtual ~BoardBase() = default;

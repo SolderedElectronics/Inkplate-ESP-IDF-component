@@ -2,10 +2,11 @@
  * @file Inkplate2.cpp
  * @author Fran Fodor for Soldered
  * @brief Driver for Inkplate 2 board.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,9 +23,9 @@
 
 #include "Inkplate2.h"
 #include "driver/gpio.h"
-#include "freertos/FreeRTOS.h"
-#include "esp_log.h"
 #include "esp_heap_caps.h"
+#include "esp_log.h"
+#include "freertos/FreeRTOS.h"
 #include "string.h"
 
 static const char *TAG = "Inkplate2";
@@ -33,45 +34,28 @@ static const char *TAG = "Inkplate2";
 /*                              Public functions                              */
 /* -------------------------------------------------------------------------- */
 
-Inkplate2::Inkplate2() 
-{
-  m_framebufferColor = (uint8_t *)heap_caps_malloc(E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+Inkplate2::Inkplate2() : m_spi(EPAPER_DIN, EPAPER_CLK) {
+  m_framebufferColor = (uint8_t *)heap_caps_malloc(
+      E_INK_WIDTH * E_INK_HEIGHT / 4, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!m_framebufferColor)
     ESP_LOGE(TAG, "Failed to allocate framebuffer");
 
   clearDisplay();
 
-  gpio_set_direction(EPAPER_RST_PIN,  GPIO_MODE_OUTPUT);
-  gpio_set_direction(EPAPER_DC_PIN,   GPIO_MODE_OUTPUT);
-  gpio_set_direction(EPAPER_CS_PIN,   GPIO_MODE_OUTPUT);
-  gpio_set_direction(EPAPER_CLK,      GPIO_MODE_OUTPUT);
-  gpio_set_direction(EPAPER_DIN,      GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_RST_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_DC_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_CS_PIN, GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_CLK, GPIO_MODE_OUTPUT);
+  gpio_set_direction(EPAPER_DIN, GPIO_MODE_OUTPUT);
 
   gpio_set_level(EPAPER_RST_PIN, 0);
-  gpio_set_level(EPAPER_DC_PIN,  0);
-  gpio_set_level(EPAPER_CS_PIN,  0);
-  gpio_set_level(EPAPER_CLK,     0);
-  gpio_set_level(EPAPER_DIN,     0);
+  gpio_set_level(EPAPER_DC_PIN, 0);
+  gpio_set_level(EPAPER_CS_PIN, 0);
+  gpio_set_level(EPAPER_CLK, 0);
+  gpio_set_level(EPAPER_DIN, 0);
 
   gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
   gpio_pullup_en(EPAPER_BUSY_PIN);
-
-  //vTaskDelay(pdMS_TO_TICKS(5000));
-
-  spi_bus_config_t bus_cfg = {};
-  bus_cfg.mosi_io_num     = EPAPER_DIN;
-  bus_cfg.miso_io_num     = -1;
-  bus_cfg.sclk_io_num     = EPAPER_CLK;
-  bus_cfg.quadwp_io_num   = -1;
-  bus_cfg.quadhd_io_num   = -1;
-  ESP_ERROR_CHECK(spi_bus_initialize(SPI3_HOST, &bus_cfg, SPI_DMA_CH_AUTO));
-
-  spi_device_interface_config_t dev_cfg = {};
-  dev_cfg.clock_speed_hz = SPI_MASTER_FREQ_10M;
-  dev_cfg.mode           = 0;
-  dev_cfg.spics_io_num   = EPAPER_CS_PIN;
-  dev_cfg.queue_size     = 3;
-  ESP_ERROR_CHECK(spi_bus_add_device(SPI3_HOST, &dev_cfg, &m_spiDev));
 
   if (!setPanelDeepSleep(false))
     ESP_LOGE(TAG, "Panel init failed");
@@ -79,21 +63,19 @@ Inkplate2::Inkplate2()
   setPanelDeepSleep(true);
 }
 
-void Inkplate2::writePixelInternal(int16_t x, int16_t y, uint16_t color)
-{
+void Inkplate2::writePixelInternal(int16_t x, int16_t y, uint16_t color) {
   if (color > 2)
     return;
 
   uint8_t r = getRotation();
 
-  switch (r)
-  {
+  switch (r) {
   case 1:
     _swap_int16_t(x, y);
     x = m_einkWidth - x - 1;
     break;
   case 2:
-    x = m_einkWidth  - x - 1;
+    x = m_einkWidth - x - 1;
     y = m_einkHeight - y - 1;
     break;
   case 3:
@@ -107,26 +89,24 @@ void Inkplate2::writePixelInternal(int16_t x, int16_t y, uint16_t color)
   if (x < 0 || y < 0 || x >= m_einkWidth || y >= m_einkHeight)
     return;
 
-  int x1    = x / 8;
-  int xSub  = x % 8;
+  int x1 = x / 8;
+  int xSub = x % 8;
   int position = (E_INK_WIDTH / 8) * y + x1;
 
   // Set both planes to 1 first (clear)
   *(m_framebufferColor + position) |= pixelMaskLUT[7 - xSub];
-  *(m_framebufferColor + (E_INK_WIDTH * E_INK_HEIGHT / 8) + position) |= pixelMaskLUT[7 - xSub];
+  *(m_framebufferColor + (E_INK_WIDTH * E_INK_HEIGHT / 8) + position) |=
+      pixelMaskLUT[7 - xSub];
 
-  if (color < 2)
-  {
+  if (color < 2) {
     *(m_framebufferColor + position) &= ~(color << (7 - xSub));
-  }
-  else
-  {
-    *(m_framebufferColor + (E_INK_WIDTH * E_INK_HEIGHT / 8) + position) &= ~pixelMaskLUT[7 - xSub];
+  } else {
+    *(m_framebufferColor + (E_INK_WIDTH * E_INK_HEIGHT / 8) + position) &=
+        ~pixelMaskLUT[7 - xSub];
   }
 }
 
-void Inkplate2::display(bool leaveOn)
-{
+esp_err_t Inkplate2::display(bool leaveOn) {
   const size_t plane_bytes = E_INK_WIDTH * E_INK_HEIGHT / 8;
 
   setPanelDeepSleep(false);
@@ -146,16 +126,16 @@ void Inkplate2::display(bool leaveOn)
 
   if (!leaveOn)
     setPanelDeepSleep(true);
+
+  return ESP_OK;
 }
 
-void Inkplate2::clearDisplay()
-{
+void Inkplate2::clearDisplay() {
   if (m_framebufferColor)
     memset(m_framebufferColor, 0xFF, E_INK_WIDTH * E_INK_HEIGHT / 4);
 }
 
-void Inkplate2::fillDisplay()
-{
+void Inkplate2::fillDisplay() {
   if (m_framebufferColor)
     memset(m_framebufferColor, 0x00, E_INK_WIDTH * E_INK_HEIGHT / 4);
 }
@@ -164,15 +144,12 @@ void Inkplate2::fillDisplay()
 /*                              Private functions                             */
 /* -------------------------------------------------------------------------- */
 
-bool Inkplate2::waitForEpd(uint32_t timeout)
-{
+bool Inkplate2::waitForEpd(uint32_t timeout) {
   uint32_t elapsed = 0;
   const uint32_t STEP = 10;
 
-  while (gpio_get_level(EPAPER_BUSY_PIN) == 0)
-  {
-    if (elapsed >= timeout)
-    {
+  while (gpio_get_level(EPAPER_BUSY_PIN) == 0) {
+    if (elapsed >= timeout) {
       ESP_LOGE(TAG, "EPD busy timeout");
       return false;
     }
@@ -183,66 +160,29 @@ bool Inkplate2::waitForEpd(uint32_t timeout)
   return true;
 }
 
-void Inkplate2::resetPanel()
-{
+void Inkplate2::resetPanel() {
   gpio_set_level(EPAPER_RST_PIN, 0);
   vTaskDelay(pdMS_TO_TICKS(100));
   gpio_set_level(EPAPER_RST_PIN, 1);
   vTaskDelay(pdMS_TO_TICKS(100));
 }
 
-void Inkplate2::sendCommand(uint8_t command)
-{
-  //gpio_set_level(EPAPER_CS_PIN, 0);
-  gpio_set_level(EPAPER_DC_PIN, 0);
-  esp_rom_delay_us(10);
-
-  spi_transaction_t t = {};
-  t.length    = 8;
-  t.tx_buffer = &command;
-  spi_device_polling_transmit(m_spiDev, &t);
-
-  //gpio_set_level(EPAPER_CS_PIN, 1);
-  vTaskDelay(pdMS_TO_TICKS(1));
+void Inkplate2::sendCommand(uint8_t command) {
+  m_spi.sendCommand(command, EPAPER_DC_PIN);
 }
 
-void Inkplate2::sendData(uint8_t *data, int n)
-{
-  if (n == 0) return;
-
-  //gpio_set_level(EPAPER_CS_PIN, 0);
-  gpio_set_level(EPAPER_DC_PIN, 1);
-  esp_rom_delay_us(10);
-
-  const size_t chunkSize = 4092;
-
-  for (int i = 0; i < n; i += chunkSize)
-  {
-    int len = (n - i > chunkSize) ? chunkSize : (n - i);
-
-    spi_transaction_t trans;
-    memset(&trans, 0, sizeof(trans));
-
-    trans.tx_buffer = data + i;
-    trans.length = len * 8;
-
-    ESP_ERROR_CHECK(spi_device_transmit(m_spiDev, &trans));
-  }
-
-  //gpio_set_level(EPAPER_CS_PIN, 1);
-  vTaskDelay(pdMS_TO_TICKS(1));
+void Inkplate2::sendData(uint8_t *data, int n) {
+  m_spi.sendData(data, n, EPAPER_DC_PIN);
 }
 
-void Inkplate2::sendData(uint8_t data)
-{
-  sendData(&data, 1);
-}
+void Inkplate2::sendData(uint8_t data) { m_spi.sendData(data, EPAPER_DC_PIN); }
 
-bool Inkplate2::setPanelDeepSleep(bool sleep)
-{
-  if (!sleep)
-  {
+bool Inkplate2::setPanelDeepSleep(bool sleep) {
+  if (!sleep) {
     // Wake
+    if (!m_spi.isInitialized())
+      m_spi.init();
+
     gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
     gpio_pullup_en(EPAPER_BUSY_PIN);
     resetPanel();
@@ -251,22 +191,20 @@ bool Inkplate2::setPanelDeepSleep(bool sleep)
     if (!waitForEpd(BUSY_TIMEOUT_MS))
       return false;
 
-    sendCommand(0x00);      // Panel setting
+    sendCommand(0x00);       // Panel setting
     sendData((uint8_t)0x0f); // LUT from OTP
     sendData((uint8_t)0x89); // Temp sensor, boost, timing
 
-    sendCommand(0x61);                          // Resolution setting
+    sendCommand(0x61); // Resolution setting
     sendData((uint8_t)E_INK_WIDTH);
     sendData((uint8_t)(E_INK_HEIGHT >> 8));
     sendData((uint8_t)(E_INK_HEIGHT & 0xff));
 
-    sendCommand(0x50);       // VCOM and data interval
+    sendCommand(0x50); // VCOM and data interval
     sendData((uint8_t)0x77);
 
     return true;
-  }
-  else
-  {
+  } else {
     // Sleep
     sendCommand(0x50);
     sendData((uint8_t)0xf7);
@@ -280,6 +218,8 @@ bool Inkplate2::setPanelDeepSleep(bool sleep)
     vTaskDelay(pdMS_TO_TICKS(1));
 
     gpio_set_direction(EPAPER_BUSY_PIN, GPIO_MODE_INPUT);
+
+    m_spi.deinit();
 
     return true;
   }

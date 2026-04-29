@@ -2,10 +2,11 @@
  * @file BME680.h
  * @author Fran Fodor for Soldered
  * @brief Wrapper for BME680 driver.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,11 +23,10 @@
 
 #pragma once
 
-#include "libs/BME680Driver.h"
 #include "driver/i2c_master.h"
+#include "libs/BME680Driver.h"
 
-class BME680 : public BME680Driver
-{
+class BME680 : public BME680Driver {
 public:
   bool begin(i2c_master_bus_handle_t bus_handle);
 
@@ -35,7 +35,8 @@ public:
   float readHumidity();
   float readAltitude();
   float readGasResistance();
-  void  readSensorData(float &temp, float &humidity, float &pressure, float &gas);
+  void readSensorData(float &temp, float &humidity, float &pressure,
+                      float &gas);
 
   float calculateAltitude(float pressure);
 };

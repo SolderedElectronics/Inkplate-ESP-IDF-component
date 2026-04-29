@@ -2,10 +2,11 @@
  * @file BQ27441.h
  * @author Fran Fodor for Soldered
  * @brief Wrapper for BQ27441 driver.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -25,8 +26,7 @@
 #include "driver/i2c_master.h"
 #include "libs/BQ27441Driver.h"
 
-class BQ27441 : public BQ27441Driver
-{
+class BQ27441 : public BQ27441Driver {
 public:
   bool begin(i2c_master_bus_handle_t bus_handle, uint32_t speed = 100000);
 };
