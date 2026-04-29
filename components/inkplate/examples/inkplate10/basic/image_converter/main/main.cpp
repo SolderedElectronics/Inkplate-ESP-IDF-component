@@ -10,8 +10,10 @@
  *              a header file (.h) which can be directly included.
  *
  *              Tool workflow:
- *              1. Open the Image Converter at https://tools.soldered.com/tools/image-converter/
- *              2. Upload your image and select "Inkplate 10" as the target board.
+ *              1. Open the Image Converter at
+ * https://tools.soldered.com/tools/image-converter/
+ *              2. Upload your image and select "Inkplate 10" as the target
+ * board.
  *              3. Choose the display mode:
  *                 - 1-bit (Black & White) — fastest refresh, highest contrast
  *                 - 3-bit (Grayscale) — 8 shades of gray
@@ -29,10 +31,10 @@
  * - Menuconfig -> Inkplate Boards -> Inkplate10
  *
  * How to use:
- * 1) Generate image.h using the Image Converter at https://tools.soldered.com/tools/image-converter/
- * 2) Place image.h in the same folder as this sketch.
- * 3) Build and flash to Inkplate 10.
- * 4) The image appears on the display after initialization.
+ * 1) Generate image.h using the Image Converter at
+ * https://tools.soldered.com/tools/image-converter/ 2) Place image.h in the
+ * same folder as this sketch. 3) Build and flash to Inkplate 10. 4) The image
+ * appears on the display after initialization.
  *
  * Expected output:
  * - Your converted image displayed on the Inkplate 10 e-paper screen.
@@ -52,7 +54,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
-#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate10 in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -61,14 +64,11 @@
 
 #include "image_ex.h"
 
+extern "C" void app_main(void) {
+  Inkplate display;
 
-extern "C" void app_main(void)
-{
-    Inkplate display;
-
-    display.clearDisplay(); // Clear frame buffer of display
-    // Display selected picture at location X=0, Y=0. 
-    display.image.draw(image, 0, 0, image_w, image_h, BLACK);
-    display.display(); // Refresh the screen with new picture
-
+  display.clearDisplay(); // Clear frame buffer of display
+  // Display selected picture at location X=0, Y=0.
+  display.image.draw(image, 0, 0, image_w, image_h, BLACK);
+  display.display(); // Refresh the screen with new picture
 }

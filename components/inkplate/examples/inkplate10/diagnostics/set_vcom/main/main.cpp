@@ -6,7 +6,8 @@
  * @details     This example shows how to read the currently stored VCOM value
  *              from the display power IC/EEPROM and optionally program a new
  *              VCOM value. After programming, a simple grayscale test pattern
- *              is drawn and the stored VCOM value is shown on the e-paper display.
+ *              is drawn and the stored VCOM value is shown on the e-paper
+ * display.
  *
  *              VCOM is stored in EEPROM and can only be programmed a limited
  *              number of times. Do NOT run this sketch repeatedly or "tune"
@@ -29,7 +30,8 @@
  *    a grayscale test pattern to verify display quality.
  *
  * Expected output:
- * - E-paper: The stored VCOM voltage value and a grayscale gradient test pattern.
+ * - E-paper: The stored VCOM voltage value and a grayscale gradient test
+ * pattern.
  *
  * Notes:
  * - VCOM should typically be set once during manufacturing or initial setup.
@@ -44,7 +46,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
-#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate10 in the boards menu."
 #endif
 
 #include <stdio.h>
@@ -56,42 +59,38 @@
 
 #define VCOM_VALUE (-3.0)
 
-static void display_test_image(Inkplate &inkplate)
-{
-    inkplate.clearDisplay();
+static void display_test_image(Inkplate &inkplate) {
+  inkplate.clearDisplay();
 
-    double vcom = inkplate.getStoredVCOM();
+  double vcom = inkplate.getStoredVCOM();
 
-    inkplate.setTextColor(0);
-    inkplate.setTextSize(2);
-    inkplate.setCursor(5, 5);
-    inkplate.print("Stored VCOM: ");
-    inkplate.print(vcom);
-    inkplate.print(" V");
+  inkplate.setTextColor(0);
+  inkplate.setTextSize(2);
+  inkplate.setCursor(5, 5);
+  inkplate.print("Stored VCOM: ");
+  inkplate.print(vcom);
+  inkplate.print(" V");
 
-    int w = inkplate.width() / 8;
-    int h = inkplate.height();
+  int w = inkplate.width() / 8;
+  int h = inkplate.height();
 
-    for (int i = 0; i < 8; i++)
-    {
-        int x = w * i;
-        inkplate.fillRect(x, 40, w, h, i);
-    }
+  for (int i = 0; i < 8; i++) {
+    int x = w * i;
+    inkplate.fillRect(x, 40, w, h, i);
+  }
 
-    inkplate.display();
+  inkplate.display();
 }
 
-extern "C"
-void app_main(void)
-{
-    Inkplate inkplate;
+extern "C" void app_main(void) {
+  Inkplate inkplate;
 
-    printf("Setting VCOM to %.2f\n", VCOM_VALUE);
+  printf("Setting VCOM to %.2f\n", VCOM_VALUE);
 
-    if (inkplate.setVCOM(VCOM_VALUE))
-        printf("VCOM programmed OK\n");
-    else
-        printf("VCOM programming failed\n");
+  if (inkplate.setVCOM(VCOM_VALUE))
+    printf("VCOM programmed OK\n");
+  else
+    printf("VCOM programming failed\n");
 
-    display_test_image(inkplate);
+  display_test_image(inkplate);
 }

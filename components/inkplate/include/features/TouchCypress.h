@@ -2,10 +2,11 @@
  * @file TouchCypress.h
  * @author Fran Fodor for Soldered
  * @brief Driver for Cypress touchscreen.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,39 +23,39 @@
 
 #pragma once
 
-#include "driver/i2c_master.h"
+#include "PCAL.h"
 #include "driver/gpio.h"
+#include "driver/i2c_master.h"
+#include "esp_attr.h"
 #include "esp_timer.h"
 #include <string.h>
-#include "esp_attr.h"
-#include "PCAL.h"
 
 #include "Touch.h"
 
-#define TOUCHSCREEN_I2C_ADDR          0x24
+#define TOUCHSCREEN_I2C_ADDR 0x24
 
-#define CYPRESS_TOUCH_BASE_ADDR       0x00
-#define CYPRESS_TOUCH_SOFT_RST_MODE   0x01
-#define CYPRESS_TOUCH_SYSINFO_MODE    0x10
-#define CYPRESS_TOUCH_OPERATE_MODE    0x00
-#define CYPRESS_TOUCH_LOW_POWER_MODE  0x04
+#define CYPRESS_TOUCH_BASE_ADDR 0x00
+#define CYPRESS_TOUCH_SOFT_RST_MODE 0x01
+#define CYPRESS_TOUCH_SYSINFO_MODE 0x10
+#define CYPRESS_TOUCH_OPERATE_MODE 0x00
+#define CYPRESS_TOUCH_LOW_POWER_MODE 0x04
 #define CYPRESS_TOUCH_DEEP_SLEEP_MODE 0x02
-#define CYPRESS_TOUCH_REG_ACT_INTRVL  0x1D
+#define CYPRESS_TOUCH_REG_ACT_INTRVL 0x1D
 
-#define TOUCHSCREEN_EN                IO_NUM_B4
-#define TOUCHSCREEN_RST               IO_NUM_B2
-#define TOUCHSCREEN_INT               GPIO_NUM_36
-#define TOUCHSCREEN_IO_EXPANDER       IO_INT_ADDR
-#define TOUCHSCREEN_IO_REGS           ioRegsInt
+#define TOUCHSCREEN_EN IO_NUM_B4
+#define TOUCHSCREEN_RST IO_NUM_B2
+#define TOUCHSCREEN_INT GPIO_NUM_36
+#define TOUCHSCREEN_IO_EXPANDER IO_INT_ADDR
+#define TOUCHSCREEN_IO_REGS ioRegsInt
 
 #define CYPRESS_TOUCH_ACT_INTRVL_DFLT 0x00
-#define CYPRESS_TOUCH_LP_INTRVL_DFLT  0x0A
-#define CYPRESS_TOUCH_TCH_TMOUT_DFLT  0xFF
+#define CYPRESS_TOUCH_LP_INTRVL_DFLT 0x0A
+#define CYPRESS_TOUCH_TCH_TMOUT_DFLT 0xFF
 
-#define CYPRESS_TOUCH_MAX_X           682
-#define CYPRESS_TOUCH_MAX_Y           1023
+#define CYPRESS_TOUCH_MAX_X 682
+#define CYPRESS_TOUCH_MAX_Y 1023
 
-#define E_INK_WIDTH  1024
+#define E_INK_WIDTH 1024
 #define E_INK_HEIGHT 758
 
 /**
@@ -63,24 +64,23 @@
  * Read during initialisation to verify the controller firmware version
  * and to determine whether the controller is still in bootloader mode.
  */
-struct cyttspBootloaderData
-{
-    uint8_t bl_file;
-    uint8_t bl_status;
-    uint8_t bl_error;
-    uint8_t blver_hi;
-    uint8_t blver_lo;
-    uint8_t bld_blver_hi;
-    uint8_t bld_blver_lo;
-    uint8_t ttspver_hi;
-    uint8_t ttspver_lo;
-    uint8_t appid_hi;
-    uint8_t appid_lo;
-    uint8_t appver_hi;
-    uint8_t appver_lo;
-    uint8_t cid_0;
-    uint8_t cid_1;
-    uint8_t cid_2;
+struct cyttspBootloaderData {
+  uint8_t bl_file;
+  uint8_t bl_status;
+  uint8_t bl_error;
+  uint8_t blver_hi;
+  uint8_t blver_lo;
+  uint8_t bld_blver_hi;
+  uint8_t bld_blver_lo;
+  uint8_t ttspver_hi;
+  uint8_t ttspver_lo;
+  uint8_t appid_hi;
+  uint8_t appid_lo;
+  uint8_t appver_hi;
+  uint8_t appver_lo;
+  uint8_t cid_0;
+  uint8_t cid_1;
+  uint8_t cid_2;
 };
 
 /**
@@ -88,47 +88,44 @@ struct cyttspBootloaderData
  *
  * Read and written during initialisation to configure scan timing.
  */
-struct cyttspSysinfoData
-{
-    uint8_t hst_mode;
-    uint8_t mfg_stat;
-    uint8_t mfg_cmd;
-    uint8_t cid[3];
-    uint8_t tt_undef1;
-    uint8_t uid[8];
-    uint8_t bl_verh;
-    uint8_t bl_verl;
-    uint8_t tts_verh;
-    uint8_t tts_verl;
-    uint8_t app_idh;
-    uint8_t app_idl;
-    uint8_t app_verh;
-    uint8_t app_verl;
-    uint8_t tt_undef[5];
-    uint8_t scn_typ;
-    uint8_t act_intrvl;
-    uint8_t tch_tmout;
-    uint8_t lp_intrvl;
+struct cyttspSysinfoData {
+  uint8_t hst_mode;
+  uint8_t mfg_stat;
+  uint8_t mfg_cmd;
+  uint8_t cid[3];
+  uint8_t tt_undef1;
+  uint8_t uid[8];
+  uint8_t bl_verh;
+  uint8_t bl_verl;
+  uint8_t tts_verh;
+  uint8_t tts_verl;
+  uint8_t app_idh;
+  uint8_t app_idl;
+  uint8_t app_verh;
+  uint8_t app_verl;
+  uint8_t tt_undef[5];
+  uint8_t scn_typ;
+  uint8_t act_intrvl;
+  uint8_t tch_tmout;
+  uint8_t lp_intrvl;
 };
 
 /**
  * @brief  Parsed touch report for up to two simultaneous touch points.
  */
-struct cypressTouchData
-{
-    uint8_t fingers;
-    uint16_t x[2];
-    uint16_t y[2];
-    uint8_t z[2];
-    uint8_t detectionType;
+struct cypressTouchData {
+  uint8_t fingers;
+  uint16_t x[2];
+  uint16_t y[2];
+  uint8_t z[2];
+  uint8_t detectionType;
 };
 
 /**
  * @brief  Cypress CY8CTMA140 implementation of the Touch interface.
  *
  */
-class TouchCypress : public Touch
-{
+class TouchCypress : public Touch {
 public:
   /**
    * @brief Initialises the touch controller.
@@ -143,7 +140,7 @@ public:
    * @return ESP_OK on success, ESP_FAIL if the controller did not respond
    */
   esp_err_t begin(I2C &i2c, PCAL &expander, uint8_t powerState) override;
-  
+
   /**
    * @brief  Powers off the touchscreen controller.
    */
@@ -170,21 +167,22 @@ public:
    * @return true if a touch point is within the area, false otherwise.
    */
   bool touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h) override;
-  
+
   /**
-  * @brief Reads touch coordinates for up to two fingers.
-  *
-  * Only returns data if the interrupt flag is set. Scales raw
-  * coordinates to display resolution before returning.
-  *
-  * @param xPos array of at least 2 x coordinates.
-  * @param yPos output array of at least 2 y coordinates.
-  * @param z optional output array of at least 2 pressure values, pass NULL to ignore.
-  *
-  * @return number of detected touch points (0, 1, or 2).
-  */
+   * @brief Reads touch coordinates for up to two fingers.
+   *
+   * Only returns data if the interrupt flag is set. Scales raw
+   * coordinates to display resolution before returning.
+   *
+   * @param xPos array of at least 2 x coordinates.
+   * @param yPos output array of at least 2 y coordinates.
+   * @param z optional output array of at least 2 pressure values, pass NULL to
+   * ignore.
+   *
+   * @return number of detected touch points (0, 1, or 2).
+   */
   uint8_t getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z = NULL) override;
-  
+
   /**
    * @brief Reads 16 raw bytes from the base register into a buffer.
    *
@@ -195,7 +193,8 @@ public:
   /**
    * @brief Sets the controller power mode.
    *
-   * @param state CYPRESS_TOUCH_OPERATE_MODE, CYPRESS_TOUCH_LOW_POWER_MODE, or CYPRESS_TOUCH_DEEP_SLEEP_MODE.
+   * @param state CYPRESS_TOUCH_OPERATE_MODE, CYPRESS_TOUCH_LOW_POWER_MODE, or
+   * CYPRESS_TOUCH_DEEP_SLEEP_MODE.
    */
   void setPowerState(uint8_t state) override;
 
@@ -205,7 +204,7 @@ public:
    * @return raw value of the base register.
    */
   uint8_t getPowerState() override;
-  
+
 private:
   /**
    * @brief Probes the controller over I2C to check if it is responsive.
@@ -217,7 +216,8 @@ private:
   bool ping(int retries = 5);
 
   /**
-   * @brief Performs an I2C handshake by toggling the MSB of the host mode register.
+   * @brief Performs an I2C handshake by toggling the MSB of the host mode
+   * register.
    *
    * Must be called after reading touch data to acknowledge the interrupt
    * to the controller.
@@ -252,8 +252,9 @@ private:
    * @param flipY true to mirror along the y axis.
    * @param swapXY true to swap x and y axes.
    */
-  void scale(struct cypressTouchData *touchData, uint16_t xSize, uint16_t ySize, bool flipX, bool flipY, bool swapXY);
-  
+  void scale(struct cypressTouchData *touchData, uint16_t xSize, uint16_t ySize,
+             bool flipX, bool flipY, bool swapXY);
+
   /**
    * @brief Deinitialises the touchscreen and removes the interrupt handler.
    */
@@ -310,14 +311,17 @@ private:
   esp_err_t writeI2CRegs(uint8_t cmd, uint8_t *buffer, int len);
 
   /**
-   * @brief Sends the exit-bootloader command and verifies the controller left bootloader mode.
+   * @brief Sends the exit-bootloader command and verifies the controller left
+   * bootloader mode.
    *
-   * @return ESP_OK on success, ESP_FAIL if the controller remained in bootloader mode.
+   * @return ESP_OK on success, ESP_FAIL if the controller remained in
+   * bootloader mode.
    */
   esp_err_t exitBootloaderMode();
 
   /**
-   * @brief Switches the controller to system info mode and reads the system info registers.
+   * @brief Switches the controller to system info mode and reads the system
+   * info registers.
    *
    * @param sysDataPtr output struct to populate.
    *
@@ -334,15 +338,14 @@ private:
    */
   esp_err_t setSysInfoRegs(struct cyttspSysinfoData *sysDataPtr);
 
-  PCAL                       *m_expander  = nullptr;
-  i2c_master_dev_handle_t     m_devHandle = NULL;
-
+  PCAL *m_expander = nullptr;
+  i2c_master_dev_handle_t m_devHandle = NULL;
 
   struct cyttspBootloaderData m_blData;
-  struct cyttspSysinfoData    m_sysData;
+  struct cyttspSysinfoData m_sysData;
 
-  uint8_t                     touchN;
-  uint16_t                    touchX[2], touchY[2];
-  uint32_t                    touchT = 0;
-  bool                        m_tsInitDone = false;
+  uint8_t touchN;
+  uint16_t touchX[2], touchY[2];
+  uint32_t touchT = 0;
+  bool m_tsInitDone = false;
 };

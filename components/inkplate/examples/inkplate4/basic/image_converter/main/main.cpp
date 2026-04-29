@@ -13,7 +13,8 @@
  * - Board:      Soldered Inkplate 4TEMPERA
  * - Framework:  ESP-IDF v6.x
  * - Hardware:   Inkplate 4TEMPERA, USB cable
- * - Extra:      image_ex.h header with a converted image array included in the project
+ * - Extra:      image_ex.h header with a converted image array included in the
+ * project
  *
  * Configuration:
  * - Menuconfig -> Inkplate Boards -> Inkplate4
@@ -38,7 +39,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE4
-#error "Wrong board selection for this example, please select Inkplate4 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate4 in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -47,14 +49,11 @@
 
 #include "image_ex.h"
 
-
-extern "C" void app_main(void)
-{
-    Inkplate display;
-    display.setDisplayMode(BLACK_AND_WHITE);
-    display.clearDisplay(); // Clear frame buffer of display
-    // Display selected picture at location X=0, Y=0. 
-    display.image.draw(image, 0, 0, image_w, image_h, BLACK);
-    display.display(); // Refresh the screen with new picture
-
+extern "C" void app_main(void) {
+  Inkplate display;
+  display.setDisplayMode(BLACK_AND_WHITE);
+  display.clearDisplay(); // Clear frame buffer of display
+  // Display selected picture at location X=0, Y=0.
+  display.image.draw(image, 0, 0, image_w, image_h, BLACK);
+  display.display(); // Refresh the screen with new picture
 }

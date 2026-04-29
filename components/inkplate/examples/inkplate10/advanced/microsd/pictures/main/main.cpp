@@ -4,9 +4,9 @@
  * @brief       Display images from SD card on Soldered Inkplate 10.
  *
  * @details     Demonstrates how to load image files from an SD card and display
- *              them on the Inkplate 10 e-paper display. The example shows how to
- *              read supported image formats from a FAT-formatted SD card and
- *              render them using the Inkplate graphics library.
+ *              them on the Inkplate 10 e-paper display. The example shows how
+ * to read supported image formats from a FAT-formatted SD card and render them
+ * using the Inkplate graphics library.
  *
  * Requirements:
  * - Board:      Soldered Inkplate 10
@@ -41,7 +41,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
-#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate10 in the boards menu."
 #endif
 
 #include "freertos/FreeRTOS.h"
@@ -52,20 +53,16 @@
 // Image file on the SD card root
 #define IMAGE_PATH "coast.jpg"
 
-extern "C"
-void app_main(void)
-{
-    Inkplate display;
-    display.setDisplayMode(GRAYSCALE);
+extern "C" void app_main(void) {
+  Inkplate display;
+  display.setDisplayMode(GRAYSCALE);
 
-    // Init SD card. Display if SD card is init propery or not.
-    if (display.sdCardInit() != ESP_OK)
-    {
-      ESP_LOGE(TAG, "SD card init failed");
-      return;
-    }
+  // Init SD card. Display if SD card is init propery or not.
+  if (display.sdCardInit() != ESP_OK) {
+    ESP_LOGE(TAG, "SD card init failed");
+    return;
+  }
 
-    display.image.draw(IMAGE_PATH, 0, 0, true, false);
-    display.display();
-    
+  display.image.draw(IMAGE_PATH, 0, 0, true, false);
+  display.display();
 }

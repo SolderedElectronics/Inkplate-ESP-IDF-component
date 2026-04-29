@@ -24,7 +24,7 @@
  * - Menuconfig -> Inkplate Boards -> Inkplate2
  * - Connect LED anode to GPIO14 through a 330 Ω resistor
  * - Connect LED cathode to GND
- * 
+ *
  * How to use:
  * 1) Wire the LED to GPIO14 with a current-limiting resistor.
  * 2) Build and flash to Inkplate 2.
@@ -49,7 +49,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-#error "Wrong board selection for this example, please select Inkplate2 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate2 in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -61,28 +62,27 @@
 
 #define PIN_LED GPIO_NUM_14
 
-extern "C" void app_main(void)
-{
-    Inkplate display;
+extern "C" void app_main(void) {
+  Inkplate display;
 
-    display.setTextSize(1);    // Set text size
-    display.setCursor(10, 20); // Set cursor position
-    display.setTextColor(INKPLATE2_BLACK, INKPLATE2_WHITE);
-    display.println("Blink example");
-    display.setCursor(10, 35); // Set cursor position
-    display.println("Connect LED to ESP32 GPIO14 and LED will blink once every two seconds.");
+  display.setTextSize(1);    // Set text size
+  display.setCursor(10, 20); // Set cursor position
+  display.setTextColor(INKPLATE2_BLACK, INKPLATE2_WHITE);
+  display.println("Blink example");
+  display.setCursor(10, 35); // Set cursor position
+  display.println(
+      "Connect LED to ESP32 GPIO14 and LED will blink once every two seconds.");
 
-    // Display to screen
-    display.display();
+  // Display to screen
+  display.display();
 
-    // Set LED GPIO to be output pin
-    gpio_set_direction(PIN_LED, GPIO_MODE_OUTPUT);
+  // Set LED GPIO to be output pin
+  gpio_set_direction(PIN_LED, GPIO_MODE_OUTPUT);
 
-    while(true)
-    {
-        gpio_set_level(PIN_LED, 1);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        gpio_set_level(PIN_LED, 0);
-        vTaskDelay(pdMS_TO_TICKS(1000));
-    }
+  while (true) {
+    gpio_set_level(PIN_LED, 1);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+    gpio_set_level(PIN_LED, 0);
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
 }

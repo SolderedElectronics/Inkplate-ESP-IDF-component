@@ -43,19 +43,53 @@ jobs:
 
           BOARD_CONFIG="CONFIG_INKPLATE_BOARD_${{ matrix.board.config }}=y"
           TARGET="${{ matrix.board.target }}"
+          PROJ_DIR="/tmp/ci_project"
+
+          # ── Create a single reusable project ────────────────────────────────
+          mkdir -p "$PROJ_DIR/main"
+
+          # Point EXTRA_COMPONENT_DIRS at the repo root so ESP-IDF finds components/inkplate
+          cat > "$PROJ_DIR/CMakeLists.txt" << EOF
+          cmake_minimum_required(VERSION 3.16)
+          set(EXTRA_COMPONENT_DIRS "$GITHUB_WORKSPACE")
+          include(\$ENV{IDF_PATH}/tools/cmake/project.cmake)
+          project(inkplate_ci)
+          EOF
+
+          # Fat CMakeLists — covers every REQUIRES variant found across all examples
+          cat > "$PROJ_DIR/main/CMakeLists.txt" << 'EOF'
+          idf_component_register(SRCS "main.cpp"
+                                 REQUIRES "inkplate" "esp_wifi" "esp_http_server"
+                                 INCLUDE_DIRS ".")
+          EOF
+
+          # sdkconfig.defaults: repo defaults + board selection
+          cp "$GITHUB_WORKSPACE/sdkconfig.defaults" "$PROJ_DIR/sdkconfig.defaults"
+          echo "$BOARD_CONFIG" >> "$PROJ_DIR/sdkconfig.defaults"
+
+          # Minimal stub so the initial build has something to compile
+          echo 'extern "C" void app_main() {}' > "$PROJ_DIR/main/main.cpp"
+
+          # ── Initial full build — compiles the inkplate component once ────────
+          echo "::group::initial build (${{ matrix.board.name }})"
+          cd "$PROJ_DIR"
+          idf.py set-target "$TARGET"
+          idf.py build
+          echo "::endgroup::"
+
+          # ── Incremental builds — only main.cpp is swapped each time ─────────
           FAIL=0
           FAILED_EXAMPLES=()
 
-          while IFS= read -r cmake_file; do
-            example_dir="$(dirname "$cmake_file")"
+          while IFS= read -r main_cpp; do
+            example_dir="$(dirname "$(dirname "$main_cpp")")"
 
             echo "::group::$(basename "$example_dir")"
             echo "Building: $example_dir"
 
-            # Inject the board selection — not committed in sdkconfig.defaults
-            echo "$BOARD_CONFIG" >> "$example_dir/sdkconfig.defaults"
+            cp "$main_cpp" "$PROJ_DIR/main/main.cpp"
 
-            if (cd "$example_dir" && idf.py set-target "$TARGET" && idf.py build); then
+            if (cd "$PROJ_DIR" && idf.py build); then
               echo "::endgroup::"
             else
               echo "::endgroup::"
@@ -64,12 +98,8 @@ jobs:
               FAIL=1
             fi
 
-            # Remove build artifacts to keep disk usage low
-            rm -rf "$example_dir/build"
-
-          done < <(find "components/inkplate/examples/${{ matrix.board.name }}" \
-                        -name "CMakeLists.txt" \
-                        ! -path "*/main/*" | sort)
+          done < <(find "$GITHUB_WORKSPACE/components/inkplate/examples/${{ matrix.board.name }}" \
+                        -path "*/main/main.cpp" | sort)
 
           if [ "$FAIL" -ne 0 ]; then
             echo ""

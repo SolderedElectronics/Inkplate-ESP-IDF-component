@@ -43,140 +43,135 @@ Written by Arnd <Arnd@Zanduino.Com> at https://www.github.com/SV-Zanshin
 #ifndef BME680Driver_h
 #define BME680Driver_h
 
-#define CONCAT_BYTES(msb, lsb) (((uint16_t)msb << 8) | (uint16_t)lsb) ///< combine msb & lsb bytes
+#define CONCAT_BYTES(msb, lsb)                                                 \
+  (((uint16_t)msb << 8) | (uint16_t)lsb) ///< combine msb & lsb bytes
 #ifndef _BV
 #define _BV(bit) (1 << (bit)) ///< This macro isn't pre-defined on all platforms
 #endif
 
 /***************************************************************************************************
-** Declare publically visible constants used in the class                                         **
+** Declare publically visible constants used in the class                   **
 ***************************************************************************************************/
 #ifndef I2C_MODES
 #define I2C_MODES
-const uint32_t I2C_STANDARD_MODE{100000};    ///< Default normal I2C 100KHz speed
-const uint32_t I2C_FAST_MODE{400000};        ///< Fast mode
-const uint32_t I2C_FAST_MODE_PLUS{1000000};  ///< Really fast mode
+const uint32_t I2C_STANDARD_MODE{100000};   ///< Default normal I2C 100KHz speed
+const uint32_t I2C_FAST_MODE{400000};       ///< Fast mode
+const uint32_t I2C_FAST_MODE_PLUS{1000000}; ///< Really fast mode
 const uint32_t I2C_HIGH_SPEED_MODE{3400000}; ///< Turbo mode
 #endif
 
 /***************************************************************************************************
-** Declare enumerated types used in the class                                                     **
+** Declare enumerated types used in the class                   **
 ***************************************************************************************************/
 /*! @brief  Enumerate the sensor type */
-enum sensorTypes
-{
-    TemperatureSensor,
-    HumiditySensor,
-    PressureSensor,
-    GasSensor,
-    UnknownSensor
+enum sensorTypes {
+  TemperatureSensor,
+  HumiditySensor,
+  PressureSensor,
+  GasSensor,
+  UnknownSensor
 };
 /*! @brief  Enumerate the Oversampling types */
-enum oversamplingTypes
-{
-    SensorOff,
-    Oversample1,
-    Oversample2,
-    Oversample4,
-    Oversample8,
-    Oversample16,
-    UnknownOversample
+enum oversamplingTypes {
+  SensorOff,
+  Oversample1,
+  Oversample2,
+  Oversample4,
+  Oversample8,
+  Oversample16,
+  UnknownOversample
 };
 /*! @brief  Enumerate the iir filter types */
-enum iirFilterTypes
-{
-    IIROff,
-    IIR2,
-    IIR4,
-    IIR8,
-    IIR16,
-    IIR32,
-    IIR64,
-    IIR128,
-    UnknownIIR
+enum iirFilterTypes {
+  IIROff,
+  IIR2,
+  IIR4,
+  IIR8,
+  IIR16,
+  IIR32,
+  IIR64,
+  IIR128,
+  UnknownIIR
 };
 
-class BME680Driver
-{
-  public:
-    BME680Driver();
-    ~BME680Driver();
-    bool begin(i2c_master_bus_handle_t busHandle, uint8_t i2cAddress = 0);
-    uint8_t setOversampling(const uint8_t sensor,
-                            const uint8_t sampling = UINT8_MAX) const;
-    bool    setGas(uint16_t GasTemp, uint16_t GasMillis) const;
-    uint8_t setIIRFilter(const uint8_t iirFilterSetting = UINT8_MAX) const;
-    uint8_t getSensorData(int32_t &temp, int32_t &hum,
-                          int32_t &press, int32_t &gas,
-                          const bool waitSwitch = true);
-    uint8_t getI2CAddress() const;
-    void    reset();
-    bool    measuring() const;
-    void    triggerMeasurement() const;
-    uint8_t readByte(const uint8_t addr) const;
+class BME680Driver {
+public:
+  BME680Driver();
+  ~BME680Driver();
+  bool begin(i2c_master_bus_handle_t busHandle, uint8_t i2cAddress = 0);
+  uint8_t setOversampling(const uint8_t sensor,
+                          const uint8_t sampling = UINT8_MAX) const;
+  bool setGas(uint16_t GasTemp, uint16_t GasMillis) const;
+  uint8_t setIIRFilter(const uint8_t iirFilterSetting = UINT8_MAX) const;
+  uint8_t getSensorData(int32_t &temp, int32_t &hum, int32_t &press,
+                        int32_t &gas, const bool waitSwitch = true);
+  uint8_t getI2CAddress() const;
+  void reset();
+  bool measuring() const;
+  void triggerMeasurement() const;
+  uint8_t readByte(const uint8_t addr) const;
 
+  /*!
+   @section Template functions
+   getData / putData — all device I/O goes through these two functions.
+   The address and a variable are passed; the functions determine the
+   size of the variable and read or write exactly that many bytes.
+  */
+  template <typename T> uint8_t &getData(const uint8_t addr, T &value) const {
     /*!
-     @section Template functions
-     getData / putData — all device I/O goes through these two functions.
-     The address and a variable are passed; the functions determine the
-     size of the variable and read or write exactly that many bytes.
+      @brief     Template for reading from I2C using any data type
+      @param[in] addr Register address
+      @param[in] value Data Type "T" to read into
+      @return    Number of bytes read
     */
-    template <typename T> uint8_t &getData(const uint8_t addr, T &value) const
-    {
-        /*!
-          @brief     Template for reading from I2C using any data type
-          @param[in] addr Register address
-          @param[in] value Data Type "T" to read into
-          @return    Number of bytes read
-        */
-        uint8_t       *bytePtr    = (uint8_t *)&value;
-        static uint8_t structSize = sizeof(T);
-        if (_i2cDevHandle)
-        {
-            i2c_master_transmit_receive(_i2cDevHandle, &addr, 1, bytePtr, sizeof(T), -1);
-            structSize = sizeof(T);
-        }
-        return structSize;
-    } // of method getData()
+    uint8_t *bytePtr = (uint8_t *)&value;
+    static uint8_t structSize = sizeof(T);
+    if (_i2cDevHandle) {
+      i2c_master_transmit_receive(_i2cDevHandle, &addr, 1, bytePtr, sizeof(T),
+                                  -1);
+      structSize = sizeof(T);
+    }
+    return structSize;
+  } // of method getData()
 
-    template <typename T> uint8_t &putData(const uint8_t addr, const T &value) const
-    {
-        /*!
-          @brief     Template for writing to I2C using any data type
-          @param[in] addr Register address
-          @param[in] value Data Type "T" to write
-          @return    Number of bytes written
-        */
-        const uint8_t *bytePtr    = (const uint8_t *)&value;
-        static uint8_t structSize = sizeof(T);
-        if (_i2cDevHandle)
-        {
-            uint8_t buf[sizeof(T) + 1];
-            buf[0] = addr;
-            memcpy(buf + 1, bytePtr, sizeof(T));
-            i2c_master_transmit(_i2cDevHandle, buf, sizeof(T) + 1, -1);
-        }
-        return structSize;
-    } // of method putData()
+  template <typename T>
+  uint8_t &putData(const uint8_t addr, const T &value) const {
+    /*!
+      @brief     Template for writing to I2C using any data type
+      @param[in] addr Register address
+      @param[in] value Data Type "T" to write
+      @return    Number of bytes written
+    */
+    const uint8_t *bytePtr = (const uint8_t *)&value;
+    static uint8_t structSize = sizeof(T);
+    if (_i2cDevHandle) {
+      uint8_t buf[sizeof(T) + 1];
+      buf[0] = addr;
+      memcpy(buf + 1, bytePtr, sizeof(T));
+      i2c_master_transmit(_i2cDevHandle, buf, sizeof(T) + 1, -1);
+    }
+    return structSize;
+  } // of method putData()
 
-  private:
-    bool    commonInitialization();
-    uint8_t readSensors(const bool waitSwitch);
-    void    waitForReadings() const;
-    void    getCalibration();
+private:
+  bool commonInitialization();
+  uint8_t readSensors(const bool waitSwitch);
+  void waitForReadings() const;
+  void getCalibration();
 
-    uint8_t  _I2CAddress = 0;       ///< I2C address of the device (0 = not found)
-    uint32_t _I2CSpeed   = 0;       ///< I2C bus speed in Hz
+  uint8_t _I2CAddress = 0; ///< I2C address of the device (0 = not found)
+  uint32_t _I2CSpeed = 0;  ///< I2C bus speed in Hz
 
-    i2c_master_dev_handle_t _i2cDevHandle = nullptr; ///< ESP-IDF I2C device handle
+  i2c_master_dev_handle_t _i2cDevHandle =
+      nullptr; ///< ESP-IDF I2C device handle
 
-    uint8_t _H6 = 0, _P10 = 0, _res_heat_range = 0;
-    int8_t  _H3 = 0, _H4 = 0, _H5 = 0, _H7 = 0;
-    int8_t  _G1 = 0, _G3 = 0, _T3 = 0;
-    int8_t  _P3 = 0, _P6 = 0, _P7 = 0, _res_heat = 0, _rng_sw_err = 0;
-    uint16_t _H1 = 0, _H2 = 0, _T1 = 0, _P1 = 0;
-    int16_t  _G2 = 0, _T2 = 0, _P2 = 0, _P4 = 0, _P5 = 0, _P8 = 0, _P9 = 0;
-    int32_t  _tfine = 0, _Temperature = 0, _Pressure = 0, _Humidity = 0, _Gas = 0;
+  uint8_t _H6 = 0, _P10 = 0, _res_heat_range = 0;
+  int8_t _H3 = 0, _H4 = 0, _H5 = 0, _H7 = 0;
+  int8_t _G1 = 0, _G3 = 0, _T3 = 0;
+  int8_t _P3 = 0, _P6 = 0, _P7 = 0, _res_heat = 0, _rng_sw_err = 0;
+  uint16_t _H1 = 0, _H2 = 0, _T1 = 0, _P1 = 0;
+  int16_t _G2 = 0, _T2 = 0, _P2 = 0, _P4 = 0, _P5 = 0, _P8 = 0, _P9 = 0;
+  int32_t _tfine = 0, _Temperature = 0, _Pressure = 0, _Humidity = 0, _Gas = 0;
 }; // of BME680Driver definition
 
 #endif

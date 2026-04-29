@@ -2,10 +2,11 @@
  * @file PNG.h
  * @author Fran Fodor for Soldered
  * @brief PNG image decoder.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -30,21 +31,20 @@ class Inkplate;
 
 /**
  * @brief Class for decoding PNG images.
- * 
+ *
  */
-class PNG
-{
+class PNG {
 public:
   /**
    * @brief Construct a new PNG object.
-   * 
+   *
    * @param inkplate inkplate instance.
    */
   PNG(Inkplate *inkplate);
 
   /**
-   * @brief 
-   * 
+   * @brief
+   *
    * @param buf pointer to the PNG file buffer.
    * @param len length of the buffer in bytes.
    * @param x x coordinate of the top-left corner.
@@ -53,12 +53,13 @@ public:
    * @param invert true to invert pixel values.
    * @return bool true on success, false on decode or memory error.
    */
-  bool draw(uint8_t *buf, int32_t len, int x, int y, bool dither = false, bool invert = false);
+  bool draw(uint8_t *buf, int32_t len, int x, int y, bool dither = false,
+            bool invert = false);
 
 private:
   /**
    * @brief pngle pixel callback — draws one decoded pixel block.
-   * 
+   *
    * @param  pngle pngle decoder context
    * @param  x x position of the block within the image
    * @param  y y position of the block within the image
@@ -66,15 +67,16 @@ private:
    * @param  h block height in pixels
    * @param  rgba decoded pixel color (R, G, B, A)
    */
-  static void drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w, uint32_t h, const uint8_t rgba[4]);
+  static void drawCallback(pngle_t *pngle, uint32_t x, uint32_t y, uint32_t w,
+                           uint32_t h, const uint8_t rgba[4]);
 
-  Inkplate       *m_inkplate;
-  int             m_x;
-  int             m_y;
-  bool            m_invert;
-  bool            m_dither;
+  Inkplate *m_inkplate;
+  int m_x;
+  int m_y;
+  bool m_invert;
+  bool m_dither;
 
-  static PNG      *m_instance;
-  static int64_t   m_lastYieldUs;
-  static uint32_t  m_lastDitherY;
+  static PNG *m_instance;
+  static int64_t m_lastYieldUs;
+  static uint32_t m_lastDitherY;
 };

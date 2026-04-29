@@ -130,13 +130,13 @@ In order to get a head start with Inkplate (any), follow these steps:
 
 3. **Clone this repository** somewhere on your machine:
    ```
-   git clone https://github.com/SolderedElectronics/Inkplate-Esp-library.git
+   git clone https://github.com/SolderedElectronics/Inkplate-ESP-IDF-component.git
    ```
 
 4. **Add the component to your project.** In your project's root `CMakeLists.txt`, point `EXTRA_COMPONENT_DIRS` at the cloned repo so ESP-IDF can find the `inkplate` component:
    ```cmake
    cmake_minimum_required(VERSION 3.16)
-   set(EXTRA_COMPONENT_DIRS "/path/to/Inkplate-Esp-library/components")
+   set(EXTRA_COMPONENT_DIRS "/path/to/Inkplate-ESP-IDF-component/components")
    include($ENV{IDF_PATH}/tools/cmake/project.cmake)
    project(your_project_name)
    ```

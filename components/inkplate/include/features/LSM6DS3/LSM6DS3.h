@@ -2,10 +2,11 @@
  * @file LSM6DS3.h
  * @author Fran Fodor for Soldered
  * @brief Wrapper for LSM6DS3 driver.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,12 +23,11 @@
 
 #pragma once
 
-#include "libs/LSM6DS3Driver.h"
 #include "driver/i2c_master.h"
 #include "esp_err.h"
+#include "libs/LSM6DS3Driver.h"
 
-class LSM6DS3 : public LSM6DS3Driver
-{
+class LSM6DS3 : public LSM6DS3Driver {
 public:
   LSM6DS3() = default;
 

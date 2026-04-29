@@ -2,10 +2,11 @@
  * @file Shapes.h
  * @author Fran Fodor for Soldered
  * @brief Helper for drawing graphics.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -23,47 +24,48 @@
 #pragma once
 
 #include "sdkconfig.h"
-#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) || defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK) 
-  #include "Inkplate6.h"
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) ||                                \
+    defined(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK)
+#include "Inkplate6.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
-  #include "Inkplate6Color.h"
+#include "Inkplate6Color.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE10)
-  #include "Inkplate10.h"
+#include "Inkplate10.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
-  #include "Inkplate13.h"
+#include "Inkplate13.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE5)
-  #include "Inkplate5.h"
+#include "Inkplate5.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE4)
-  #include "Inkplate4.h"
+#include "Inkplate4.h"
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
-  #include "Inkplate2.h"
+#include "Inkplate2.h"
 #else
-  #error "No Inkplate board selected. Choose a board in menuconfig -> Inkplate Board."
+#error                                                                         \
+    "No Inkplate board selected. Choose a board in menuconfig -> Inkplate Board."
 #endif
 
 #include "Adafruit_GFX.h"
 
 #define maxVer 100
-#define maxHt  E_INK_HEIGHT
+#define maxHt E_INK_HEIGHT
 
 /**
  * @brief Class for drawing shapes
- * 
+ *
  */
-class Shapes : virtual public Adafruit_GFX
-{
+class Shapes : virtual public Adafruit_GFX {
 public:
   /**
    * @brief Construct a new Shapes object.
-   * 
+   *
    * @param w width.
    * @param h height.
    */
-  Shapes(int16_t w, int16_t h) : Adafruit_GFX(w, h){};
+  Shapes(int16_t w, int16_t h) : Adafruit_GFX(w, h) {};
 
   /**
    * @brief Draw a pixel at coordinates.
-   * 
+   *
    * @param x x coordinate.
    * @param y y coordinate.
    * @param color pixel color.
@@ -72,7 +74,7 @@ public:
 
   /**
    * @brief Draw empty elipse shape.
-   * 
+   *
    * @param rx x plane radius.
    * @param ry y plane radius.
    * @param xc x plane central point.
@@ -83,7 +85,7 @@ public:
 
   /**
    * @brief Draw filled elipse shape.
-   * 
+   *
    * @param rx x plane radius.
    * @param ry y plane radius.
    * @param xc x plane central point.
@@ -91,10 +93,10 @@ public:
    * @param c color.
    */
   void fillElipse(int rx, int ry, int xc, int yc, int c);
-  
+
   /**
    * @brief Draw thick filled line.
-   * 
+   *
    * @param x1 x plane starting point.
    * @param y1 y plane starting point.
    * @param x2 x plane end point.
@@ -102,11 +104,12 @@ public:
    * @param color line color.
    * @param thickness line thickness in pixels.
    */
-  void drawThickLine(int x1, int y1, int x2, int y2, int color, float thickness);
-  
+  void drawThickLine(int x1, int y1, int x2, int y2, int color,
+                     float thickness);
+
   /**
    * @brief Draw thick gradient line.
-   * 
+   *
    * @param x1 x plane starting point.
    * @param y1 y plane starting point.
    * @param x2 x plane end point.
@@ -114,25 +117,27 @@ public:
    * @param color1 starting color for gradient line.
    * @param color2 ending color for gradient line.
    * @param thickness line thickness in pixels
-   * 
+   *
    * @note Color 1 should always be less than color 2.
    */
-  void drawGradientLine(int x1, int y1, int x2, int y2, int color1, int color2, float thickness = -1);
-  
+  void drawGradientLine(int x1, int y1, int x2, int y2, int color1, int color2,
+                        float thickness = -1);
+
   /**
    * @brief Draw text with prev. defined size with shadow.
-   * 
+   *
    * @param x text cursor for the x position.
    * @param y text cursor for the y position.
    * @param _text string that needs to be printed.
    * @param _colorText color of the text.
    * @param _colorShadow color of the shadow "below" the text.
    */
-  void drawTextWithShadow(int x, int y, const char *_text, uint8_t _colorText, uint8_t _colorShadow);
-  
+  void drawTextWithShadow(int x, int y, const char *_text, uint8_t _colorText,
+                          uint8_t _colorShadow);
+
   /**
    * @brief Draw polygon line by line (horizontally).
-   * 
+   *
    * @param x pointer to x plane point.
    * @param y pointer to y plane point.
    * @param n number of iterations.
@@ -142,7 +147,7 @@ public:
 
   /**
    * @brief Draw filled polygon line by line (horizontally).
-   * 
+   *
    * @param x pointer to x plane point.
    * @param y pointer to y plane point.
    * @param n number of iterations.
@@ -150,57 +155,55 @@ public:
    */
   void fillPolygon(int *x, int *y, int n, int color);
 
-
 private:
-  struct EdgeBucket
-  {
+  struct EdgeBucket {
     int ymax;
     float xofymin;
     float slopeinverse;
   };
 
-  struct edgeTableTuple
-  {
+  struct edgeTableTuple {
     int countEdgeBucket;
     EdgeBucket buckets[maxVer];
   };
 
   /**
    * @brief Initiate edge table and sets all values inside struct to 0.
-   * 
+   *
    */
   void initedgeTable();
 
   /**
    * @brief Sort buckets inside edgeTableTuple.
-   * 
+   *
    * @param ett pointer to edgeTableTuple to be sorted.
    */
   void insertionSort(edgeTableTuple *ett);
-  
+
   /**
    * @brief Store values in tuple structure.
-   * 
+   *
    * @param receiver pointer to edgeTableTuple structure.
    * @param ym edgeTableTuple->ymax value.
    * @param xm edgeTableTuple->xofymin value.
    * @param slopInv edgeTableTuple->slopeInverse value.
    */
-  void storeEdgeInTuple(edgeTableTuple *receiver, int ym, int xm, float slopInv);
-  
+  void storeEdgeInTuple(edgeTableTuple *receiver, int ym, int xm,
+                        float slopInv);
+
   /**
    * @brief Calculate edge values of edgeTableTuple and stores them.
-   * 
+   *
    * @param x1 x plane starting position
    * @param y1 y plane starting position
    * @param x2 x plane ending position
    * @param y2 y plane ending position
    */
   void storeEdgeInTable(int x1, int y1, int x2, int y2);
-  
+
   /**
    * @brief Remove edge by given yy.
-   * 
+   *
    * @param tup pointer to edgeTableTuple to work on.
    * @param yy value to remove from edgeTableTuple.
    */
@@ -208,24 +211,28 @@ private:
 
   /**
    * @brief Update all xofymin by adding slopeinverse value.
-   * 
+   *
    * @param tup pointer to edgeTableTuple to work on
    */
   void updatexbyslopeinv(edgeTableTuple *tup);
 
   /**
    * @brief Draw horizontal line based on edge table.
-   * 
+   *
    * @param c color
    */
   void scanlineFill(uint8_t c);
 
   // virtual void startWrite(void) = 0;
   virtual void writePixel(int16_t x, int16_t y, uint16_t color) = 0;
-  virtual void writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) = 0;
-  virtual void writeFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color) = 0;
-  virtual void writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) = 0;
-  virtual void writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1, uint16_t color) = 0;
+  virtual void writeFillRect(int16_t x, int16_t y, int16_t w, int16_t h,
+                             uint16_t color) = 0;
+  virtual void writeFastVLine(int16_t x, int16_t y, int16_t h,
+                              uint16_t color) = 0;
+  virtual void writeFastHLine(int16_t x, int16_t y, int16_t w,
+                              uint16_t color) = 0;
+  virtual void writeLine(int16_t x0, int16_t y0, int16_t x1, int16_t y1,
+                         uint16_t color) = 0;
   // virtual void endWrite(void) = 0;
 
   edgeTableTuple *edgeTable, activeEdgeTuple;

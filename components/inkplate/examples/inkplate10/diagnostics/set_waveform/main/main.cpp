@@ -32,7 +32,8 @@
  *
  * Expected output:
  * - E-paper: A grayscale gradient from black to white across 8 shades,
- *   with the active waveform number shown at the bottom. Cycles every 5 seconds.
+ *   with the active waveform number shown at the bottom. Cycles every 5
+ * seconds.
  *
  * Notes:
  * - Display mode is 3-bit grayscale (8 shades).
@@ -49,13 +50,14 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
-#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate10 in the boards menu."
 #endif
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -63,44 +65,41 @@
 #include "Inkplate.h"
 #include "image_ex.h"
 
-static void show_gradient(Inkplate &inkplate, int selected)
-{
-    inkplate.clearDisplay();
+static void show_gradient(Inkplate &inkplate, int selected) {
+  inkplate.clearDisplay();
 
-    int w = inkplate.width() / 8;
-    int h = inkplate.height() - 100;
+  int w = inkplate.width() / 8;
+  int h = inkplate.height() - 100;
 
-    inkplate.fillRect(0, 725, 1200, 100, 7);
+  inkplate.fillRect(0, 725, 1200, 100, 7);
 
-    inkplate.setTextSize(4);
-    inkplate.setTextColor(0);
-    inkplate.setCursor(10, 743);
+  inkplate.setTextSize(4);
+  inkplate.setTextColor(0);
+  inkplate.setCursor(10, 743);
 
-    inkplate.drawRect((selected * 6 * 4 * 2) + 432 - 3, 740, (6 * 4) + 2, (8 * 4) + 2, 0);
+  inkplate.drawRect((selected * 6 * 4 * 2) + 432 - 3, 740, (6 * 4) + 2,
+                    (8 * 4) + 2, 0);
 
-    for (int i = 0; i < 8; i++)
-        inkplate.fillRect(i * w, 0, w, h, i);
+  for (int i = 0; i < 8; i++)
+    inkplate.fillRect(i * w, 0, w, h, i);
 
-    inkplate.setTextSize(3);
-    inkplate.setCursor(10, 792);
-    inkplate.print("Waveform ");
-    inkplate.print(selected);
+  inkplate.setTextSize(3);
+  inkplate.setCursor(10, 792);
+  inkplate.print("Waveform ");
+  inkplate.print(selected);
 
-    inkplate.display();
+  inkplate.display();
 }
 
-extern "C"
-void app_main(void)
-{
-    Inkplate inkplate;
+extern "C" void app_main(void) {
+  Inkplate inkplate;
 
-    for (int waveform = 1; waveform <= 5; waveform++)
-    {
-        printf("Testing waveform %d...\n", waveform);
+  for (int waveform = 1; waveform <= 5; waveform++) {
+    printf("Testing waveform %d...\n", waveform);
 
-        inkplate.setWaveform(waveform, false);
-        show_gradient(inkplate, waveform);
+    inkplate.setWaveform(waveform, false);
+    show_gradient(inkplate, waveform);
 
-        vTaskDelay(pdMS_TO_TICKS(5000)); // 3 seconds per waveform
-    }
+    vTaskDelay(pdMS_TO_TICKS(5000)); // 3 seconds per waveform
+  }
 }

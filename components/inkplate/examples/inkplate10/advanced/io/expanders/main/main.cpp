@@ -1,7 +1,8 @@
 /**
  * @file        main.cpp
  * @author      Fran Fodor for Soldered
- * @brief       Internal and external IO expander control example for Soldered Inkplate 10.
+ * @brief       Internal and external IO expander control example for Soldered
+ * Inkplate 10.
  *
  * @details     Demonstrates how to control GPIO pins on both the internal and
  *              external IO expanders available on Inkplate 10. The example
@@ -19,10 +20,10 @@
  * - Menuconfig -> Inkplate Boards -> Inkplate10
  *
  * How to use:
- * 1) Connect an LED + 330 Ω resistor to P1-7 (GPB7) on IO Expander 2 (external).
- * 2) Connect another LED + 330 Ω resistor to P1-7 (GPB7) on IO Expander 1 (internal).
- * 3) Build and flash to Inkplate 10.
- * 4) Observe alternating blinking between external and internal LEDs.
+ * 1) Connect an LED + 330 Ω resistor to P1-7 (GPB7) on IO Expander 2
+ * (external). 2) Connect another LED + 330 Ω resistor to P1-7 (GPB7) on IO
+ * Expander 1 (internal). 3) Build and flash to Inkplate 10. 4) Observe
+ * alternating blinking between external and internal LEDs.
  *
  * Expected output:
  * - External IO expander LED blinks for 5 seconds.
@@ -44,7 +45,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
-#error "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate10 in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -65,35 +67,30 @@ extern PCAL expander1;
 // Declare it here the same way expander1 is declared in the library.
 extern PCAL expander2;
 
+extern "C" void app_main(void) {
+  Inkplate display;
 
-extern "C" void app_main(void)
-{
-    Inkplate display;
+  // Configure LED pin as output on both IO expanders.
+  expander2.setDirection(LED_PIN, IO_MODE_OUTPUT);
+  expander1.setDirection(LED_PIN, IO_MODE_OUTPUT);
 
-    // Configure LED pin as output on both IO expanders.
-    expander2.setDirection(LED_PIN, IO_MODE_OUTPUT);
-    expander1.setDirection(LED_PIN, IO_MODE_OUTPUT);
-
-    while (true)
-    {
-        // External IO Expander (IO Expander 2) 
-        for (int i = 0; i < 5; i++)
-        {
-            expander2.setLevel(LED_PIN, 1);
-            vTaskDelay(pdMS_TO_TICKS(500));
-            expander2.setLevel(LED_PIN, 0);
-            vTaskDelay(pdMS_TO_TICKS(500));
-        }
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
-        // Internal IO Expander (IO Expander 1)
-        for (int i = 0; i < 5; i++)
-        {
-            expander1.setLevel(LED_PIN, 1);
-            vTaskDelay(pdMS_TO_TICKS(500));
-            expander1.setLevel(LED_PIN, 0);
-            vTaskDelay(pdMS_TO_TICKS(500));
-        }
-        vTaskDelay(pdMS_TO_TICKS(2000));
+  while (true) {
+    // External IO Expander (IO Expander 2)
+    for (int i = 0; i < 5; i++) {
+      expander2.setLevel(LED_PIN, 1);
+      vTaskDelay(pdMS_TO_TICKS(500));
+      expander2.setLevel(LED_PIN, 0);
+      vTaskDelay(pdMS_TO_TICKS(500));
     }
+    vTaskDelay(pdMS_TO_TICKS(1000));
+
+    // Internal IO Expander (IO Expander 1)
+    for (int i = 0; i < 5; i++) {
+      expander1.setLevel(LED_PIN, 1);
+      vTaskDelay(pdMS_TO_TICKS(500));
+      expander1.setLevel(LED_PIN, 0);
+      vTaskDelay(pdMS_TO_TICKS(500));
+    }
+    vTaskDelay(pdMS_TO_TICKS(2000));
+  }
 }

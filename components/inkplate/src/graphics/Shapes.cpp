@@ -2,10 +2,11 @@
  * @file Shapes.cpp
  * @author Fran Fodor for Soldered
  * @brief Helper for drawing graphics.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -27,7 +28,7 @@
 
 /**
  * @brief min checks which param have smaller value
- * 
+ *
  */
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
@@ -35,14 +36,14 @@
 
 /**
  * @brief _swap_int16_t swaps two int16_t variables
- * 
+ *
  */
 #ifndef _swap_int16_t
-#define _swap_int16_t(a, b) \
-  {                         \
-    int16_t t = a;          \
-    a = b;                  \
-    b = t;                  \
+#define _swap_int16_t(a, b)                                                    \
+  {                                                                            \
+    int16_t t = a;                                                             \
+    a = b;                                                                     \
+    b = t;                                                                     \
   }
 #endif
 
@@ -50,8 +51,7 @@
 /*                              Public functions                              */
 /* -------------------------------------------------------------------------- */
 
-void Shapes::drawElipse(int rx, int ry, int xc, int yc, int c)
-{
+void Shapes::drawElipse(int rx, int ry, int xc, int yc, int c) {
   float dx, dy, d1, d2, x, y;
   x = 0;
   y = ry;
@@ -60,21 +60,17 @@ void Shapes::drawElipse(int rx, int ry, int xc, int yc, int c)
   dx = 2 * ry * ry * x;
   dy = 2 * rx * rx * y;
 
-  while (dx < dy)
-  {
+  while (dx < dy) {
     drawPixel(x + xc, y + yc, c);
     drawPixel(-x + xc, y + yc, c);
     drawPixel(x + xc, -y + yc, c);
     drawPixel(-x + xc, -y + yc, c);
 
-    if (d1 < 0)
-    {
+    if (d1 < 0) {
       x++;
       dx = dx + (2 * ry * ry);
       d1 = d1 + dx + (ry * ry);
-    }
-    else
-    {
+    } else {
       x++;
       y--;
       dx = dx + (2 * ry * ry);
@@ -83,22 +79,19 @@ void Shapes::drawElipse(int rx, int ry, int xc, int yc, int c)
     }
   }
 
-  d2 = ((ry * ry) * ((x + 0.5) * (x + 0.5))) + ((rx * rx) * ((y - 1) * (y - 1))) - (rx * rx * ry * ry);
-  while (y >= 0)
-  {
+  d2 = ((ry * ry) * ((x + 0.5) * (x + 0.5))) +
+       ((rx * rx) * ((y - 1) * (y - 1))) - (rx * rx * ry * ry);
+  while (y >= 0) {
     drawPixel(x + xc, y + yc, c);
     drawPixel(-x + xc, y + yc, c);
     drawPixel(x + xc, -y + yc, c);
     drawPixel(-x + xc, -y + yc, c);
 
-    if (d2 > 0)
-    {
+    if (d2 > 0) {
       y--;
       dy = dy - (2 * rx * rx);
       d2 = d2 + (rx * rx) - dy;
-    }
-    else
-    {
+    } else {
       y--;
       x++;
       dx = dx + (2 * ry * ry);
@@ -108,8 +101,7 @@ void Shapes::drawElipse(int rx, int ry, int xc, int yc, int c)
   }
 }
 
-void Shapes::fillElipse(int rx, int ry, int xc, int yc, int c)
-{
+void Shapes::fillElipse(int rx, int ry, int xc, int yc, int c) {
   int hh = ry * ry;
   int ww = rx * rx;
   int hhww = hh * ww;
@@ -119,8 +111,7 @@ void Shapes::fillElipse(int rx, int ry, int xc, int yc, int c)
   for (int x = -rx; x <= rx; x++)
     drawPixel(xc + x, yc, c);
 
-  for (int y = 1; y <= ry; y++)
-  {
+  for (int y = 1; y <= ry; y++) {
     int x1 = x0 - (dx - 1);
     for (; x1 > 0; x1--)
       if (x1 * x1 * hh + y * y * ww <= hhww)
@@ -128,16 +119,15 @@ void Shapes::fillElipse(int rx, int ry, int xc, int yc, int c)
     dx = x0 - x1;
     x0 = x1;
 
-    for (int x = -x0; x <= x0; x++)
-    {
+    for (int x = -x0; x <= x0; x++) {
       drawPixel(xc + x, yc - y, c);
       drawPixel(xc + x, yc + y, c);
     }
   }
 }
 
-void Shapes::drawThickLine(int x1, int y1, int x2, int y2, int color, float thickness)
-{
+void Shapes::drawThickLine(int x1, int y1, int x2, int y2, int color,
+                           float thickness) {
   float deg = atan2f((float)(y2 - y1), (float)(x2 - x1));
 
   float l1 = tan(deg);
@@ -160,27 +150,29 @@ void Shapes::drawThickLine(int x1, int y1, int x2, int y2, int color, float thic
   fillTriangle(x2, y2, x4, y4, x3, y3, color);
 }
 
-void Shapes::drawGradientLine(int x1, int y1, int x2, int y2, int color1, int color2, float thickness)
-{
+void Shapes::drawGradientLine(int x1, int y1, int x2, int y2, int color1,
+                              int color2, float thickness) {
   int n = color2 - color1;
 
   float px = (float)(x2 - x1) / (float)n;
   float py = (float)(y2 - y1) / (float)n;
 
-  for (int i = 0; i < n; ++i)
-  {
+  for (int i = 0; i < n; ++i) {
     if (abs(thickness + 1) < 0.1)
-      drawLine((int)((float)x1 + (float)i * px), (int)((float)y1 + (float)i * py),
-           (int)((float)x1 + (float)(i + 1) * px), (int)((float)y1 + (float)(i + 1) * py), color1 + i);
+      drawLine((int)((float)x1 + (float)i * px),
+               (int)((float)y1 + (float)i * py),
+               (int)((float)x1 + (float)(i + 1) * px),
+               (int)((float)y1 + (float)(i + 1) * py), color1 + i);
     else
-      drawThickLine((int)((float)x1 + (float)i * px), (int)((float)y1 + (float)i * py),
-              (int)((float)x1 + (float)(i + 1) * px), (int)((float)y1 + (float)(i + 1) * py), color1 + i,
-              thickness);
+      drawThickLine(
+          (int)((float)x1 + (float)i * px), (int)((float)y1 + (float)i * py),
+          (int)((float)x1 + (float)(i + 1) * px),
+          (int)((float)y1 + (float)(i + 1) * py), color1 + i, thickness);
   }
 }
 
-void Shapes::drawTextWithShadow(int x, int y, const char *_text, uint8_t _colorText, uint8_t _colorShadow)
-{
+void Shapes::drawTextWithShadow(int x, int y, const char *_text,
+                                uint8_t _colorText, uint8_t _colorShadow) {
   setTextColor(_colorShadow);
   setCursor(x + 1, y + 1);
   print(_text);
@@ -189,35 +181,28 @@ void Shapes::drawTextWithShadow(int x, int y, const char *_text, uint8_t _colorT
   print(_text);
 }
 
-void Shapes::drawPolygon(int *x, int *y, int n, int color)
-{
+void Shapes::drawPolygon(int *x, int *y, int n, int color) {
   for (int i = 0; i < n; ++i)
     drawLine(x[i], y[i], x[(i + 1) % n], y[(i + 1) % n], color);
 }
 
-void Shapes::fillPolygon(int *x, int *y, int n, int color)
-{
+void Shapes::fillPolygon(int *x, int *y, int n, int color) {
   edgeTable = (edgeTableTuple *)malloc(maxHt * sizeof(edgeTableTuple));
   initedgeTable();
 
   int count = 0, x1 = 0, y1 = 0, x2 = 0, y2 = 0;
 
-  for (int i = 0; i < n + 1; ++i)
-  {
+  for (int i = 0; i < n + 1; ++i) {
     count++;
-    if (count > 2)
-    {
+    if (count > 2) {
       x1 = x2;
       y1 = y2;
       count = 2;
     }
-    if (count == 1)
-    {
+    if (count == 1) {
       x1 = x[i % n];
       y1 = y[i % n];
-    }
-    else
-    {
+    } else {
       x2 = x[i % n];
       y2 = y[i % n];
       drawLine(x1, y1, x2, y2, color);
@@ -232,28 +217,24 @@ void Shapes::fillPolygon(int *x, int *y, int n, int color)
 /*                              Private functions                             */
 /* -------------------------------------------------------------------------- */
 
-void Shapes::initedgeTable()
-{
+void Shapes::initedgeTable() {
   int i;
   for (i = 0; i < maxHt; i++)
     edgeTable[i].countEdgeBucket = 0;
   activeEdgeTuple.countEdgeBucket = 0;
 }
 
-void Shapes::insertionSort(edgeTableTuple *ett)
-{
+void Shapes::insertionSort(edgeTableTuple *ett) {
   int i, j;
   EdgeBucket temp;
 
-  for (i = 1; i < ett->countEdgeBucket; i++)
-  {
+  for (i = 1; i < ett->countEdgeBucket; i++) {
     temp.ymax = ett->buckets[i].ymax;
     temp.xofymin = ett->buckets[i].xofymin;
     temp.slopeinverse = ett->buckets[i].slopeinverse;
     j = i - 1;
 
-    while ((temp.xofymin < ett->buckets[j].xofymin) && (j >= 0))
-    {
+    while ((temp.xofymin < ett->buckets[j].xofymin) && (j >= 0)) {
       ett->buckets[j + 1].ymax = ett->buckets[j].ymax;
       ett->buckets[j + 1].xofymin = ett->buckets[j].xofymin;
       ett->buckets[j + 1].slopeinverse = ett->buckets[j].slopeinverse;
@@ -265,8 +246,8 @@ void Shapes::insertionSort(edgeTableTuple *ett)
   }
 }
 
-void Shapes::storeEdgeInTuple(edgeTableTuple *receiver, int ym, int xm, float slopInv)
-{
+void Shapes::storeEdgeInTuple(edgeTableTuple *receiver, int ym, int xm,
+                              float slopInv) {
   (receiver->buckets[(receiver)->countEdgeBucket]).ymax = ym;
   (receiver->buckets[(receiver)->countEdgeBucket]).xofymin = (float)xm;
   (receiver->buckets[(receiver)->countEdgeBucket]).slopeinverse = slopInv;
@@ -276,17 +257,13 @@ void Shapes::storeEdgeInTuple(edgeTableTuple *receiver, int ym, int xm, float sl
   (receiver->countEdgeBucket)++;
 }
 
-void Shapes::storeEdgeInTable(int x1, int y1, int x2, int y2)
-{
+void Shapes::storeEdgeInTable(int x1, int y1, int x2, int y2) {
   float m, minv;
   int ymaxTS, xwithyminTS, scanline; // ts stands for "to store"
 
-  if (x2 == x1)
-  {
+  if (x2 == x1) {
     minv = 0.000000;
-  }
-  else
-  {
+  } else {
     m = ((float)(y2 - y1)) / ((float)(x2 - x1));
 
     if (y2 == y1)
@@ -295,14 +272,11 @@ void Shapes::storeEdgeInTable(int x1, int y1, int x2, int y2)
     minv = (float)1.0 / m;
   }
 
-  if (y1 > y2)
-  {
+  if (y1 > y2) {
     scanline = y2;
     ymaxTS = y1;
     xwithyminTS = x2;
-  }
-  else
-  {
+  } else {
     scanline = y1;
     ymaxTS = y2;
     xwithyminTS = x1;
@@ -310,15 +284,11 @@ void Shapes::storeEdgeInTable(int x1, int y1, int x2, int y2)
   storeEdgeInTuple(&edgeTable[scanline], ymaxTS, xwithyminTS, minv);
 }
 
-void Shapes::removeEdgeByYmax(edgeTableTuple *tup, int yy)
-{
+void Shapes::removeEdgeByYmax(edgeTableTuple *tup, int yy) {
   int i, j;
-  for (i = 0; i < tup->countEdgeBucket; i++)
-  {
-    if (tup->buckets[i].ymax == yy)
-    {
-      for (j = i; j < tup->countEdgeBucket - 1; j++)
-      {
+  for (i = 0; i < tup->countEdgeBucket; i++) {
+    if (tup->buckets[i].ymax == yy) {
+      for (j = i; j < tup->countEdgeBucket - 1; j++) {
         tup->buckets[j].ymax = tup->buckets[j + 1].ymax;
         tup->buckets[j].xofymin = tup->buckets[j + 1].xofymin;
         tup->buckets[j].slopeinverse = tup->buckets[j + 1].slopeinverse;
@@ -329,25 +299,23 @@ void Shapes::removeEdgeByYmax(edgeTableTuple *tup, int yy)
   }
 }
 
-void Shapes::updatexbyslopeinv(edgeTableTuple *tup)
-{
+void Shapes::updatexbyslopeinv(edgeTableTuple *tup) {
   int i;
 
-  for (i = 0; i < tup->countEdgeBucket; i++)
-  {
-    (tup->buckets[i]).xofymin = (tup->buckets[i]).xofymin + (tup->buckets[i]).slopeinverse;
+  for (i = 0; i < tup->countEdgeBucket; i++) {
+    (tup->buckets[i]).xofymin =
+        (tup->buckets[i]).xofymin + (tup->buckets[i]).slopeinverse;
   }
 }
 
-void Shapes::scanlineFill(uint8_t c)
-{
+void Shapes::scanlineFill(uint8_t c) {
   int i, j, x1, ymax1, x2, ymax2, FillFlag = 0, coordCount;
 
-  for (i = 0; i < maxHt; i++)
-  {
+  for (i = 0; i < maxHt; i++) {
     for (j = 0; j < edgeTable[i].countEdgeBucket; j++)
-      storeEdgeInTuple(&activeEdgeTuple, edgeTable[i].buckets[j].ymax, edgeTable[i].buckets[j].xofymin,
-               edgeTable[i].buckets[j].slopeinverse);
+      storeEdgeInTuple(&activeEdgeTuple, edgeTable[i].buckets[j].ymax,
+                       edgeTable[i].buckets[j].xofymin,
+                       edgeTable[i].buckets[j].slopeinverse);
 
     removeEdgeByYmax(&activeEdgeTuple, i);
     insertionSort(&activeEdgeTuple);
@@ -359,57 +327,43 @@ void Shapes::scanlineFill(uint8_t c)
     x2 = 0;
     ymax1 = 0;
     ymax2 = 0;
-    while (j < activeEdgeTuple.countEdgeBucket)
-    {
-      if (coordCount % 2 == 0)
-      {
+    while (j < activeEdgeTuple.countEdgeBucket) {
+      if (coordCount % 2 == 0) {
         x1 = (int)(activeEdgeTuple.buckets[j].xofymin);
         ymax1 = activeEdgeTuple.buckets[j].ymax;
-        if (x1 == x2)
-        {
-          if (((x1 == ymax1) && (x2 != ymax2)) || ((x1 != ymax1) && (x2 == ymax2)))
-          {
+        if (x1 == x2) {
+          if (((x1 == ymax1) && (x2 != ymax2)) ||
+              ((x1 != ymax1) && (x2 == ymax2))) {
             x2 = x1;
             ymax2 = ymax1;
           }
 
-          else
-          {
+          else {
             coordCount++;
           }
-        }
-        else
-        {
+        } else {
           coordCount++;
         }
-      }
-      else
-      {
+      } else {
         x2 = (int)activeEdgeTuple.buckets[j].xofymin;
         ymax2 = activeEdgeTuple.buckets[j].ymax;
 
         FillFlag = 0;
-        if (x1 == x2)
-        {
-          if (((x1 == ymax1) && (x2 != ymax2)) || ((x1 != ymax1) && (x2 == ymax2)))
-          {
+        if (x1 == x2) {
+          if (((x1 == ymax1) && (x2 != ymax2)) ||
+              ((x1 != ymax1) && (x2 == ymax2))) {
             x1 = x2;
             ymax1 = ymax2;
-          }
-          else
-          {
+          } else {
             coordCount++;
             FillFlag = 1;
           }
-        }
-        else
-        {
+        } else {
           coordCount++;
           FillFlag = 1;
         }
 
-        if (FillFlag)
-        {
+        if (FillFlag) {
           drawLine(x1, i, x2, i, c);
         }
       }

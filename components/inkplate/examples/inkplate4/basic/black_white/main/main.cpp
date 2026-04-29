@@ -1,14 +1,15 @@
 /**
  * @file        main.cpp
  * @author      Fran Fodor for Soldered
- * @brief       Comprehensive black & white graphics demo for Soldered Inkplate 4TEMPERA.
+ * @brief       Comprehensive black & white graphics demo for Soldered Inkplate
+ * 4TEMPERA.
  *
  * @details     Cycles through a wide variety of Adafruit GFX drawing primitives
- *              in 1-bit (black & white) mode: pixels, lines, thick lines, grids,
- *              rectangles, circles, rounded rectangles, triangles, ellipses,
- *              polygons, bitmaps, and text at multiple sizes. Each shape is shown
- *              for 5 seconds before moving to the next. The demo ends with text
- *              that rotates indefinitely.
+ *              in 1-bit (black & white) mode: pixels, lines, thick lines,
+ * grids, rectangles, circles, rounded rectangles, triangles, ellipses,
+ *              polygons, bitmaps, and text at multiple sizes. Each shape is
+ * shown for 5 seconds before moving to the next. The demo ends with text that
+ * rotates indefinitely.
  *
  * Requirements:
  * - Board:      Soldered Inkplate 4TEMPERA
@@ -24,7 +25,8 @@
  * 2) The display cycles through all drawing primitives automatically.
  *
  * Expected output:
- * - A series of screens demonstrating pixels, lines, shapes, and text in black & white.
+ * - A series of screens demonstrating pixels, lines, shapes, and text in black
+ * & white.
  *
  * Notes:
  * - display.clearDisplay() clears only the internal framebuffer.
@@ -39,32 +41,28 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE4
-#error "Wrong board selection for this example, please select Inkplate4 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate4 in the boards menu."
 #endif
 
 #include "Inkplate.h"
+#include "esp_random.h"
+#include "freertos/FreeRTOS.h"
 #include "logo.h"
 #include "math.h"
-#include "freertos/FreeRTOS.h"
-#include "esp_random.h"
 #define DELAY_MS 5000
 
 static const char *TAG = "MAIN";
 
-int random(int min, int max) {
-    return (esp_random() % (max - min + 1)) + min;
+int random(int min, int max) { return (esp_random() % (max - min + 1)) + min; }
+
+void displayCurrentAction(Inkplate &display, const char *text) {
+  display.setTextSize(2);
+  display.setCursor(20, 560);
+  display.print(text);
 }
 
-void displayCurrentAction(Inkplate &display, const char* text)
-{
-    display.setTextSize(2);
-    display.setCursor(20, 560);
-    display.print(text);
-}
-
-extern "C"
-void app_main(void)
-{
+extern "C" void app_main(void) {
   Inkplate display;
   display.setDisplayMode(BLACK_AND_WHITE);
   display.setTextColor(BLACK, WHITE);
@@ -75,11 +73,10 @@ void app_main(void)
   display.setTextSize(3);
   display.print("Welcome to Inkplate 4TEMPERA!");
   display.display();
-  vTaskDelay(pdMS_TO_TICKS(DELAY_MS));       // Wait a little bit
+  vTaskDelay(pdMS_TO_TICKS(DELAY_MS)); // Wait a little bit
 
-  while(true)
-  {
-        // Single pixel
+  while (true) {
+    // Single pixel
     display.clearDisplay();
     displayCurrentAction(display, "Drawing a pixel");
     display.drawPixel(100, 50, BLACK);
@@ -89,7 +86,7 @@ void app_main(void)
     // Random pixels
     display.clearDisplay();
     for (int i = 0; i < 600; i++)
-        display.drawPixel(random(0, 599), random(0, 599), BLACK);
+      display.drawPixel(random(0, 599), random(0, 599), BLACK);
     displayCurrentAction(display, "Drawing random pixels");
     display.display();
     vTaskDelay(pdMS_TO_TICKS(DELAY_MS));
@@ -105,8 +102,8 @@ void app_main(void)
     // Random lines
     display.clearDisplay();
     for (int i = 0; i < 50; i++)
-        display.drawLine(random(0, 599), random(0, 599),
-                         random(0, 599), random(0, 599), BLACK);
+      display.drawLine(random(0, 599), random(0, 599), random(0, 599),
+                       random(0, 599), BLACK);
     displayCurrentAction(display, "50 random lines");
     display.display();
     vTaskDelay(pdMS_TO_TICKS(DELAY_MS));
@@ -114,9 +111,8 @@ void app_main(void)
     // Thick lines
     display.clearDisplay();
     for (int i = 0; i < 50; i++)
-        display.drawThickLine(random(0, 599), random(0, 599),
-                              random(0, 599), random(0, 599),
-                              BLACK, (float)random(1, 20));
+      display.drawThickLine(random(0, 599), random(0, 599), random(0, 599),
+                            random(0, 599), BLACK, (float)random(1, 20));
     displayCurrentAction(display, "50 random thick lines");
     display.display();
     vTaskDelay(pdMS_TO_TICKS(DELAY_MS));
@@ -138,9 +134,9 @@ void app_main(void)
     // Grid
     display.clearDisplay();
     for (int i = 0; i < 600; i += 10)
-        display.drawFastVLine(i, 0, 600, BLACK);
+      display.drawFastVLine(i, 0, 600, BLACK);
     for (int i = 0; i < 600; i += 10)
-        display.drawFastHLine(0, i, 600, BLACK);
+      display.drawFastHLine(0, i, 600, BLACK);
     displayCurrentAction(display, "Grid");
     display.display();
     vTaskDelay(pdMS_TO_TICKS(DELAY_MS));
@@ -192,11 +188,10 @@ void app_main(void)
 
     // Text demo
     display.clearDisplay();
-    for (int i = 0; i < 5; i++)
-    {
-        display.setTextSize(i + 1);
-        display.setCursor(90, (i * i * 20));
-        display.print("Inkplate 4TEMPERA");
+    for (int i = 0; i < 5; i++) {
+      display.setTextSize(i + 1);
+      display.setCursor(90, (i * i * 20));
+      display.print("Inkplate 4TEMPERA");
     }
     displayCurrentAction(display, "Text sizes");
     display.display();
@@ -215,15 +210,14 @@ void app_main(void)
     display.setTextSize(4);
     display.setTextColor(BLACK, WHITE);
 
-    while (true)
-    {
-        display.clearDisplay();
-        display.setCursor(120, 250);
-        display.setRotation(r);
-        display.print("Inkplate 4TEMPERA");
-        display.display();
-        r++;
-        vTaskDelay(pdMS_TO_TICKS(DELAY_MS));
+    while (true) {
+      display.clearDisplay();
+      display.setCursor(120, 250);
+      display.setRotation(r);
+      display.print("Inkplate 4TEMPERA");
+      display.display();
+      r++;
+      vTaskDelay(pdMS_TO_TICKS(DELAY_MS));
     }
   }
 }

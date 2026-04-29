@@ -44,30 +44,32 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-#error "Wrong board selection for this example, please select Inkplate2 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate2 in the boards menu."
 #endif
 
 #include "Inkplate.h"
 
 // Define the text you will show in the text box
-const char* text="This is an example of a text written in a textbox. When a word doesn't fit into the current row, it goes to the next one."\
-" If the text reaches the lower bound, it ends with three dots (...) to mark that the text isnt displayed fully";
+const char *text =
+    "This is an example of a text written in a textbox. When a word doesn't "
+    "fit into the current row, it goes to the next one."
+    " If the text reaches the lower bound, it ends with three dots (...) to "
+    "mark that the text isnt displayed fully";
 
-extern "C"
-void app_main(void)
-{
-    Inkplate display;    
-    display.clearDisplay(); // Clear frame buffer of display
-    display.display();      // Put clear image on display
+extern "C" void app_main(void) {
+  Inkplate display;
+  display.clearDisplay(); // Clear frame buffer of display
+  display.display();      // Put clear image on display
 
-    // Create a text box without any optional parameters
-    // x0- x coordinate of upper left corner
-    // y0- y coordinate of upper left corner
-    // x1- x coordinate of bottom right corner
-    // y1- y coordinate of bottom right corner
-    // text - text we want to display
-    display.drawTextBox(10,10,200,90,text);
+  // Create a text box without any optional parameters
+  // x0- x coordinate of upper left corner
+  // y0- y coordinate of upper left corner
+  // x1- x coordinate of bottom right corner
+  // y1- y coordinate of bottom right corner
+  // text - text we want to display
+  display.drawTextBox(10, 10, 200, 90, text);
 
-    // Display both text boxes
-    display.display();
+  // Display both text boxes
+  display.display();
 }

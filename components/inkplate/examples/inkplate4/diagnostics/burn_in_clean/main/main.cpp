@@ -3,10 +3,10 @@
  * @author      Fran Fodor for Soldered
  * @brief       Burn-in cleaning utility for Soldered Inkplate 4TEMPERA.
  *
- * @details     Runs the built-in burn-in cleaning sequence to remove ghosting and
- *              image retention from the e-paper panel. The screen is cycled through
- *              CLEAR_CYCLES full black/white refresh cycles with a delay between
- *              each cycle. When the cleaning is complete, a confirmation message is
+ * @details     Runs the built-in burn-in cleaning sequence to remove ghosting
+ * and image retention from the e-paper panel. The screen is cycled through
+ *              CLEAR_CYCLES full black/white refresh cycles with a delay
+ * between each cycle. When the cleaning is complete, a confirmation message is
  *              shown on the display.
  *
  * Requirements:
@@ -38,7 +38,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE4
-#error "Wrong board selection for this example, please select Inkplate4 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate4 in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -50,15 +51,15 @@
 // NOTE: cycles delay should not be smaller than 5 seconds
 #define CYCLES_DELAY 5000
 
-extern "C"
-void app_main(void)
-{
+extern "C" void app_main(void) {
   Inkplate inkplate;
-  inkplate.clearDisplay(); // Clear any data that may have been in (software) frame buffer.
+  inkplate.clearDisplay(); // Clear any data that may have been in (software)
+                           // frame buffer.
 
   int cycles = CLEAR_CYCLES;
 
-  // Clean the screen by running the burn in function which starts the cleaning sequence
+  // Clean the screen by running the burn in function which starts the cleaning
+  // sequence
   inkplate.cleanBurnIn(cycles, CYCLES_DELAY);
 
   // Print text when clearing is done.

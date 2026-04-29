@@ -54,45 +54,49 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-#error "Wrong board selection for this example, please select Inkplate2 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate2 in the boards menu."
 #endif
 
 #include "Inkplate.h"
 #include "esp_sleep.h"
 
 // Define the text you will show in the text box
-const char* text="This is an example of a text written in a textbox. When a word doesn't fit into the current row, it goes to the next one."\
-" If the text reaches the lower bound, it ends with three dots (...) to mark that the text isnt displayed fully";
+const char *text =
+    "This is an example of a text written in a textbox. When a word doesn't "
+    "fit into the current row, it goes to the next one."
+    " If the text reaches the lower bound, it ends with three dots (...) to "
+    "mark that the text isnt displayed fully";
 
-extern "C"
-void app_main(void)
-{
-    Inkplate display;    
-    display.setTextSize(2);                // Set text size
-    display.setTextColor(INKPLATE2_BLACK); // Set text color
-    display.setCursor(0, 0);               // Set cursor position
+extern "C" void app_main(void) {
+  Inkplate display;
+  display.setTextSize(2);                // Set text size
+  display.setTextColor(INKPLATE2_BLACK); // Set text color
+  display.setCursor(0, 0);               // Set cursor position
 
-    // Draw black text
-    display.print("Inkplate 2"); // Print text
+  // Draw black text
+  display.print("Inkplate 2"); // Print text
 
-    // Draw red text
-    display.setTextColor(INKPLATE2_RED);
-    display.setCursor(0, 20);
-    display.print("Inkplate 2");
+  // Draw red text
+  display.setTextColor(INKPLATE2_RED);
+  display.setCursor(0, 20);
+  display.print("Inkplate 2");
 
-    // Draw text with shadow, specify color for text and background
-    // (x coordinate, y coordinate, string to write, text color, shadow color)
-    display.drawTextWithShadow(0, 40, "Inkplate 2", INKPLATE2_RED, INKPLATE2_BLACK);
+  // Draw text with shadow, specify color for text and background
+  // (x coordinate, y coordinate, string to write, text color, shadow color)
+  display.drawTextWithShadow(0, 40, "Inkplate 2", INKPLATE2_RED,
+                             INKPLATE2_BLACK);
 
-    display.setTextSize(1);
-    display.drawTextWithShadow(110, 80, "By soldered.com", INKPLATE2_BLACK, INKPLATE2_RED);
+  display.setTextSize(1);
+  display.drawTextWithShadow(110, 80, "By soldered.com", INKPLATE2_BLACK,
+                             INKPLATE2_RED);
 
-    // Other basic drawing functions supported
-    display.drawLine(10, 80, 100, 100, INKPLATE2_RED);
+  // Other basic drawing functions supported
+  display.drawLine(10, 80, 100, 100, INKPLATE2_RED);
 
-    // Display to screen
-    display.display();
+  // Display to screen
+  display.display();
 
-    // Go to deep sleep
-    esp_deep_sleep_start();
+  // Go to deep sleep
+  esp_deep_sleep_start();
 }

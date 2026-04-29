@@ -37,7 +37,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-#error "Wrong board selection for this example, please select Inkplate6Color in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate6Color in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -52,24 +53,20 @@
 // as an extern in Inkplate.h — it is owned by the board driver.
 extern PCAL expander1;
 
+extern "C" void app_main(void) {
+  Inkplate display;
 
-extern "C" void app_main(void)
-{
-    Inkplate display;
+  // Configure LED pin as output on IO expander.
+  expander1.setDirection(LED_PIN, IO_MODE_OUTPUT);
 
-    // Configure LED pin as output on IO expander.
-    expander1.setDirection(LED_PIN, IO_MODE_OUTPUT);
-
-    while (true)
-    {
-        // Internal IO Expander (IO Expander 1)
-        for (int i = 0; i < 5; i++)
-        {
-            expander1.setLevel(LED_PIN, 1);
-            vTaskDelay(pdMS_TO_TICKS(500));
-            expander1.setLevel(LED_PIN, 0);
-            vTaskDelay(pdMS_TO_TICKS(500));
-        }
-        vTaskDelay(pdMS_TO_TICKS(2000));
+  while (true) {
+    // Internal IO Expander (IO Expander 1)
+    for (int i = 0; i < 5; i++) {
+      expander1.setLevel(LED_PIN, 1);
+      vTaskDelay(pdMS_TO_TICKS(500));
+      expander1.setLevel(LED_PIN, 0);
+      vTaskDelay(pdMS_TO_TICKS(500));
     }
+    vTaskDelay(pdMS_TO_TICKS(2000));
+  }
 }

@@ -37,12 +37,13 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-#error "Wrong board selection for this example, please select Inkplate6Color in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate6Color in the boards menu."
 #endif
 
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_log.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -50,37 +51,33 @@
 
 static const char *TAG = "MAIN";
 
-extern "C"
-void app_main(void)
-{
-    Inkplate display;
+extern "C" void app_main(void) {
+  Inkplate display;
 
-    if (display.sdCardInit() != ESP_OK)
-    {
-        ESP_LOGE(TAG, "SD card init failed");
-        return;
-    }
+  if (display.sdCardInit() != ESP_OK) {
+    ESP_LOGE(TAG, "SD card init failed");
+    return;
+  }
 
-    // read from file
-    FILE *f = fopen("/sdcard/message.txt", "r");
-    char buf[1024] = {};
+  // read from file
+  FILE *f = fopen("/sdcard/message.txt", "r");
+  char buf[1024] = {};
 
-    if (!f)
-    {
-        ESP_LOGE(TAG, "Failed to open file for reading");
-        return;
-    }
-    fgets(buf, sizeof(buf), f);
-    fclose(f);
-    ESP_LOGI(TAG, "Read: %s", buf);
+  if (!f) {
+    ESP_LOGE(TAG, "Failed to open file for reading");
+    return;
+  }
+  fgets(buf, sizeof(buf), f);
+  fclose(f);
+  ESP_LOGI(TAG, "Read: %s", buf);
 
-    // Display the text on the e-ink screen
-    display.clearDisplay();
-    display.setTextColor(INKPLATE_BLACK);
-    display.setTextSize(2);
-    display.setCursor(10, 10);
-    display.print("From SD card:");
-    display.setCursor(10, 40);
-    display.print(buf);
-    display.display();
+  // Display the text on the e-ink screen
+  display.clearDisplay();
+  display.setTextColor(INKPLATE_BLACK);
+  display.setTextSize(2);
+  display.setCursor(10, 10);
+  display.print("From SD card:");
+  display.setCursor(10, 40);
+  display.print(buf);
+  display.display();
 }

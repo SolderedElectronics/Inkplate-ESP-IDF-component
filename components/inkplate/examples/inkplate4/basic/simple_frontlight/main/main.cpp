@@ -1,7 +1,8 @@
 /**
  * @file        main.cpp
  * @author      Fran Fodor for Soldered
- * @brief       Frontlight brightness fade example for Soldered Inkplate 4TEMPERA.
+ * @brief       Frontlight brightness fade example for Soldered Inkplate
+ * 4TEMPERA.
  *
  * @details     Demonstrates control of the built-in frontlight by gradually
  *              fading the brightness up from 0 to 63 and then back down to 0,
@@ -36,7 +37,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE4
-#error "Wrong board selection for this example, please select Inkplate4 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate4 in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -45,26 +47,22 @@
 
 int b = 31;
 
-extern "C" void app_main()
-{
-    Inkplate display;
-    display.setDisplayMode(BLACK_AND_WHITE);
-    display.frontlight.setState(true);
-    display.frontlight.setBrightness(b);
+extern "C" void app_main() {
+  Inkplate display;
+  display.setDisplayMode(BLACK_AND_WHITE);
+  display.frontlight.setState(true);
+  display.frontlight.setBrightness(b);
 
-    for (int j = 0; j < 4; ++j)
-    {
-        for (int i = 0; i < 64; ++i)
-        {
-            display.frontlight.setBrightness(i);
-            vTaskDelay(pdMS_TO_TICKS(30));
-        }
-        for (int i = 63; i >= 0; --i)
-        {
-            display.frontlight.setBrightness(i);
-            vTaskDelay(pdMS_TO_TICKS(30));
-        }
+  for (int j = 0; j < 4; ++j) {
+    for (int i = 0; i < 64; ++i) {
+      display.frontlight.setBrightness(i);
+      vTaskDelay(pdMS_TO_TICKS(30));
     }
+    for (int i = 63; i >= 0; --i) {
+      display.frontlight.setBrightness(i);
+      vTaskDelay(pdMS_TO_TICKS(30));
+    }
+  }
 
-    display.frontlight.setBrightness(b);
+  display.frontlight.setBrightness(b);
 }

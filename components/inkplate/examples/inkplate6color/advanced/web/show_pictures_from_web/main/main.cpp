@@ -29,7 +29,8 @@
  * Notes:
  * - Supported BMP formats: Windows BMP, 1/4/8/24-bit color depth.
  * - Images must fit the display; large images may not render properly.
- * - Ensure the URL is directly pointing to the BMP file (no HTML redirect pages).
+ * - Ensure the URL is directly pointing to the BMP file (no HTML redirect
+ * pages).
  *
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
@@ -39,26 +40,27 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-#error "Wrong board selection for this example, please select Inkplate2 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate2 in the boards menu."
 #endif
 
+#include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "esp_log.h"
 
 #include "Inkplate.h"
 
 // link to image
-#define IMAGE_PATH "https://upload.wikimedia.org/wikipedia/commons/b/b5/800x600_Wallpaper_Blue_Sky.png"
+#define IMAGE_PATH                                                             \
+  "https://upload.wikimedia.org/wikipedia/commons/b/b5/"                       \
+  "800x600_Wallpaper_Blue_Sky.png"
 
-extern "C"
-void app_main(void)
-{
-    Inkplate display;
+extern "C" void app_main(void) {
+  Inkplate display;
 
-    display.wifi.begin();
-    display.wifi.waitForConnect();
+  display.wifi.begin();
+  display.wifi.waitForConnect();
 
-    display.image.draw(IMAGE_PATH, 0, 0, true, false);
-    display.display();
+  display.image.draw(IMAGE_PATH, 0, 0, true, false);
+  display.display();
 }

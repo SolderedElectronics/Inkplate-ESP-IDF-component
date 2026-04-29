@@ -2,10 +2,11 @@
  * @file TouchElan.h
  * @author Fran Fodor for Soldered
  * @brief Driver for Elan touchscreen.
- * 
+ *
  * https://github.com/SolderedElectronics/Inkplate-Esp-library
- * For more info about the product, please check: https://docs.soldered.com/inkplate/
- * 
+ * For more info about the product, please check:
+ * https://docs.soldered.com/inkplate/
+ *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -22,30 +23,29 @@
 
 #pragma once
 
+#include "driver/i2c_master.h"
 #include "stdint.h"
 #include "string.h"
-#include "driver/i2c_master.h"
 
 #include "I2C.h"
 #include "PCAL.h"
 #include "Touch.h"
 
-#define TOUCHSCREEN_EN          IO_NUM_A0
-#define TOUCHSCREEN_RST         IO_NUM_A1
-#define TOUCHSCREEN_INT         GPIO_NUM_36
-#define TOUCHSCREEN_I2C_ADDR    0x15
+#define TOUCHSCREEN_EN IO_NUM_A0
+#define TOUCHSCREEN_RST IO_NUM_A1
+#define TOUCHSCREEN_INT GPIO_NUM_36
+#define TOUCHSCREEN_I2C_ADDR 0x15
 
-#define E_INK_WIDTH             600
-#define E_INK_HEIGHT            600
+#define E_INK_WIDTH 600
+#define E_INK_HEIGHT 600
 
-#define BOUND(lo, val, hi)      ((val) >= (lo) && (val) <= (hi))
+#define BOUND(lo, val, hi) ((val) >= (lo) && (val) <= (hi))
 
 /**
  * @brief  Elan implementation of the Touch interface.
  *
  */
-class TouchElan : public Touch
-{
+class TouchElan : public Touch {
 public:
   /**
    * @brief Initialises the touch controller.
@@ -60,12 +60,12 @@ public:
    * @return ESP_OK on success, ESP_FAIL if the controller did not respond.
    */
   esp_err_t begin(I2C &i2c, PCAL &expander, uint8_t powerState) override;
-  
+
   /**
    * @brief  Powers off the touch controller and removes the interrupt handler.
    */
   void shutdown() override;
-  
+
   /**
    * @brief  Returns true if a new touch interrupt is pending.
    *
@@ -87,7 +87,7 @@ public:
    * @return true if a touch point is within the area, false otherwise.
    */
   bool touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h) override;
-  
+
   /**
    * @brief Reads touch coordinates for up to two fingers.
    *
@@ -99,15 +99,16 @@ public:
    *
    * @return number of detected touch points (0, 1, or 2).
    */
-  uint8_t getData(uint16_t *xPos, uint16_t *yPos, uint8_t *z = nullptr) override;
-  
+  uint8_t getData(uint16_t *xPos, uint16_t *yPos,
+                  uint8_t *z = nullptr) override;
+
   /**
    * @brief Reads 8 raw bytes from the touch controller into a buffer.
    *
    * @param b output buffer of at least 8 bytes.
    */
   void getRawData(uint8_t *b) override;
-  
+
   /**
    * @brief Sets the controller power state.
    *
@@ -158,7 +159,8 @@ private:
   void tsHardwareReset();
 
   /**
-   * @brief Issues a software reset command and verifies the hello packet response.
+   * @brief Issues a software reset command and verifies the hello packet
+   * response.
    *
    * @return true if the controller responded with the expected hello packet.
    */
@@ -189,20 +191,21 @@ private:
   void power(bool enable);
 
   /**
-   * @brief Deinitialises the touch controller and removes the interrupt handler.
+   * @brief Deinitialises the touch controller and removes the interrupt
+   * handler.
    */
   void end();
 
-  i2c_master_dev_handle_t m_devHandle     = nullptr;
-  PCAL                   *m_expander      = nullptr;
+  i2c_master_dev_handle_t m_devHandle = nullptr;
+  PCAL *m_expander = nullptr;
 
-  uint16_t                m_tsXResolution = 0;
-  uint16_t                m_tsYResolution = 0;
-  uint8_t                 m_rotation      = 0;
+  uint16_t m_tsXResolution = 0;
+  uint16_t m_tsYResolution = 0;
+  uint8_t m_rotation = 0;
 
-  uint8_t                 touchN          = 0;
-  uint16_t                touchX[2]       = {0, 0};
-  uint16_t                touchY[2]       = {0, 0};
-  uint32_t                touchT          = 0;
-  bool                    m_tsInitDone    = false;
+  uint8_t touchN = 0;
+  uint16_t touchX[2] = {0, 0};
+  uint16_t touchY[2] = {0, 0};
+  uint32_t touchT = 0;
+  bool m_tsInitDone = false;
 };

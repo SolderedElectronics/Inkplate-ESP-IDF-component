@@ -23,12 +23,12 @@
  *
  * Configuration:
  * - Menuconfig -> Inkplate Boards -> Inkplate2
- * 
+ *
  * How to use:
  * 1) Set CLEAR_CYCLES to the number of cleaning refresh cycles you want.
  * 2) Set CYCLES_DELAY (ms) between cycles (keep it >= 5000 ms).
- * 3) Build and flash to Inkplate2 and keep the device powered for the entire process.
- * 4) Wait until the screen shows "Clearing done."
+ * 3) Build and flash to Inkplate2 and keep the device powered for the entire
+ * process. 4) Wait until the screen shows "Clearing done."
  *
  * Expected output:
  * - E-paper: The panel will repeatedly refresh during the cleaning routine.
@@ -52,7 +52,8 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE2
-#error "Wrong board selection for this example, please select Inkplate2 in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate2 in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -65,21 +66,19 @@
 // NOTE: cycles delay should not be smaller than 5 seconds
 #define CYCLES_DELAY 5000
 
-extern "C"
-void app_main(void)
-{
+extern "C" void app_main(void) {
   Inkplate inkplate;
-  inkplate.clearDisplay(); // Clear any data that may have been in (software) frame buffer.
+  inkplate.clearDisplay(); // Clear any data that may have been in (software)
+                           // frame buffer.
 
   int cycles = CLEAR_CYCLES;
 
   // Clean it by writing clear sequence to the panel.
-  while (cycles)
-    {
-        cycles--;
-        inkplate.display();
-        vTaskDelay(pdMS_TO_TICKS(CYCLES_DELAY));
-    }
+  while (cycles) {
+    cycles--;
+    inkplate.display();
+    vTaskDelay(pdMS_TO_TICKS(CYCLES_DELAY));
+  }
 
   // Print text when clearing is done.
   inkplate.setTextSize(4);

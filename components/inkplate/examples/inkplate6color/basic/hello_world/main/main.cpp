@@ -27,7 +27,8 @@
  * Notes:
  * - display.clearDisplay() clears only the internal framebuffer.
  * - display.display() must be called to update the physical e-paper panel.
- * - Inkplate 6Color supports 7 colors: black, white, green, blue, red, yellow, orange.
+ * - Inkplate 6Color supports 7 colors: black, white, green, blue, red, yellow,
+ * orange.
  *
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
@@ -37,19 +38,20 @@
 #include "sdkconfig.h"
 
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-#error "Wrong board selection for this example, please select Inkplate6Color in the boards menu."
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate6Color in the boards menu."
 #endif
 
 #include "Inkplate.h"
 
-extern "C" void app_main(void)
-{
-    Inkplate display;
+extern "C" void app_main(void) {
+  Inkplate display;
 
-    display.clearDisplay();      // Clear the frame buffer (does NOT clear the physical screen)
-    display.setCursor(10, 10);   // Set the text position to (10, 10) pixels
-    display.setTextSize(4);      // Set text size to 4 (default is 1)
-    display.setTextColor(INKPLATE_BLACK); // Set text color to black
-    display.print("Hello World!"); // Print "Hello World!" at the set position
-    display.display();           // Refresh the e-paper display to show changes
+  display.clearDisplay(); // Clear the frame buffer (does NOT clear the physical
+                          // screen)
+  display.setCursor(10, 10); // Set the text position to (10, 10) pixels
+  display.setTextSize(4);    // Set text size to 4 (default is 1)
+  display.setTextColor(INKPLATE_BLACK); // Set text color to black
+  display.print("Hello World!"); // Print "Hello World!" at the set position
+  display.display();             // Refresh the e-paper display to show changes
 }
