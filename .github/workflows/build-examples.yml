@@ -1,0 +1,79 @@
+name: Build Examples
+
+on:
+  push:
+    branches:
+      - master
+      - dev
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  build:
+    name: ${{ matrix.board.name }}
+    runs-on: ubuntu-latest
+    container:
+      image: espressif/idf:v6.0.0
+    strategy:
+      fail-fast: false
+      matrix:
+        board:
+          - name: inkplate2
+            config: INKPLATE2
+            target: esp32
+          - name: inkplate4
+            config: INKPLATE4
+            target: esp32
+          - name: inkplate6color
+            config: INKPLATE6COLOR
+            target: esp32
+          - name: inkplate10
+            config: INKPLATE10
+            target: esp32
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ${{ matrix.board.name }} examples
+        shell: bash
+        run: |
+          . $IDF_PATH/export.sh
+
+          BOARD_CONFIG="CONFIG_INKPLATE_BOARD_${{ matrix.board.config }}=y"
+          TARGET="${{ matrix.board.target }}"
+          FAIL=0
+          FAILED_EXAMPLES=()
+
+          while IFS= read -r cmake_file; do
+            example_dir="$(dirname "$cmake_file")"
+
+            echo "::group::$(basename "$example_dir")"
+            echo "Building: $example_dir"
+
+            # Inject the board selection — not committed in sdkconfig.defaults
+            echo "$BOARD_CONFIG" >> "$example_dir/sdkconfig.defaults"
+
+            if (cd "$example_dir" && idf.py set-target "$TARGET" && idf.py build); then
+              echo "::endgroup::"
+            else
+              echo "::endgroup::"
+              echo "::error::Failed to build $example_dir"
+              FAILED_EXAMPLES+=("$example_dir")
+              FAIL=1
+            fi
+
+            # Remove build artifacts to keep disk usage low
+            rm -rf "$example_dir/build"
+
+          done < <(find "components/inkplate/examples/${{ matrix.board.name }}" \
+                        -name "CMakeLists.txt" \
+                        ! -path "*/main/*" | sort)
+
+          if [ "$FAIL" -ne 0 ]; then
+            echo ""
+            echo "Failed examples:"
+            printf '  - %s\n' "${FAILED_EXAMPLES[@]}"
+            exit 1
+          fi
