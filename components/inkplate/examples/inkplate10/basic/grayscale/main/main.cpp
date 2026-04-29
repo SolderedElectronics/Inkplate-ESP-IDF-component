@@ -342,7 +342,7 @@ extern "C" void app_main(void) {
     // pixels.
     display.clearDisplay();
     display.image.draw(picture1, 100, 100, 500,
-                       332); // Arguments are: array variable name, size X, size
+                       332, BLACK); // Arguments are: array variable name, size X, size
                              // Y, start X, start Y
     displayCurrentAction(display, "Drawing a bitmap image");
     display.display();

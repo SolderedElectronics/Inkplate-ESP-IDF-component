@@ -50,6 +50,10 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "picture1.h"
+#include "picture2.h"
+#include "picture3.h"
+
 #define TIME_TO_SLEEP_US (20ULL * 1000000ULL)
 
 // This array of pinters holds address of every picture in the memory,

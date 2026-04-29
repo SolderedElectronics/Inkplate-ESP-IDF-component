@@ -1,4 +1,7 @@
-# Inkplate-ESP-IDF-component
+# Inkplate ESP-IDF component
+
+[![Build Examples](https://github.com/SolderedElectronics/Inkplate-ESP-IDF-component/actions/workflows/build-examples.yml/badge.svg)](https://github.com/SolderedElectronics/Inkplate-ESP-IDF-component/actions/workflows/build-examples.yml)
+[![Format Check](https://github.com/SolderedElectronics/Inkplate-ESP-IDF-component/actions/workflows/format-check.yml/badge.svg)](https://github.com/SolderedElectronics/Inkplate-ESP-IDF-component/actions/workflows/format-check.yml)
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/SolderedElectronics/Inkplate-Arduino-library/master/extras/InkplateImage.jpg">
