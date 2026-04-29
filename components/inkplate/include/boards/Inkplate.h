@@ -44,7 +44,7 @@
 #include "Inkplate6.h"
 #define INKPLATE_BOARD_CLASS Inkplate6
 #elif CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
-#include "Inkplate6color.h"
+#include "Inkplate6Color.h"
 #define INKPLATE_BOARD_CLASS Inkplate6Color
 #elif CONFIG_INKPLATE_BOARD_INKPLATE10
 #include "Inkplate10.h"

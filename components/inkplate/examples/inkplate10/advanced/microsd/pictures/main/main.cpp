@@ -53,6 +53,8 @@
 // Image file on the SD card root
 #define IMAGE_PATH "coast.jpg"
 
+static const char *TAG = "MAIN";
+
 extern "C" void app_main(void) {
   Inkplate display;
   display.setDisplayMode(GRAYSCALE);

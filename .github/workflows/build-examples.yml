@@ -83,12 +83,18 @@ jobs:
           FAILED_EXAMPLES=()
 
           while IFS= read -r main_cpp; do
-            example_dir="$(dirname "$(dirname "$main_cpp")")"
+            example_main_dir="$(dirname "$main_cpp")"
+            example_dir="$(dirname "$example_main_dir")"
 
             echo "::group::$(basename "$example_dir")"
             echo "Building: $example_dir"
 
-            cp "$main_cpp" "$PROJ_DIR/main/main.cpp"
+            # Remove files from the previous example (keep CMakeLists.txt)
+            find "$PROJ_DIR/main" ! -name "CMakeLists.txt" -type f -delete
+
+            # Copy all files from the example's main/ (headers, images, etc.)
+            find "$example_main_dir" -maxdepth 1 -type f ! -name "CMakeLists.txt" \
+                 -exec cp {} "$PROJ_DIR/main/" \;
 
             if (cd "$PROJ_DIR" && idf.py build); then
               echo "::endgroup::"
