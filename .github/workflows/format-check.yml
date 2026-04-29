@@ -19,8 +19,18 @@ jobs:
       - name: Install clang-format
         run: sudo apt-get install -y clang-format
 
-      - name: Check formatting
+      - name: Apply formatting
         run: |
           find components/inkplate/src components/inkplate/include \
                \( -name "*.cpp" -o -name "*.h" -o -name "*.c" \) \
-               -print0 | xargs -0 clang-format --dry-run --Werror
+               ! -path "*/pngle/*" \
+               -print0 | xargs -0 clang-format -i
+
+      - name: Check for differences
+        run: |
+          git diff --exit-code || (
+            echo ""
+            echo "The following files need formatting:"
+            git diff --name-only
+            exit 1
+          )

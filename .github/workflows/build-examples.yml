@@ -48,10 +48,11 @@ jobs:
           # ── Create a single reusable project ────────────────────────────────
           mkdir -p "$PROJ_DIR/main"
 
-          # Point EXTRA_COMPONENT_DIRS at the repo root so ESP-IDF finds components/inkplate
+          # Point EXTRA_COMPONENT_DIRS at components/ so ESP-IDF finds inkplate without
+          # scanning the repo root CMakeLists.txt (which is a project file, not a component)
           cat > "$PROJ_DIR/CMakeLists.txt" << EOF
           cmake_minimum_required(VERSION 3.16)
-          set(EXTRA_COMPONENT_DIRS "$GITHUB_WORKSPACE")
+          set(EXTRA_COMPONENT_DIRS "$GITHUB_WORKSPACE/components")
           include(\$ENV{IDF_PATH}/tools/cmake/project.cmake)
           project(inkplate_ci)
           EOF
