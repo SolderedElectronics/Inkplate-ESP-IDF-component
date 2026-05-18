@@ -137,8 +137,22 @@ public:
   uint32_t partialUpdate(bool forced = false, bool leaveOn = false) {
     return 0;
   };
-  esp_err_t einkOn() { return ESP_OK };
-  esp_err_t einkOff() { return ESP_OK };
+  esp_err_t einkOn() { return ESP_OK; };
+  esp_err_t einkOff() { return ESP_OK; };
+
+  /**
+   * @brief Refresh only a rectangular region of the screen using the PTLW
+   * register of the GDEP133C02 controller.
+   *
+   * @param x left edge of the update window (user space).
+   * @param y top edge of the update window (user space).
+   * @param w width of the update window in pixels.
+   * @param h height of the update window in pixels.
+   * @param leaveOn if true, panel power is left on after the update.
+   * @return esp_err_t error code.
+   */
+  esp_err_t displayPartial(int16_t x, int16_t y, int16_t w, int16_t h,
+                           bool leaveOn = false);
 
   RTC rtc;
 
@@ -220,5 +234,3 @@ private:
 
   SPI m_spi;
 };
-
-#endif

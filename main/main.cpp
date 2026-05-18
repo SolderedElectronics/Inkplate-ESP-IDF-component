@@ -4,10 +4,18 @@ extern "C"
 void app_main(void) {
   Inkplate display;
 
-  display.clearDisplay();      // Clear the frame buffer (does NOT clear the physical screen)
-  display.setCursor(10, 10);   // Set the text position to (10, 10) pixels
-  display.setTextSize(3);      // Set text size to 3 (default is 1)
-  display.setTextColor(BLACK); // Set text color to black (default is white)
-  display.print("Hello World!"); // Print "Hello World!" at the set position
-  display.display();           // Refresh the e-paper display to show changes
+  // Full refresh: white background with a black rectangle
+  display.clearDisplay();
+  display.fillRect(100, 100, 400, 400, INKPLATE_BLACK);
+  display.display();
+
+  vTaskDelay(pdMS_TO_TICKS(2000));
+
+  // Draw new content only in the partial region, then partial update
+  display.fillRect(150, 150, 100, 100, INKPLATE_WHITE);
+  display.setCursor(155, 190);
+  display.setTextSize(2);
+  display.setTextColor(INKPLATE_BLACK);
+  display.print("Hi!");
+  display.displayPartial(150, 150, 100, 100);
 }
