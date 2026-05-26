@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Upload component to ESP Registry
-        uses: espressif/upload-components-ci-action@v1
+        uses: espressif/upload-components-ci-action@v2
         with:
-          directories: components/inkplate
+          components: "inkplate: components/inkplate"
           namespace: solderedelectronics
