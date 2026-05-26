@@ -1,24 +1,24 @@
 /**
  * @file        main.cpp
  * @author      Fran Fodor for Soldered
- * @brief       Basic "Hello World" example for Soldered Inkplate 5.
+ * @brief       Basic "Hello World" example for Soldered Inkplate 13.
  *
- * @details     Demonstrates the most basic usage of the Inkplate 5 by
+ * @details     Demonstrates the most basic usage of the Inkplate 13 by
  *              initializing the display and printing "Hello World!" on the
  *              e-paper screen. The example uses built-in text rendering
  *              functions fully compatible with the Adafruit GFX library.
  *
  * Requirements:
- * - Board:      Soldered Inkplate 5
+ * - Board:      Soldered Inkplate 13
  * - Framework:  ESP-IDF v6.x
- * - Hardware:   Inkplate 5, USB cable
+ * - Hardware:   Inkplate 13, USB cable
  * - Extra:      None
  *
  * Configuration:
- * - Menuconfig -> Inkplate Boards -> Inkplate5
+ * - Menuconfig -> Inkplate Boards -> Inkplate13
  *
  * How to use:
- * 1) Build and flash to Inkplate 5.
+ * 1) Build and flash to Inkplate 13.
  * 2) After initialization, "Hello World!" appears on the display.
  *
  * Expected output:
@@ -36,9 +36,9 @@
 
 #include "sdkconfig.h"
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE5
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE13
 #error                                                                         \
-    "Wrong board selection for this example, please select Inkplate5 in the boards menu."
+    "Wrong board selection for this example, please select Inkplate13 in the boards menu."
 #endif
 
 #include "Inkplate.h"
@@ -49,7 +49,8 @@ extern "C" void app_main(void) {
   display.clearDisplay(); // Clear the frame buffer (does NOT clear the physical
                           // screen)
   display.setCursor(10, 10);     // Set the text position to (10, 10) pixels
-  display.setTextSize(4);        // Set text size to 4 (default is 1)
+  display.setTextSize(6);        // Set text size to 6 (default is 1)
+  display.setTextColor(INKPLATE_BLACK); // Set text color to black
   display.print("Hello World!"); // Print "Hello World!" at the set position
   display.display();             // Refresh the e-paper display to show changes
 }

@@ -1,24 +1,24 @@
 /**
  * @file        main.cpp
  * @author      Fran Fodor for Soldered
- * @brief       Basic "Hello World" example for Soldered Inkplate 5.
+ * @brief       Basic "Hello World" example for Soldered Inkplate 6.
  *
- * @details     Demonstrates the most basic usage of the Inkplate 5 by
+ * @details     Demonstrates the most basic usage of the Inkplate 6 by
  *              initializing the display and printing "Hello World!" on the
  *              e-paper screen. The example uses built-in text rendering
  *              functions fully compatible with the Adafruit GFX library.
  *
  * Requirements:
- * - Board:      Soldered Inkplate 5
+ * - Board:      Soldered Inkplate 6
  * - Framework:  ESP-IDF v6.x
- * - Hardware:   Inkplate 5, USB cable
+ * - Hardware:   Inkplate 6, USB cable
  * - Extra:      None
  *
  * Configuration:
- * - Menuconfig -> Inkplate Boards -> Inkplate5
+ * - Menuconfig -> Inkplate Boards -> Inkplate6
  *
  * How to use:
- * 1) Build and flash to Inkplate 5.
+ * 1) Build and flash to Inkplate 6.
  * 2) After initialization, "Hello World!" appears on the display.
  *
  * Expected output:
@@ -36,9 +36,9 @@
 
 #include "sdkconfig.h"
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE5
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE6
 #error                                                                         \
-    "Wrong board selection for this example, please select Inkplate5 in the boards menu."
+    "Wrong board selection for this example, please select Inkplate6 in the boards menu."
 #endif
 
 #include "Inkplate.h"

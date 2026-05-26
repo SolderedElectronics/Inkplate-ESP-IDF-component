@@ -225,8 +225,8 @@ void Inkplate13::setPanelPinsToLow() {
   }
 }
 
-esp_err_t Inkplate13::displayPartial(int16_t x, int16_t y, int16_t w,
-                                     int16_t h, bool leaveOn) {
+esp_err_t Inkplate13::displayPartial(int16_t x, int16_t y, int16_t w, int16_t h,
+                                     bool leaveOn) {
   uint8_t rot = getRotation();
   int16_t logW =
       (rot == 1 || rot == 3) ? (int16_t)E_INK_HEIGHT : (int16_t)E_INK_WIDTH;
