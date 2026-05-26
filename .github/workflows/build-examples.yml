@@ -26,12 +26,24 @@ jobs:
           - name: inkplate4
             config: INKPLATE4
             target: esp32
+          - name: inkplate5
+            config: INKPLATE5
+            target: esp32
+          - name: inkplate6
+            config: INKPLATE6
+            target: esp32
           - name: inkplate6color
             config: INKPLATE6COLOR
+            target: esp32
+          - name: inkplate6flick
+            config: INKPLATE6FLICK
             target: esp32
           - name: inkplate10
             config: INKPLATE10
             target: esp32
+          - name: inkplate13
+            config: INKPLATE13
+            target: esp32s3
 
     steps:
       - uses: actions/checkout@v4

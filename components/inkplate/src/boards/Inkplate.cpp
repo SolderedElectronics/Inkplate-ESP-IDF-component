@@ -40,6 +40,9 @@ Inkplate::Inkplate()
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE4)
   setRotation(1);
 #endif
+#if defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+  setRotation(3);
+#endif
 }
 
 #ifndef COLOR_IMAGE

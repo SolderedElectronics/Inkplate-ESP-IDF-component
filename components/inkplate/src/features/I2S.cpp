@@ -29,6 +29,7 @@
 #include "soc/io_mux_reg.h"
 #include "soc/soc.h"
 
+#include "BoardCommon.h"
 #include "I2S.h"
 
 static const char *TAG = "ESP_I2S";

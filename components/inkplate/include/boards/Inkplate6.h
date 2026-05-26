@@ -50,7 +50,7 @@ static const uint8_t waveform3Bit[8][9] = {
     {0, 0, 0, 0, 1, 1, 2, 0, 0}, {0, 0, 0, 0, 0, 0, 2, 0, 0}};
 #elif CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
 #include "Frontlight.h"
-#include "Touchscreen.h"
+#include "TouchCypress.h"
 #define SD_PMOS_PIN IO_NUM_B5
 #define E_INK_WIDTH 1024
 #define E_INK_HEIGHT 758
