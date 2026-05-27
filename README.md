@@ -125,25 +125,23 @@ inkplate/
 
 ### Setting up for ESP-IDF
 
-In order to get a head start with Inkplate (any), follow these steps:
-
 1. If you aren't using macOS, install CH340 drivers (in case you don't have them yet) — instructions [here](https://soldered.com/blogs/learn/ch340-driver-installation)
 
 2. Install **ESP-IDF v6.0 or newer**. Follow the official [Getting Started guide](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html) for your operating system.
 
-3. **Clone this repository** somewhere on your machine:
+3. **Add the component** to your project via the IDF Component Manager:
    ```
-   git clone https://github.com/SolderedElectronics/Inkplate-ESP-IDF-component.git
+   idf.py add-dependency "solderedelectronics/inkplate>=1.0.0"
    ```
 
-4. **Add the component to your project.** In your project's root `CMakeLists.txt`, point `EXTRA_COMPONENT_DIRS` at the cloned repo so ESP-IDF can find the `inkplate` component:
-   ```cmake
-   cmake_minimum_required(VERSION 3.16)
-   set(EXTRA_COMPONENT_DIRS "/path/to/Inkplate-ESP-IDF-component/components")
-   include($ENV{IDF_PATH}/tools/cmake/project.cmake)
-   project(your_project_name)
+4. **Add required config** to your project's `sdkconfig.defaults`:
    ```
-   > **IDF Component Manager:** The component is not yet published to the IDF Component Registry. Until it is, use the `EXTRA_COMPONENT_DIRS` method above.
+   CONFIG_PARTITION_TABLE_SINGLE_APP_LARGE=y
+   CONFIG_SPIRAM=y
+   CONFIG_SPIRAM_SPEED_40M=y
+   CONFIG_SPIRAM_BOOT_INIT=y
+   CONFIG_ESP_MAIN_TASK_STACK_SIZE=16384
+   ```
 
 5. **Register the component** in your `main/CMakeLists.txt`:
    ```cmake
@@ -165,7 +163,7 @@ In order to get a head start with Inkplate (any), follow these steps:
 
 ### Code examples
 
-This is currently a work in progress, although, some examples are available in `examples` folder.
+Examples are available in the `examples` folder and on the [component registry page](https://components.espressif.com/components/solderedelectronics/inkplate). Full basic, advanced, and diagnostics examples are available for Inkplate 2, 4, 6Color, and 10. Basic examples are available for Inkplate 5, 6, 6Flick, and 13.
 
 ### Documentation
 
