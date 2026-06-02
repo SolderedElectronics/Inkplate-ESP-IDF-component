@@ -116,7 +116,7 @@ uint32_t Inkplate5::partialUpdate(bool forced, bool leaveOn) {
       for (int j = 0; j < (m_einkWidth / 4); j += 4) {
         m_dmaLineBuffer[j + 2] = *(dpFlipped--);
         m_dmaLineBuffer[j + 3] = *(dpFlipped--);
-        m_dmaLineBuffer[j]     = *(dpFlipped--);
+        m_dmaLineBuffer[j] = *(dpFlipped--);
         m_dmaLineBuffer[j + 1] = *(dpFlipped--);
       }
       dp += (E_INK_WIDTH / 4);
