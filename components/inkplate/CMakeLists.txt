@@ -82,7 +82,8 @@ idf_component_register(SRCS "src/features/WiFi.cpp" "src/features/SPI.cpp"
                                     ${DECODER_INCLUDES}
                                     )
 else()
-idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp" 
+idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp"
+                            "src/features/Buzzer.cpp"
                             "src/features/PCAL.cpp" "src/features/TPS.cpp" "src/features/SPI.cpp"
                             "src/features/WiFi.cpp" "src/features/SDCard.cpp"
                             "src/boards/BoardCommon.cpp" "src/features/TouchCypress.cpp" "src/features/TouchElan.cpp"
