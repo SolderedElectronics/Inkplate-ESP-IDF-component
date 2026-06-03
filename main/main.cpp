@@ -1,37 +1,33 @@
 /**
  * @file        main.cpp
  * @author      Fran Fodor for Soldered
- * @brief       Display images from SD card on Soldered Inkplate 5.
+ * @brief       Basic "Hello World" example for Soldered Inkplate 6.
  *
- * @details     Demonstrates how to load image files from an SD card and display
- *              them on the Inkplate 5 e-paper display. The example shows how to
- *              read supported image formats from a FAT-formatted SD card and
- *              render them using the Inkplate graphics library.
+ * @details     Demonstrates the most basic usage of the Inkplate 6 by
+ *              initializing the display and printing "Hello World!" on the
+ *              e-paper screen. The example uses built-in text rendering
+ *              functions fully compatible with the Adafruit GFX library.
  *
  * Requirements:
- * - Board:      Soldered Inkplate 5
+ * - Board:      Soldered Inkplate 6
  * - Framework:  ESP-IDF v6.x
- * - Hardware:   Inkplate 5, USB cable
- * - Extra:      SD card with compatible image files
+ * - Hardware:   Inkplate 6, USB cable
+ * - Extra:      None
  *
  * Configuration:
- * - Menuconfig -> Inkplate Boards -> Inkplate5
- * - SD card format: FAT / FAT32
+ * - Menuconfig -> Inkplate Boards -> Inkplate6
  *
  * How to use:
- * 1) Copy supported image files to a FAT-formatted SD card.
- * 2) Insert the SD card into the Inkplate.
- * 3) Build and flash to Inkplate 5.
- * 4) The image is read from the SD card and displayed on the e-paper screen.
+ * 1) Build and flash to Inkplate 6.
+ * 2) After initialization, "Hello World!" appears on the display.
  *
  * Expected output:
- * - Selected image from the SD card is shown on the Inkplate display.
+ * - The text "Hello World!" displayed on the Inkplate screen.
  *
  * Notes:
- * - Supported formats include BMP, JPEG, and PNG (with library limitations).
- * - Supported color depths: 1-bit (BW), 4-bit, 8-bit, and 24-bit.
- * - Maximum supported resolution is 1280 × 720 pixels.
- * - Images larger than the display resolution will not fit on screen.
+ * - display.clearDisplay() clears only the internal framebuffer.
+ * - display.display() must be called to update the physical e-paper panel.
+ * - This example uses 1-bit (black & white) display mode.
  *
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
@@ -40,31 +36,20 @@
 
 #include "sdkconfig.h"
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE5
-#error \
-    "Wrong board selection for this example, please select Inkplate5 in the boards menu."
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE6
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate6 in the boards menu."
 #endif
 
 #include "Inkplate.h"
-#include "esp_log.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include <stdio.h>
-#include <string.h>
-
-#define IMAGE_PATH "coast.jpg"
-
-static const char *TAG = "MAIN";
 
 extern "C" void app_main(void) {
   Inkplate display;
-  display.setDisplayMode(GRAYSCALE);
 
-  if (display.sdCardInit() != ESP_OK) {
-    ESP_LOGE(TAG, "SD card init failed");
-    return;
-  }
-
-  display.image.draw(IMAGE_PATH, 0, 0, true, false);
-  display.display();
+  display.clearDisplay(); // Clear the frame buffer (does NOT clear the physical
+                          // screen)
+  display.setCursor(10, 10);     // Set the text position to (10, 10) pixels
+  display.setTextSize(4);        // Set text size to 4 (default is 1)
+  display.print("Hello World!"); // Print "Hello World!" at the set position
+  display.display();             // Refresh the e-paper display to show changes
 }
