@@ -49,7 +49,7 @@ extern "C" void app_main(void) {
   display.clearDisplay(); // Clear the frame buffer (does NOT clear the physical
                           // screen)
   display.setCursor(10, 10);     // Set the text position to (10, 10) pixels
-  display.setTextSize(4);        // Set text size to 4 (default is 1)
+  display.setTextSize(6);        // Set text size to 6 (default is 1)
   display.print("Hello World!"); // Print "Hello World!" at the set position
   display.display();             // Refresh the e-paper display to show changes
 }
