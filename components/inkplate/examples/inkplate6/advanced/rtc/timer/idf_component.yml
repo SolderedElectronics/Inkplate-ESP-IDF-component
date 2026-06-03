@@ -1,0 +1,6 @@
+dependencies:
+  solderedelectronics/inkplate:
+    version: ">=1.0.0"
+  idf:
+    version: ">=6.0.0"
+

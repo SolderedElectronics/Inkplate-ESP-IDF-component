@@ -113,6 +113,7 @@ bool TouchCypress::touchInArea(int16_t x1, int16_t y1, int16_t w, int16_t h) {
         tsFlag = false;
         handshake();
       }
+      vTaskDelay(1);
     }
     touchT = esp_timer_get_time() / 1000;
     touchN = n;

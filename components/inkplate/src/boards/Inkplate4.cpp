@@ -58,6 +58,7 @@ Inkplate4::Inkplate4()
   bq.begin(bus);
   lsm.begin(bus);
   bme.begin(bus);
+  buzzer.begin(i2c, expander1, BUZZ_EN);
   touchscreen.begin(i2c, expander2, true);
   frontlight.begin(i2c, expander1, FRONTLIGHT_EN);
   frontlight.setState(false);

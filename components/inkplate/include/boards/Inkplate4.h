@@ -34,6 +34,7 @@
 #include "APDS9960.h"
 #include "BME680.h"
 #include "BQ27441.h"
+#include "Buzzer.h"
 #include "Frontlight.h"
 #include "LSM6DS3.h"
 #include "PCAL.h"
@@ -47,6 +48,7 @@ extern PCAL expander1;
 
 #define SD_PMOS_PIN IO_NUM_B3
 #define FRONTLIGHT_EN IO_NUM_B2
+#define BUZZ_EN IO_NUM_B4
 
 #define DATA 0x0E8C0030
 
@@ -101,6 +103,7 @@ public:
   LSM6DS3 lsm;
   BME680 bme;
 
+  Buzzer buzzer;
   TouchElan touchscreen;
   Frontlight frontlight;
 
