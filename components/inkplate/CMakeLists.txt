@@ -65,24 +65,41 @@ set(GRAPHICS_INCLUDES
     "include/graphics/Adafruit_GFX"
 )
 if(CONFIG_INKPLATE_BOARD_INKPLATE2)
-idf_component_register(SRCS "src/features/WiFi.cpp" "src/features/SPI.cpp"
+idf_component_register( SRCS "src/features/WiFi.cpp" "src/features/SPI.cpp"
                             "src/boards/Inkplate.cpp" "src/features/I2C.cpp"
                             ${BOARD_SRC}
                             ${GRAPHICS_SRCS}
                             ${IMAGE_SRCS}
                             ${DECODER_SRCS}
-                       REQUIRES "esp_driver_gpio"
+                        REQUIRES "esp_driver_gpio"
                                 "esp_driver_spi"
                                 "esp_timer"
                                 "esp_wifi" "nvs_flash" "esp_http_client"
-                       INCLUDE_DIRS "include"
+                        INCLUDE_DIRS "include"
+                                    "include/features"
+                                    "include/boards"
+                                    ${GRAPHICS_INCLUDES}
+                                    ${DECODER_INCLUDES}
+                                    )
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE13)
+idf_component_register( SRCS "src/features/I2C.cpp" "src/features/PCAL.cpp" "src/features/TPS.cpp" "src/features/SPI.cpp"
+                            "src/features/WiFi.cpp" "src/features/SDCard.cpp" "src/features/RTC.cpp"
+                            "src/boards/BoardCommon.cpp" "src/boards/Inkplate.cpp"
+                            ${BOARD_SRC}
+                            ${GRAPHICS_SRCS}
+                            ${IMAGE_SRCS}
+                            ${DECODER_SRCS}
+                        REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer" "esp_adc"
+                                "esp_driver_spi" "fatfs" "sdmmc"
+                                "esp_wifi" "nvs_flash" "esp_http_client"
+                        INCLUDE_DIRS "include" 
                                     "include/features"
                                     "include/boards"
                                     ${GRAPHICS_INCLUDES}
                                     ${DECODER_INCLUDES}
                                     )
 else()
-idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp"
+idf_component_register( SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/features/Frontlight.cpp"
                             "src/features/Buzzer.cpp"
                             "src/features/PCAL.cpp" "src/features/TPS.cpp" "src/features/SPI.cpp"
                             "src/features/WiFi.cpp" "src/features/SDCard.cpp"
@@ -93,10 +110,10 @@ idf_component_register(SRCS "src/features/I2C.cpp" "src/features/RTC.cpp" "src/f
                             ${GRAPHICS_SRCS}
                             ${IMAGE_SRCS}
                             ${DECODER_SRCS}
-                       REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer" "esp_adc"
+                        REQUIRES "esp_driver_i2c" "esp_driver_i2s" "esp_driver_gpio" "esp_timer" "esp_adc"
                                 "esp_driver_spi" "fatfs" "sdmmc"
                                 "esp_wifi" "nvs_flash" "esp_http_client"
-                       INCLUDE_DIRS "include" 
+                        INCLUDE_DIRS "include" 
                                     "include/features"
                                     "include/boards"
                                     ${GRAPHICS_INCLUDES}
