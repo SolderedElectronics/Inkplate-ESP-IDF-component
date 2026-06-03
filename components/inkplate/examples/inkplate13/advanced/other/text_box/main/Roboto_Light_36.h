@@ -1,6 +1,6 @@
 // Created by http://oleddisplay.squix.ch/ Consider a donation
 // In case of problems make sure that you are using the font file with the correct version!
-const uint8_t Roboto_Light_36Bitmaps[] PROGMEM = {
+const uint8_t Roboto_Light_36Bitmaps[] = {
 
 	// Bitmap Data:
 	0x00,																																																																																																																																																																																									// ' '
@@ -98,7 +98,7 @@ const uint8_t Roboto_Light_36Bitmaps[] PROGMEM = {
 	0xDB, 0x6D, 0xB6, 0xDB, 0x6D, 0xB6, 0xDB, 0x6D, 0xB6, 0xDB, 0x6D, 0xB0,																																																																																																																																																																									// '|'
 	0x40, 0x0F, 0x00, 0x38, 0x01, 0xC0, 0x0C, 0x00, 0xC0, 0x0E, 0x00, 0x60, 0x06, 0x00, 0x60, 0x06, 0x00, 0x60, 0x06, 0x00, 0x60, 0x06, 0x00, 0x60, 0x03, 0x80, 0x1E, 0x01, 0xE0, 0x38, 0x06, 0x00, 0x60, 0x06, 0x00, 0x60, 0x06, 0x00, 0x60, 0x06, 0x00, 0x60, 0x0E, 0x00, 0xC0, 0x0C, 0x01, 0xC0, 0x38, 0x07, 0x00, 0xC0, 0x00																																																																																																											// '}'
 };
-const GFXglyph Roboto_Light_36Glyphs[] PROGMEM = {
+const GFXglyph Roboto_Light_36Glyphs[] = {
 	// bitmapOffset, width, height, xAdvance, xOffset, yOffset
 	{0, 1, 1, 10, 0, 0},		// ' '
 	{1, 4, 26, 9, 3, -26},		// '!'
@@ -195,5 +195,5 @@ const GFXglyph Roboto_Light_36Glyphs[] PROGMEM = {
 	{4298, 3, 31, 9, 3, -26},	// '|'
 	{4310, 12, 35, 13, 0, -28}	// '}'
 };
-const GFXfont Roboto_Light_36 PROGMEM = {
+const GFXfont Roboto_Light_36 = {
 	(uint8_t *)Roboto_Light_36Bitmaps, (GFXglyph *)Roboto_Light_36Glyphs, 0x20, 0x7E, 43};
