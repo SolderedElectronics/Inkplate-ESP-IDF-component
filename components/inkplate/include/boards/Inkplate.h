@@ -37,6 +37,7 @@
 #include "ImageColor.h"
 #else
 #include "Image.h"
+#include "GIF.h"
 #endif
 
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) ||                                \
@@ -106,6 +107,7 @@ public:
   ImageColor image;
 #else
   Image image;
+  GIF gif;
 #endif
 
   WiFi wifi;

@@ -129,7 +129,7 @@
 #include "Inkplate.h"
 
 // Set to your Terminus server, e.g. "http://192.168.1.50:2300" (no trailing slash)
-#define BYOS_SERVER "http://IP:2300"
+#define BYOS_SERVER "http://YOUR_SERVER_IP:2300"
 
 static const char *TAG = "TRMNL";
 

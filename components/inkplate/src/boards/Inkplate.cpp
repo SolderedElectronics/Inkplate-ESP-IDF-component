@@ -27,9 +27,15 @@
 /*                              Public functions                              */
 /* -------------------------------------------------------------------------- */
 
+#ifdef COLOR_IMAGE
 Inkplate::Inkplate()
     : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT),
       Graphics(E_INK_WIDTH, E_INK_HEIGHT), image(this) {
+#else
+Inkplate::Inkplate()
+    : Adafruit_GFX(E_INK_WIDTH, E_INK_HEIGHT),
+      Graphics(E_INK_WIDTH, E_INK_HEIGHT), image(this), gif(this) {
+#endif
   clearDisplay();
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE2)
   setRotation(3);

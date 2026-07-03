@@ -1,17 +1,17 @@
 /**
  * @file        main.cpp
  * @author      Fran Fodor for Soldered
- * @brief       TRMNL BYOS client example for Soldered Inkplate 10.
+ * @brief       TRMNL BYOS client example for Soldered Inkplate 6 Flick.
  *
- * @details     Connects Inkplate 10 to WiFi, registers with a TRMNL-compatible
+ * @details     Connects Inkplate 6 Flick to WiFi, registers with a TRMNL-compatible
  *              BYOS server via /api/setup, then polls /api/display,
  *              draws whatever image the server returns, and deep-sleeps
  *              until the next refresh.
  *
  * Requirements:
- * - Board:      Soldered Inkplate 10
+ * - Board:      Soldered Inkplate 6 Flick
  * - Framework:  ESP-IDF v6.x
- * - Hardware:   Inkplate 10, USB cable
+ * - Hardware:   Inkplate 6 Flick, USB cable
  * - Extra:      Stable WiFi connection, Terminus (TRMNL's official BYOS
  *               server) running via Docker
  *
@@ -80,14 +80,14 @@
  * fetch and draw whatever screen you've configured.
  *
  * Configuration:
- * - Menuconfig -> Inkplate Boards -> Inkplate10
+ * - Menuconfig -> Inkplate Boards -> Inkplate6 Flick
  * - Menuconfig -> WiFi Configuration -> Enter your credentials
  * - Set BYOS_SERVER below to your Terminus server's address
  *
  * How to use:
  * 1) Set up Terminus per the instructions above.
  * 2) Set BYOS_SERVER below.
- * 3) Build and flash to Inkplate 10.
+ * 3) Build and flash to Inkplate 6 Flick.
  * 4) The board connects to WiFi, registers with the server, fetches and
  *    displays a screen, then deep-sleeps until the next refresh.
  *
@@ -111,9 +111,9 @@
 
 #include "sdkconfig.h"
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE6FLICK
 #error \
-    "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+    "Wrong board selection for this example, please select Inkplate6 Flick in the boards menu."
 #endif
 
 #include "esp_heap_caps.h"
@@ -129,7 +129,7 @@
 #include "Inkplate.h"
 
 // Set to your Terminus server, e.g. "http://192.168.1.50:2300" (no trailing slash)
-#define BYOS_SERVER "http://IP:2300"
+#define BYOS_SERVER "http://YOUR_SERVER_IP:2300"
 
 static const char *TAG = "TRMNL";
 
