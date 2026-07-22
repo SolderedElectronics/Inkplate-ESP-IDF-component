@@ -106,6 +106,13 @@ void ImageColor::setDitherKernel(DitherKernel kernel) {
 
 uint8_t ImageColor::getDitheredPixel(uint8_t r, uint8_t g, uint8_t b, int i,
                                      int w) {
+  if (i < 0 || i >= BMP_MAX_WIDTH) {
+    // Column falls outside the dither row buffers (image wider than the
+    // display's max supported width) - return the nearest palette color
+    // without error diffusion instead of indexing past the buffer.
+    return findClosestPalette(r, g, b);
+  }
+
   const int rowIdx = m_rowIdx & DITHER_ROW_MASK;
   int16_t *rowR = m_ditherR[rowIdx];
   int16_t *rowG = m_ditherG[rowIdx];
