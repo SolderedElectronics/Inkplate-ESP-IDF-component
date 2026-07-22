@@ -138,6 +138,8 @@ uint8_t *WiFi::downloadFile(const char *url, int32_t *len) {
     return NULL;
   }
 
+  esp_wifi_set_ps(WIFI_PS_NONE); // avoid modem-sleep RX gaps tripping the read timeout mid-transfer
+
   int32_t contentLen = (int32_t)esp_http_client_fetch_headers(client);
   if (contentLen <= 0)
     contentLen = *len;
@@ -148,6 +150,7 @@ uint8_t *WiFi::downloadFile(const char *url, int32_t *len) {
       contentLen, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!buffer) {
     ESP_LOGE(TAG, "Failed to allocate %ld bytes", contentLen);
+    esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
     esp_http_client_cleanup(client);
     return NULL;
   }
@@ -163,8 +166,18 @@ uint8_t *WiFi::downloadFile(const char *url, int32_t *len) {
     totalRead += read;
   }
 
+  esp_wifi_set_ps(WIFI_PS_MIN_MODEM); // restore default power save
+
   esp_http_client_cleanup(client);
   *len = totalRead;
+
+  if (totalRead < contentLen) {
+    ESP_LOGE(TAG, "Download truncated: got %ld of %ld bytes", totalRead,
+             contentLen);
+    heap_caps_free(buffer);
+    *len = 0;
+    return NULL;
+  }
 
   ESP_LOGI(TAG, "File downloaded");
 
@@ -198,6 +211,8 @@ uint8_t *WiFi::downloadFileHTTPS(const char *url, int32_t *len) {
     return NULL;
   }
 
+  esp_wifi_set_ps(WIFI_PS_NONE); // avoid modem-sleep RX gaps tripping the read timeout mid-transfer
+
   int32_t contentLen = (int32_t)esp_http_client_fetch_headers(client);
   if (contentLen <= 0)
     contentLen = *len;
@@ -208,6 +223,7 @@ uint8_t *WiFi::downloadFileHTTPS(const char *url, int32_t *len) {
       contentLen, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
   if (!buffer) {
     ESP_LOGE(TAG, "Failed to allocate %ld bytes", contentLen);
+    esp_wifi_set_ps(WIFI_PS_MIN_MODEM);
     esp_http_client_cleanup(client);
     return NULL;
   }
@@ -224,8 +240,18 @@ uint8_t *WiFi::downloadFileHTTPS(const char *url, int32_t *len) {
     totalRead += read;
   }
 
+  esp_wifi_set_ps(WIFI_PS_MIN_MODEM); // restore default power save
+
   esp_http_client_cleanup(client);
   *len = totalRead;
+
+  if (totalRead < contentLen) {
+    ESP_LOGE(TAG, "Download truncated: got %ld of %ld bytes", totalRead,
+             contentLen);
+    heap_caps_free(buffer);
+    *len = 0;
+    return NULL;
+  }
 
   ESP_LOGI(TAG, "File downloaded");
 
