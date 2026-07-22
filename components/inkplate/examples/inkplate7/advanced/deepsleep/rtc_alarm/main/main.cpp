@@ -29,7 +29,7 @@
  * - Display refreshes automatically on every RTC alarm wake-up.
  *
  * Notes:
- * - RTC alarm interrupt is connected to GPIO 18 on Inkplate 7.
+ * - RTC alarm interrupt is connected to GPIO 2 on Inkplate 7.
  * - All application logic runs in app_main; deep sleep re-enters from there.
  *
  * Docs:         https://docs.soldered.com/inkplate
@@ -113,7 +113,7 @@ extern "C" void app_main(void) {
   display.rtc.getTime(&now);
   display.rtc.setAlarmEpoch(now + 60);
 
-  // RTC interrupt is on GPIO 18 on Inkplate 7
-  esp_sleep_enable_ext0_wakeup(GPIO_NUM_18, 0);
+  // RTC interrupt is on GPIO 2 on Inkplate 7
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_2, 0);
   esp_deep_sleep_start();
 }
