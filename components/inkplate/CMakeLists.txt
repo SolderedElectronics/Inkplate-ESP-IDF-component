@@ -22,6 +22,9 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE13)
     set(BOARD_SRC "src/boards/Inkplate13.cpp" "src/features/SPI.cpp")
     set(IMAGE_SRCS "src/graphics/ImageColor.cpp")
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE7)
+    set(BOARD_SRC "src/boards/Inkplate7.cpp" "src/features/SPI.cpp")
+    set(IMAGE_SRCS "src/graphics/ImageColor.cpp")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE5)
     set(BOARD_SRC "src/boards/Inkplate5.cpp" "src/features/I2S.cpp")
     set(IMAGE_SRCS "src/graphics/Image.cpp")
@@ -96,7 +99,7 @@ idf_component_register( SRCS "src/features/WiFi.cpp" "src/features/SPI.cpp"
                                     ${GRAPHICS_INCLUDES}
                                     ${DECODER_INCLUDES}
                                     )
-elseif(CONFIG_INKPLATE_BOARD_INKPLATE13)
+elseif(CONFIG_INKPLATE_BOARD_INKPLATE13 OR CONFIG_INKPLATE_BOARD_INKPLATE7)
 idf_component_register( SRCS "src/features/I2C.cpp" "src/features/PCAL.cpp" "src/features/TPS.cpp" "src/features/SPI.cpp"
                             "src/features/WiFi.cpp" "src/features/SDCard.cpp" "src/features/RTC.cpp"
                             "src/boards/BoardCommon.cpp" "src/boards/Inkplate.cpp"

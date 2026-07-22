@@ -59,6 +59,14 @@ ImageColor::ImageColor(Inkplate *inkplate)
   pallete[3] = 0xFF0000;
   pallete[4] = 0x0000FF;
   pallete[5] = 0x00FF00;
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE7)
+  palletteSize = 6;
+  pallete[0] = 0x000000;
+  pallete[1] = 0xFFFFFF;
+  pallete[2] = 0xFFFF00;
+  pallete[3] = 0xFF0000;
+  pallete[4] = 0x0000FF;
+  pallete[5] = 0x00FF00;
 #else
   palletteSize = 3;
   pallete[0] = 0xFFFFFF;

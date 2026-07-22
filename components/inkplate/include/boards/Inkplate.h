@@ -29,7 +29,8 @@
 
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE2) ||                                \
     defined(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR) ||                           \
-    defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
+    defined(CONFIG_INKPLATE_BOARD_INKPLATE13) ||                               \
+    defined(CONFIG_INKPLATE_BOARD_INKPLATE7)
 #define COLOR_IMAGE
 #endif
 
@@ -53,6 +54,9 @@
 #elif defined(CONFIG_INKPLATE_BOARD_INKPLATE13)
 #include "Inkplate13.h"
 #define INKPLATE_BOARD_CLASS Inkplate13
+#elif defined(CONFIG_INKPLATE_BOARD_INKPLATE7)
+#include "Inkplate7.h"
+#define INKPLATE_BOARD_CLASS Inkplate7
 #elif CONFIG_INKPLATE_BOARD_INKPLATE5
 #include "Inkplate5.h"
 #define INKPLATE_BOARD_CLASS Inkplate5
