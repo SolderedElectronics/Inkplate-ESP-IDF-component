@@ -68,7 +68,7 @@ static void scanI2C(Inkplate &display) {
 
   for (uint8_t address = 1; address < 0x7F; address++) {
     // i2c_master_probe sends a start + address + stop and checks for ACK
-    esp_err_t ret = i2c_master_probe(i2c.getBusHandle(), address, 10);
+    esp_err_t ret = i2c_master_probe(i2c.getBusHandle(), address, 50);
 
     if (ret == ESP_OK) {
       ESP_LOGI(TAG, "I2C device found at address 0x%02X", address);
