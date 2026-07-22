@@ -44,6 +44,9 @@ jobs:
           - name: inkplate13
             config: INKPLATE13
             target: esp32s3
+          - name: inkplate7
+            config: INKPLATE7
+            target: esp32s3
 
     steps:
       - uses: actions/checkout@v4
