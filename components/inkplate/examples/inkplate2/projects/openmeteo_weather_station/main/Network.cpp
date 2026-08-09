@@ -107,7 +107,7 @@ void NetworkFunctions::extractDate(const char *dateTime, char *out, size_t outSi
     }
     else
     {
-        snprintf(out, outSize, "????-??-??");
+        snprintf(out, outSize, "?\?\?\?-\?\?-\?\?");
     }
 }
 
@@ -166,7 +166,7 @@ void NetworkFunctions::fetchWeatherData(WeatherData *weatherData, UserInfo *user
     // read by WeatherData below are requested (the original sketch also
     // requested wind_speed_10m_max, wind_direction_10m_dominant and
     // precipitation_probability_max, but never stored or displayed them).
-    char url[384];
+    char url[512];
     if (userInfo->useMetric)
     {
         snprintf(userInfo->temperatureLabel, sizeof(userInfo->temperatureLabel), " C");
