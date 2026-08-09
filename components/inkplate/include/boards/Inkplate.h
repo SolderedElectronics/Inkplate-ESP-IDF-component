@@ -36,8 +36,8 @@
 #ifdef COLOR_IMAGE
 #include "ImageColor.h"
 #else
-#include "Image.h"
 #include "GIF.h"
+#include "Image.h"
 #endif
 
 #if defined(CONFIG_INKPLATE_BOARD_INKPLATE6) ||                                \

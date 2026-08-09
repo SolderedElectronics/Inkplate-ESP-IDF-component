@@ -35,7 +35,8 @@
 static const char *TAG = "GIF";
 
 GIF::GIF(Inkplate *inkplate) : m_inkplate(inkplate), m_stopRequested(false) {
-  m_gif = (AnimatedGIF *)heap_caps_malloc(sizeof(AnimatedGIF), MALLOC_CAP_SPIRAM);
+  m_gif =
+      (AnimatedGIF *)heap_caps_malloc(sizeof(AnimatedGIF), MALLOC_CAP_SPIRAM);
   new (m_gif) AnimatedGIF();
   m_gif->begin(GIF_PALETTE_RGB888);
 }
