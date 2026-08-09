@@ -198,8 +198,6 @@ static void drawAllClocks() {
 }
 
 extern "C" void app_main(void) {
-  display.begin();
-
   // --- DISPLAY SELF-TEST (so we know the panel can refresh) ---
   display.clearDisplay();
   display.setTextSize(1);
