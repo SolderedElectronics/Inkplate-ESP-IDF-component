@@ -69,7 +69,9 @@ jobs:
           project(inkplate_ci)
           EOF
 
-          # Fat CMakeLists — covers every REQUIRES variant found across all examples
+          # Placeholder CMakeLists for the initial warm-up build below only —
+          # each example's own main/CMakeLists.txt (with its correct SRCS/
+          # REQUIRES) replaces this once the per-example loop starts.
           cat > "$PROJ_DIR/main/CMakeLists.txt" << 'EOF'
           idf_component_register(SRCS "main.cpp"
                                  REQUIRES "inkplate" "esp_wifi" "esp_http_server"
@@ -90,7 +92,7 @@ jobs:
           idf.py build
           echo "::endgroup::"
 
-          # ── Incremental builds — only main.cpp is swapped each time ─────────
+          # ── Incremental builds — each example's whole main/ dir is swapped in ─
           FAIL=0
           FAILED_EXAMPLES=()
 
@@ -101,12 +103,12 @@ jobs:
             echo "::group::$(basename "$example_dir")"
             echo "Building: $example_dir"
 
-            # Remove files from the previous example (keep CMakeLists.txt)
-            find "$PROJ_DIR/main" ! -name "CMakeLists.txt" -type f -delete
-
-            # Copy all files from the example's main/ (headers, images, etc.)
-            find "$example_main_dir" -maxdepth 1 -type f ! -name "CMakeLists.txt" \
-                 -exec cp {} "$PROJ_DIR/main/" \;
+            # Replace main/ wholesale with the example's own main/ directory,
+            # including its own CMakeLists.txt (correct SRCS/REQUIRES for
+            # that example) and any subdirectories (fonts, icons, etc.) —
+            # a flat, single-file copy misses multi-source-file examples.
+            rm -rf "$PROJ_DIR/main"
+            cp -r "$example_main_dir" "$PROJ_DIR/main"
 
             if (cd "$PROJ_DIR" && idf.py build); then
               echo "::endgroup::"
