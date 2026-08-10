@@ -108,7 +108,6 @@ extern "C" void app_main(void) {
   NetworkFunctions network(CALENDAR_ID, GOOGLE_API_KEY);
   Gui gui(display);
 
-  display.begin();               // Start the Inkplate display
   display.setDisplayMode(GRAYSCALE); // 3-bit grayscale, matching the original sketch
   display.clearDisplay();        // Clear the frame buffer
 

@@ -118,7 +118,6 @@ extern "C" void app_main(void) {
   NetworkFunctions network(CALENDAR_ID, GOOGLE_API_KEY);
   Gui gui(display);
 
-  display.begin();        // Start the Inkplate display
   display.clearDisplay(); // Clear the frame buffer
   display.setRotation(1); // Portrait mode, matches the original sketch.
 

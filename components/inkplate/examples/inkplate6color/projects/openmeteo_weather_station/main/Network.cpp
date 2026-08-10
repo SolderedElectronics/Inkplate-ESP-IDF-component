@@ -132,7 +132,7 @@ void NetworkFunctions::extractDate(const char *dateTime, char *out, size_t outSi
     }
     else
     {
-        snprintf(out, outSize, "????-??-??");
+        snprintf(out, outSize, "?\?\?\?-\?\?-\?\?");
     }
 }
 
@@ -186,7 +186,7 @@ const char *NetworkFunctions::getDayName(int dayIndex)
 void NetworkFunctions::fetchWeatherData(WeatherData *weatherData, UserInfo *userInfo, float latitude,
                                         float longitude)
 {
-    char url[384];
+    char url[512];
 
     if (userInfo->useMetric)
     {
