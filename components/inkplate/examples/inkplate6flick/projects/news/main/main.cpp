@@ -162,8 +162,8 @@ static void drawNews(Inkplate &display, news *entities, int count) {
   struct tm timeInfo;
   gmtime_r(&nowUtc, &timeInfo);
 
-  char dateStr[20];
-  char updateStr[20];
+  char dateStr[32];
+  char updateStr[32];
   snprintf(dateStr, sizeof(dateStr), "Date : %02d.%02d.%04d", timeInfo.tm_mday,
            timeInfo.tm_mon + 1, timeInfo.tm_year + 1900);
   snprintf(updateStr, sizeof(updateStr), "Last update : %02d:%02d",

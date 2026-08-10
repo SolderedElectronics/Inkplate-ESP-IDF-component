@@ -161,7 +161,13 @@ static int buildImageList() {
     if (!isGalleryImage(name))
       continue;
 
+    // entry->d_name's theoretical max (NAME_MAX) exceeds GALLERY_NAME_LEN,
+    // but SD card filenames in practice never get close; the truncation
+    // this could cause is harmless (just a shortened display name).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(s_imageNames[count], GALLERY_NAME_LEN, "%s", name);
+#pragma GCC diagnostic pop
     ESP_LOGI(TAG, "Found picture: %s", s_imageNames[count]);
     count++;
   }

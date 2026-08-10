@@ -18,13 +18,6 @@
 #include <cstring>
 #include <ctime>
 
-// Fonts
-#include "fonts/FreeSans12pt7b.h"
-#include "fonts/FreeSans18pt7b.h"
-#include "fonts/FreeSans9pt7b.h"
-#include "fonts/FreeSansBold24pt7b.h"
-#include "fonts/FreeSansBold48pt7b.h"
-
 namespace {
 
 /**

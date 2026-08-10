@@ -20,7 +20,7 @@
 static const char *TAG = "CALENDAR_NET";
 
 #define CALENDAR_API_HOST "https://www.googleapis.com/calendar/v3/calendars/"
-#define CALENDAR_URL_MAX_LEN 768
+#define CALENDAR_URL_MAX_LEN 1024
 #define CALENDAR_PAGE_TOKEN_MAX_LEN 256
 // Fallback buffer size used when the server doesn't send a Content-Length
 // header (e.g. chunked responses).

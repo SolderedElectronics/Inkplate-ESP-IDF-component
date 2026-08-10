@@ -10,12 +10,6 @@
 #include <cstring>
 #include <ctime>
 
-// Fonts
-#include "fonts/FreeSans9pt7b.h"
-#include "fonts/FreeSans12pt7b.h"
-#include "fonts/FreeSans18pt7b.h"
-#include "fonts/FreeSansBold24pt7b.h"
-
 namespace {
 
 /**
@@ -82,7 +76,7 @@ bool parseIsoDateTime(const char *iso, struct tm *out) {
 
 } // namespace
 
-Gui::Gui(Inkplate &inkplate) : inkplate(inkplate), highlightColor(INKPLATE_ORANGE) {}
+Gui::Gui(Inkplate &inkplate) : highlightColor(INKPLATE_ORANGE), inkplate(inkplate) {}
 
 void Gui::setHighlightColor(int color) { highlightColor = color; }
 

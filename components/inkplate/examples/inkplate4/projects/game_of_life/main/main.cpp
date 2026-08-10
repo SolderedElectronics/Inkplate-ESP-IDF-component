@@ -163,6 +163,7 @@ void stepGeneration() {
         if (!cell_curr)
           break;
         // Else cell is alive, drop through
+        [[fallthrough]];
       case 3:                     // 3 neighbors == alive
         cell_next = cell_curr + 1;
         if (cell_next > cell_maxage)

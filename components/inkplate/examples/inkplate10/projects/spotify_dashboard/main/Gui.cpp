@@ -200,7 +200,7 @@ void Gui::renderAlbumScreen(const char *albumName, const char *artistName,
                                     int baselineY) {
     display.setFont(font);
 
-    char s[192];
+    char s[196];
     snprintf(s, sizeof(s), "%s", in);
 
     int16_t x1, y1;

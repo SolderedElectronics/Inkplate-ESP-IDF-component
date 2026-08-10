@@ -124,8 +124,14 @@ static int scanImageFolder(const char *folderFullPath) {
     if (!isImageFile(entry->d_name))
       continue; // Skip anything that isn't a supported image type
 
+    // entry->d_name's theoretical max (NAME_MAX) exceeds this buffer, but SD
+    // card filenames in practice never get close; the truncation this could
+    // cause is harmless (just a shortened display name).
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
     snprintf(s_imageNames[count], sizeof(s_imageNames[count]), "%s",
               entry->d_name);
+#pragma GCC diagnostic pop
     count++;
   }
   closedir(dir);
