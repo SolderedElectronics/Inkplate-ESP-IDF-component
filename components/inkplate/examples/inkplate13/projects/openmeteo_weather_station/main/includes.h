@@ -39,9 +39,3 @@
 #include "binary_Icons/icon_s_snow.h"
 #include "binary_Icons/icon_s_storm.h"
 #include "binary_Icons/icon_s_thermometer.h"
-
-// all the battery icons
-#include "binary_Icons/icon_s_full_battery.h"
-#include "binary_Icons/icon_s_half_battery.h"
-#include "binary_Icons/icon_s_high_battery.h"
-#include "binary_Icons/icon_s_low_battery.h"

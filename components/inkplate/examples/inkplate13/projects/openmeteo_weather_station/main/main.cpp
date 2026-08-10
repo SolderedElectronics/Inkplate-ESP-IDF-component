@@ -134,8 +134,8 @@ extern "C" void app_main(void)
         ESP_LOGI(TAG, "WiFi connected, synchronizing time...");
         network.setupTime(UTC_OFFSET_HOURS, NTP_SERVER);
 
-        // Gather battery and city/user info.
-        gui.voltage = display.readBattery();
+        // Gather city/user info. No battery reading on this board - see
+        // Gui.h.
         snprintf(userInfo.city, sizeof(userInfo.city), "%s", MY_CITY);
         snprintf(userInfo.username, sizeof(userInfo.username), "%s", MY_USERNAME);
         userInfo.useMetric = USE_METRIC_UNITS;

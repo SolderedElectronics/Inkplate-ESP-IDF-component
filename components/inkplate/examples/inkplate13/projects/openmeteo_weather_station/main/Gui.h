@@ -26,14 +26,9 @@ class Gui
     void wifiError();
     void apiError();
 
-    int batteryLevel;
-    double voltage;
-
   private:
     Inkplate &inkplate;
 
     void drawTemperaturePrecipGraph(WeatherData *weatherData, NetworkFunctions::UserInfo *userInfo);
     const uint8_t *getWeatherIcon(int code);
-    const uint8_t *getBatteryIcon(int percentage);
-    int voltageToPercentage(double voltage);
 };

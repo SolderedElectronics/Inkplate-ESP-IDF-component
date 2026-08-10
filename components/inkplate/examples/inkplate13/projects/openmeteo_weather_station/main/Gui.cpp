@@ -68,12 +68,6 @@
 #include "binary_Icons/icon_s_storm.h"
 #include "binary_Icons/icon_s_thermometer.h"
 
-// all the battery icons
-#include "binary_Icons/icon_s_full_battery.h"
-#include "binary_Icons/icon_s_half_battery.h"
-#include "binary_Icons/icon_s_high_battery.h"
-#include "binary_Icons/icon_s_low_battery.h"
-
 // fonts
 #include "fonts/FreeSans12pt7b.h"
 #include "fonts/FreeSans18pt7b.h"
@@ -130,17 +124,6 @@ void Gui::apiError()
     inkplate.display();
 }
 
-int Gui::voltageToPercentage(double voltage)
-{
-    if (voltage >= 4.2)
-        return 100;
-    if (voltage <= 3.0)
-        return 0;
-
-    // Simple linear approximation
-    return (int)(((voltage - 3.0) / (4.2 - 3.0)) * 100);
-}
-
 // Weather icons based on the Open-Meteo weather_code.
 const uint8_t *Gui::getWeatherIcon(int code)
 {
@@ -183,18 +166,6 @@ const uint8_t *Gui::getWeatherIcon(int code)
     default:
         return icon_s_gray;
     }
-}
-
-const uint8_t *Gui::getBatteryIcon(int percentage)
-{
-    if (percentage >= 75)
-        return icon_s_full_battery;
-    else if (percentage >= 50)
-        return icon_s_high_battery;
-    else if (percentage >= 25)
-        return icon_s_half_battery;
-    else
-        return icon_s_low_battery;
 }
 
 // --- Draw Temperature & Precipitation Graph ---
@@ -353,22 +324,16 @@ void Gui::displayWeatherData(WeatherData *weatherData, NetworkFunctions::UserInf
     inkplate.setCursor(110, 200);
     inkplate.println(weatherData->weatherDescription);
 
-    // Section 2: User Info and Battery (white text/icon on the black panel
-    // drawn by drawBackground())
-
-    batteryLevel = voltageToPercentage(voltage);
+    // Section 2: User Info (white text on the black panel drawn by
+    // drawBackground()). No battery reading here - Inkplate 13SPECTRA has
+    // no readBattery() implementation in the library (BoardCommon.cpp
+    // excludes it for this board), unlike the other Inkplate boards this
+    // example was ported from.
 
     inkplate.setFont(&FreeSans18pt7b);
     inkplate.setTextColor(INKPLATE_WHITE);
 
     int yUser = 60;
-    inkplate.drawBitmap(1100, 25, getBatteryIcon(batteryLevel), 48, 48, INKPLATE_WHITE);
-
-    inkplate.setCursor(1150, yUser);
-    inkplate.print(batteryLevel);
-    inkplate.println("%");
-
-    yUser += 60;
     inkplate.setCursor(1100, yUser);
     inkplate.println(userInfo->lastUpdatedDate);
 
