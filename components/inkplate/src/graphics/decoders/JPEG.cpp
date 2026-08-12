@@ -73,6 +73,8 @@ bool JPEG::draw(uint8_t *buf, int32_t len, int x, int y, bool dither,
   }
 
   res = jd_decomp(&jdec, outputCallback, 0);
+  if (res != JDR_OK)
+    ESP_LOGE(TAG, "JPEG decode failed (jd_decomp result %d)", res);
 
   free(m_lineBuf);
   m_lineBuf = nullptr;
