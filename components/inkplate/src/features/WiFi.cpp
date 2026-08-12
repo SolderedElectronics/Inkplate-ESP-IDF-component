@@ -38,7 +38,7 @@
 static const char *TAG = "ESP_WIFI";
 
 static bool resolveRedirectUrl(const char *baseUrl, const char *location,
-                                char *out, size_t outSize) {
+                               char *out, size_t outSize) {
   if (strncmp(location, "http://", 7) == 0 ||
       strncmp(location, "https://", 8) == 0) {
     snprintf(out, outSize, "%s", location);
@@ -193,7 +193,7 @@ uint8_t *WiFi::downloadFile(const char *url, int32_t *len) {
       char nextUrl[512];
       if (locationBuf[0] == '\0' || redirects >= 5 ||
           !resolveRedirectUrl(currentUrl, locationBuf, nextUrl,
-                               sizeof(nextUrl))) {
+                              sizeof(nextUrl))) {
         ESP_LOGE(TAG, "Redirect failed (status %d)", status);
         esp_http_client_cleanup(client);
         return NULL;
@@ -211,8 +211,8 @@ uint8_t *WiFi::downloadFile(const char *url, int32_t *len) {
   if (contentLen > 0)
     *len = contentLen;
 
-  uint8_t *buffer = (uint8_t *)heap_caps_malloc(
-      capacity, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  uint8_t *buffer = (uint8_t *)heap_caps_malloc(capacity, MALLOC_CAP_SPIRAM |
+                                                              MALLOC_CAP_8BIT);
   if (!buffer) {
     ESP_LOGE(TAG, "Failed to allocate %ld bytes", capacity);
     esp_http_client_cleanup(client);
@@ -300,7 +300,7 @@ uint8_t *WiFi::downloadFileHTTPS(const char *url, int32_t *len) {
       char nextUrl[512];
       if (locationBuf[0] == '\0' || redirects >= 5 ||
           !resolveRedirectUrl(currentUrl, locationBuf, nextUrl,
-                               sizeof(nextUrl))) {
+                              sizeof(nextUrl))) {
         ESP_LOGE(TAG, "Redirect failed (status %d)", status);
         esp_http_client_cleanup(client);
         return NULL;
@@ -318,8 +318,8 @@ uint8_t *WiFi::downloadFileHTTPS(const char *url, int32_t *len) {
   if (contentLen > 0)
     *len = contentLen;
 
-  uint8_t *buffer = (uint8_t *)heap_caps_malloc(
-      capacity, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  uint8_t *buffer = (uint8_t *)heap_caps_malloc(capacity, MALLOC_CAP_SPIRAM |
+                                                              MALLOC_CAP_8BIT);
   if (!buffer) {
     ESP_LOGE(TAG, "Failed to allocate %ld bytes", capacity);
     esp_http_client_cleanup(client);
