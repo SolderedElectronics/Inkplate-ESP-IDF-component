@@ -81,6 +81,9 @@
 
 #include "sdkconfig.h"
 
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+
 #ifndef CONFIG_INKPLATE_BOARD_INKPLATE6COLOR
 #error                                                                         \
     "Wrong board selection for this example, please select Inkplate6Color in the boards menu."
@@ -154,6 +157,11 @@ extern "C" void app_main(void) {
     // For the whole set instead of the zoomed-in region above, use:
     // colorAt(-2.0 + (3.0 * (double)i / (double)E_INK_WIDTH),
     //         -1.0 + 2.0 * (double)j / (double)E_INK_HEIGHT)
+
+    // Yield per row so the idle task can run and feed the task watchdog;
+    // without this, the tight per-pixel compute loop starves IDLE0 and
+    // task_wdt fires.
+    vTaskDelay(1);
   }
 
   display.display();
