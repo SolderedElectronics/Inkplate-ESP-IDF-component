@@ -68,9 +68,15 @@ const char INDEX_HTML[] = R"rawliteral(
       font-weight: bold;
       min-height: 1.2em;
     }
-    /* Hide the real file inputs */
+    /* Hide the real file inputs visually, but keep them in the layout -
+       display:none breaks programmatic .click() on some mobile WebKit
+       browsers (the gallery/camera picker silently fails to open). */
     input[type=file] {
-      display: none;
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      opacity: 0;
     }
   </style>
 </head>
