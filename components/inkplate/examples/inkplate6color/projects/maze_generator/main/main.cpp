@@ -69,12 +69,18 @@ static const int cellSize = 19;
 static const int margin = 15;
 
 // Maze grid dimensions, derived from the panel resolution and the cell size.
-// Inkplate 6Color's 600x448 panel yields a 30x22 cell grid, filling the
-// display edge-to-edge with an even 15px margin on all sides:
-//   mazeWidth  = (600 - 2*15) / 19 = 570 / 19 = 30
-//   mazeHeight = (448 - 2*15) / 19 = 418 / 19 = 22
-static const int mazeWidth = (E_INK_WIDTH - 2 * margin) / cellSize;
-static const int mazeHeight = (E_INK_HEIGHT - 2 * margin) / cellSize;
+// The carve loop below only visits odd cell indices (1, 3, 5, ...), so index
+// 0 is always left as an untouched, closed wall on the left/top edges. If
+// mazeWidth/mazeHeight came out even, the last carve-eligible index
+// (width - 1 / height - 1) would be odd too, making the right/bottom edge an
+// interior carve cell instead of a fixed border - leaving those edges open.
+// Rounding down to an odd count keeps the border symmetric on all sides.
+static const int rawMazeWidth = (E_INK_WIDTH - 2 * margin) / cellSize;
+static const int rawMazeHeight = (E_INK_HEIGHT - 2 * margin) / cellSize;
+static const int mazeWidth =
+    (rawMazeWidth % 2 == 0) ? rawMazeWidth - 1 : rawMazeWidth;
+static const int mazeHeight =
+    (rawMazeHeight % 2 == 0) ? rawMazeHeight - 1 : rawMazeHeight;
 
 // Maze cell states: 1 = wall, 0 = open passage.
 static char maze[mazeWidth * mazeHeight];
