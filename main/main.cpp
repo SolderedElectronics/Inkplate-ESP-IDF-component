@@ -1,346 +1,265 @@
 /**
  * @file        main.cpp
  * @author      Fran Fodor for Soldered
- * @brief       TRMNL BYOS client example for Soldered Inkplate 10.
+ * @brief       WiFi image uploader for Soldered Inkplate 13SPECTRA.
  *
- * @details     Connects Inkplate 10 to WiFi, registers with a TRMNL-compatible
- *              BYOS server via /api/setup, then polls /api/display,
- *              draws whatever image the server returns, and deep-sleeps
- *              until the next refresh.
+ * @details     Turns Inkplate 13SPECTRA into a small standalone web app for
+ *              uploading an image from a phone or PC. The device connects
+ *              to a WiFi network and starts an HTTP server (ESP-IDF's
+ *              esp_http_server component) that serves an upload page
+ *              (main/html.h). The page lets the user take a photo or pick
+ *              an image from their gallery, scales/crops it to the panel
+ *              resolution in the browser, and POSTs it to the device. The
+ *              device then decodes the uploaded JPEG and renders it on the
+ *              6-color e-paper display, dithering it down to the panel's
+ *              6-color palette.
  *
  * Requirements:
- * - Board:      Soldered Inkplate 10
+ * - Board:      Soldered Inkplate 13SPECTRA
  * - Framework:  ESP-IDF v6.x
- * - Hardware:   Inkplate 10, USB cable
- * - Extra:      Stable WiFi connection, Terminus (TRMNL's official BYOS
- *               server) running via Docker
- *
- * ------------------------------------------------
- * Setting up the BYOS server (Terminus) via Docker
- * ------------------------------------------------
- * Terminus is TRMNL's official self-hosted "Bring Your Own Server" (BYOS)
- * implementation.
- *
- * 1) Install Docker:
- *      macOS:   brew install --cask docker
- *               open -a Docker
- *      Linux:   Use your distro's package manager, e.g.:
- *               sudo apt install docker.io docker-compose-plugin   (Debian/Ubuntu)
- *               sudo systemctl start docker
- *               sudo systemctl enable docker
- *      Windows: Install "Docker Desktop" from docker.com, then launch it
- *               (WSL2 backend required/recommended). Run the commands below
- *               from PowerShell, a WSL2 terminal, or Git Bash.
- *
- *      Then on any OS, confirm it's running:
- *      docker info          // confirms Docker is running
- *
- * 2) Quick start (fastest way to try it, NOT for permanent use):
- *      macOS/Linux (bash):
- *        curl https://raw.githubusercontent.com/usetrmnl/terminus/refs/heads/main/scripts/docker/quick.sh | bash
- *
- *    This script is NOT idempotent - do not run it more than once, since
- *    your database credentials will differ each time. Once it finishes,
- *    open http://localhost:2300 in a browser and click "Register" to
- *    create your login.
- *
- *    For permanent/production use instead, clone + set up manually:
- *      git clone https://github.com/usetrmnl/terminus
- *      cd terminus
- *      bin/setup            // idempotent, safe to re-run
- *
- * 3) Find your server's LAN IP (so the Inkplate can reach it):
- *      macOS:   ipconfig getifaddr en0
- *      Linux:   ip addr show   // look for inet under your active interface
- *      Windows: ipconfig       // look for "IPv4 Address"
- *
- *    Make sure this matches the API_URI value Terminus is using (check the
- *    .env file created during setup) - the device and the server must agree
- *    on the exact same host:port.
- *
- * 4) Register your device in the Terminus dashboard:
- *      Devices -> Add Device
- *      - Model: pick the closest match, or create a custom one under
- *        "Models" if your exact Inkplate isn't listed
- *      - MAC Address: your Inkplate's WiFi MAC (printed to the e-paper
- *        display after WiFi connects)
- *      - Refresh Rate: how often (seconds) the device should poll
- *
- * 5) Point this example at your server:
- *      Set BYOS_SERVER below to "http://<server-ip>:2300" (no trailing
- *      slash).
- *
- * 6) Build actual screen content:
- *      Designs   -> create a Liquid/HTML template for what to display
- *      Screens   -> confirm the rendered PNG shows up
- *      Playlists -> add that screen to a playlist
- *      Devices   -> assign the playlist to your device
- *
- * Once all of the above is done, this example's doSetup()/doDisplay() calls
- * fetch and draw whatever screen you've configured.
+ * - Hardware:   Inkplate 13SPECTRA, USB cable
+ * - Extra:      WiFi network + phone/PC with a web browser
  *
  * Configuration:
- * - Menuconfig -> Inkplate Boards -> Inkplate10
- * - Menuconfig -> WiFi Configuration -> Enter your credentials
- * - Set BYOS_SERVER below to your Terminus server's address
+ * - Menuconfig -> Inkplate Boards -> Inkplate13
+ * - Menuconfig -> WiFi Configuration -> Enter your SSID and password
  *
  * How to use:
- * 1) Set up Terminus per the instructions above.
- * 2) Set BYOS_SERVER below.
- * 3) Build and flash to Inkplate 10.
- * 4) The board connects to WiFi, registers with the server, fetches and
- *    displays a screen, then deep-sleeps until the next refresh.
+ * 1) Build and flash to Inkplate 13SPECTRA.
+ * 2) Open the Serial Monitor. Once WiFi connects, the device's IP address
+ *    is printed to the log (and shown on the display).
+ * 3) On a phone/PC connected to the same network, open
+ *    http://<printed-ip>/ in a web browser.
+ * 4) Take a photo or choose an image from the gallery, then press Upload.
+ * 5) The device decodes the uploaded image and renders it, dithered to the
+ *    panel's 6-color palette, on the e-paper display.
  *
  * Expected output:
- * - Connection status and device ID (WiFi MAC) shown while connecting.
- * - Whatever image the BYOS server assigns to this device, refreshed on the
- *   interval the server specifies.
+ * - Serial Monitor: WiFi connection status and the device's IP address.
+ * - Display: connection instructions, then the uploaded image after a
+ *   successful upload.
+ * - Browser: the upload page served from main/html.h at "/".
  *
  * Notes:
- * - Uses BLACK_AND_WHITE display mode so WiFi-connect progress dots can be
- *   shown with fast partial updates.
- * - The whole /api/display JSON response is held in a single PSRAM buffer;
- *   image_url is expected to point directly at a BMP/JPEG/PNG file.
- * - update_firmware is logged only - OTA is not implemented in this example.
- * - JSON is parsed with a small built-in string-search extractor (no
- *   external JSON library dependency).
+ * - Arduino's WebServer class has no equivalent in this component. This
+ *   example uses ESP-IDF's native esp_http_server component instead, with
+ *   handlers registered via httpd_register_uri_handler().
+ * - The browser posts the picked/captured image as multipart/form-data, so
+ *   the raw POST body contains form-field headers and boundaries around the
+ *   actual JPEG bytes. Rather than implementing a full multipart parser,
+ *   this example scans the received body for the JPEG start-of-image marker
+ *   (0xFF 0xD8) to locate the embedded image before handing it to
+ *   display.image.draw().
+ * - The uploaded image is buffered fully in RAM, sized from the request's
+ *   Content-Length header; very large uploads may fail to allocate.
+ * - Inkplate 13SPECTRA supports 6 colors: black, white, yellow, red, blue,
+ *   green (no orange, unlike Inkplate 6Color). display.image.draw() dithers
+ *   the uploaded image down to this palette.
  *
  * Docs:         https://docs.soldered.com/inkplate
  * Support:      https://forum.soldered.com/
+ * Image tool:   https://tools.soldered.com/tools/image-converter/
  */
 
 #include "sdkconfig.h"
 
-#ifndef CONFIG_INKPLATE_BOARD_INKPLATE10
-#error \
-    "Wrong board selection for this example, please select Inkplate10 in the boards menu."
+#ifndef CONFIG_INKPLATE_BOARD_INKPLATE13
+#error                                                                         \
+    "Wrong board selection for this example, please select Inkplate13 in the boards menu."
 #endif
 
-#include "esp_heap_caps.h"
-#include "esp_http_client.h"
+#include "Inkplate.h"
+#include "html.h"
+
+#include "esp_http_server.h"
 #include "esp_log.h"
-#include "esp_sleep.h"
-#include "esp_wifi.h"
+#include "esp_netif.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <stdio.h>
-#include <string.h>
 
-#include "Inkplate.h"
+#include <stdlib.h>
 
-// Set to your Terminus server, e.g. "http://192.168.1.50:2300" (no trailing slash)
-#define BYOS_SERVER "http://IP:2300"
+static const char *TAG = "IMAGE_UPLOADER";
 
-static const char *TAG = "TRMNL";
+// `display` is NOT a global: it's constructed as a local in app_main(). A
+// file-scope `Inkplate display;` would race the library's own global
+// I2C/PCAL peripheral objects (in BoardCommon.cpp) — C++ leaves
+// cross-translation-unit static init order unspecified, so the Inkplate ctor
+// can run before the I2C bus/expander objects it depends on, leaving
+// peripherals uninitialized.
+//
+// Handlers registered with esp_http_server are free functions (no lambda
+// captures), so app_main() hands each handler a pointer to its local
+// `display` via httpd_uri_t::user_ctx, retrieved as req->user_ctx.
 
-static bool httpGetWithHeader(const char *url, const char *deviceId,
-                              char **outBody, int *outLen) {
-  esp_http_client_config_t config = {};
-  config.url = url;
-  config.timeout_ms = 10000;
+/* -------------------------------------------------------------------------- */
+/*                              HTTP request handlers                         */
+/* -------------------------------------------------------------------------- */
 
-  esp_http_client_handle_t client = esp_http_client_init(&config);
-  if (!client)
-    return false;
+// GET "/" - serves the upload page.
+static esp_err_t handleRoot(httpd_req_t *req) {
+  httpd_resp_send(req, INDEX_HTML, HTTPD_RESP_USE_STRLEN);
+  return ESP_OK;
+}
 
-  esp_http_client_set_header(client, "ID", deviceId);
+// Scans a buffer for the JPEG start-of-image marker (0xFF 0xD8).
+//
+// The browser posts the image as multipart/form-data, so the raw POST body
+// contains form-field headers/boundaries wrapped around the JPEG bytes.
+// This locates where the actual JPEG data begins without implementing a
+// full multipart parser.
+static int findJpegStart(const uint8_t *buf, size_t len) {
+  for (size_t i = 0; i + 1 < len; i++) {
+    if (buf[i] == 0xFF && buf[i + 1] == 0xD8)
+      return (int)i;
+  }
+  return -1;
+}
 
-  esp_err_t err = esp_http_client_open(client, 0);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "HTTP open failed: %s", esp_err_to_name(err));
-    esp_http_client_cleanup(client);
-    return false;
+// POST "/upload" - receives the uploaded image, decodes it, and renders it
+// on the e-paper display.
+static esp_err_t handleUpload(httpd_req_t *req) {
+  Inkplate *display = static_cast<Inkplate *>(req->user_ctx);
+  size_t remaining = req->content_len;
+  if (remaining == 0) {
+    ESP_LOGE(TAG, "Upload request has no body");
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
   }
 
-  int contentLen = esp_http_client_fetch_headers(client);
-  if (contentLen <= 0)
-    contentLen = 4096; // fallback if server doesn't send Content-Length
-
-  char *buf = (char *)heap_caps_malloc(contentLen + 1,
-                                       MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+  uint8_t *buf = (uint8_t *)malloc(remaining);
   if (!buf) {
-    ESP_LOGE(TAG, "Out of memory (%d bytes)", contentLen);
-    esp_http_client_cleanup(client);
-    return false;
+    ESP_LOGE(TAG, "Failed to allocate %u bytes for upload",
+             (unsigned)remaining);
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
   }
 
-  int totalRead = 0;
-  int read;
-  while (totalRead < contentLen) {
-    read = esp_http_client_read(client, buf + totalRead, contentLen - totalRead);
-    if (read <= 0)
-      break;
-    totalRead += read;
-  }
-  buf[totalRead] = '\0';
-
-  esp_http_client_cleanup(client);
-
-  *outBody = buf;
-  *outLen = totalRead;
-  return true;
-}
-
-static void goToSleep(long seconds) {
-  ESP_LOGI(TAG, "Sleeping for %ld seconds", seconds);
-  esp_sleep_enable_timer_wakeup((uint64_t)seconds * 1000000ULL);
-  esp_deep_sleep_start();
-}
-
-static void doSetup(const char *deviceId) {
-  char url[160];
-  snprintf(url, sizeof(url), "%s/api/setup", BYOS_SERVER);
-
-  char *body = nullptr;
-  int len = 0;
-  if (httpGetWithHeader(url, deviceId, &body, &len)) {
-    ESP_LOGI(TAG, "Setup response: %s", body);
-    free(body);
-  } else {
-    ESP_LOGE(TAG, "Setup request failed");
-  }
-}
-
-// Tiny string-search JSON value extractors - the TRMNL /api/display
-// response is a small, fixed-shape object, so a full JSON parser is more
-// dependency than this needs.
-static bool jsonExtractString(const char *json, const char *key, char *out,
-                              size_t outSize) {
-  char pattern[64];
-  snprintf(pattern, sizeof(pattern), "\"%s\"", key);
-  const char *p = strstr(json, pattern);
-  if (!p)
-    return false;
-  p = strchr(p + strlen(pattern), ':');
-  if (!p)
-    return false;
-  p++;
-  while (*p == ' ' || *p == '\t')
-    p++;
-  if (*p != '"')
-    return false;
-  p++;
-  size_t i = 0;
-  while (*p && *p != '"' && i < outSize - 1)
-    out[i++] = *p++;
-  out[i] = '\0';
-  return true;
-}
-
-static bool jsonExtractNumber(const char *json, const char *key, long *out) {
-  char pattern[64];
-  snprintf(pattern, sizeof(pattern), "\"%s\"", key);
-  const char *p = strstr(json, pattern);
-  if (!p)
-    return false;
-  p = strchr(p + strlen(pattern), ':');
-  if (!p)
-    return false;
-  *out = strtol(p + 1, nullptr, 10);
-  return true;
-}
-
-static bool jsonExtractBool(const char *json, const char *key) {
-  char pattern[64];
-  snprintf(pattern, sizeof(pattern), "\"%s\"", key);
-  const char *p = strstr(json, pattern);
-  if (!p)
-    return false;
-  p = strchr(p + strlen(pattern), ':');
-  if (!p)
-    return false;
-  p++;
-  while (*p == ' ' || *p == '\t')
-    p++;
-  return strncmp(p, "true", 4) == 0;
-}
-
-static void doDisplay(Inkplate &display, const char *deviceId) {
-  char url[160];
-  snprintf(url, sizeof(url), "%s/api/display", BYOS_SERVER);
-
-  char *body = nullptr;
-  int len = 0;
-  if (!httpGetWithHeader(url, deviceId, &body, &len)) {
-    ESP_LOGE(TAG, "Display request failed");
-    goToSleep(900);
-    return;
-  }
-
-  ESP_LOGI(TAG, "Display response: %s", body);
-
-  char imageUrl[256];
-  bool hasImageUrl =
-      jsonExtractString(body, "image_url", imageUrl, sizeof(imageUrl));
-  long refreshRate = 0;
-  jsonExtractNumber(body, "refresh_rate", &refreshRate);
-  bool updateFirmware = jsonExtractBool(body, "update_firmware");
-
-  free(body);
-
-  if (refreshRate <= 0)
-    refreshRate = 900;
-
-  if (hasImageUrl) {
-    display.clearDisplay();
-    bool ok = display.image.draw(imageUrl, 0, 0, false, false);
-    if (!ok) {
-      display.setCursor(0, 0);
-      display.print("Failed to draw image from URL");
+  // Read the full request body into the buffer. httpd_req_recv() may return
+  // fewer bytes than requested per call, so keep reading until the whole
+  // body has been received.
+  size_t received = 0;
+  while (remaining > 0) {
+    int r = httpd_req_recv(req, (char *)(buf + received), remaining);
+    if (r == HTTPD_SOCK_ERR_TIMEOUT) {
+      continue; // retry on timeout
     }
-    display.display();
-  } else {
-    ESP_LOGE(TAG, "No image_url in response");
+    if (r <= 0) {
+      ESP_LOGE(TAG, "Upload receive failed (%d)", r);
+      free(buf);
+      httpd_resp_send_500(req);
+      return ESP_FAIL;
+    }
+    received += (size_t)r;
+    remaining -= (size_t)r;
+  }
+  ESP_LOGI(TAG, "Upload complete, %u bytes received", (unsigned)received);
+
+  int jpegStart = findJpegStart(buf, received);
+  if (jpegStart < 0) {
+    ESP_LOGE(TAG, "No JPEG data found in uploaded body");
+    free(buf);
+    httpd_resp_send_500(req);
+    return ESP_FAIL;
   }
 
-  if (updateFirmware) {
-    ESP_LOGW(TAG, "Firmware update flagged - not implemented, skipping.");
-  }
+  display->clearDisplay();
+  display->image.draw(buf + jpegStart, (int32_t)(received - jpegStart), 0, 0,
+                       true, false);
+  display->display();
 
-  goToSleep(refreshRate);
+  free(buf);
+
+  httpd_resp_send(req, "OK", HTTPD_RESP_USE_STRLEN);
+  return ESP_OK;
 }
 
-extern "C" void app_main(void) {
-  Inkplate display;
+/* -------------------------------------------------------------------------- */
+/*                                   Helpers                                  */
+/* -------------------------------------------------------------------------- */
 
-  display.setDisplayMode(BLACK_AND_WHITE);
+// Prints connection instructions on the e-paper display.
+static void showConnectionInfo(Inkplate &display, const esp_ip4_addr_t &ip) {
+  char ipStr[16];
+  snprintf(ipStr, sizeof(ipStr), IPSTR, IP2STR(&ip));
+
   display.clearDisplay();
   display.setTextSize(2);
-  display.setCursor(0, 0);
-  display.setTextColor(BLACK, WHITE);
-  display.print("Connecting to WiFi...");
+  display.setTextColor(INKPLATE_BLACK, INKPLATE_WHITE);
+
+  display.setCursor(10, 20);
+  display.print("Inkplate Image Uploader");
+
+  display.setCursor(10, 60);
+  display.print("Open in your browser:");
+
+  display.setCursor(10, 90);
+  display.print("http://");
+  display.print(ipStr);
+  display.print("/");
+
   display.display();
+}
 
-  display.wifi.begin();
+/* -------------------------------------------------------------------------- */
+/*                                    Main                                    */
+/* -------------------------------------------------------------------------- */
 
-  int wifiAttempts = 0;
-  while (!display.wifi.isConnected() && wifiAttempts < 20) {
-    vTaskDelay(pdMS_TO_TICKS(1000));
-    display.print(".");
-    display.partialUpdate();
-    wifiAttempts++;
-  }
-
-  if (!display.wifi.isConnected()) {
-    display.clearDisplay();
-    display.setCursor(0, 0);
-    display.print("WiFi connection failed!");
-    display.display();
-    return;
-  }
-
-  uint8_t mac[6];
-  esp_wifi_get_mac(WIFI_IF_STA, mac);
-  char deviceId[18];
-  snprintf(deviceId, sizeof(deviceId), "%02X:%02X:%02X:%02X:%02X:%02X", mac[0],
-           mac[1], mac[2], mac[3], mac[4], mac[5]);
-
+extern "C" void app_main(void) {
+  // Never returns (loops forever below), so this local outlives every HTTP
+  // handler callback that receives a pointer to it via user_ctx.
+  Inkplate display;
   display.clearDisplay();
-  display.setCursor(0, 0);
-  display.print("Connected. ID: ");
-  display.print(deviceId);
   display.display();
 
-  doSetup(deviceId);
-  doDisplay(display, deviceId);
+  // Connect to WiFi using the credentials configured via menuconfig. Keep
+  // waiting (the WiFi component auto-retries on disconnect) rather than
+  // giving up after one timeout - some networks take longer than that to
+  // associate (e.g. WPA3-SAE renegotiation).
+  display.wifi.begin();
+  while (!display.wifi.waitForConnect(10000)) {
+    ESP_LOGW(TAG, "Still waiting for WiFi connection...");
+  }
+
+  // Fetch the IP address assigned to the station interface and log it.
+  esp_ip4_addr_t ip = {};
+  esp_netif_t *staNetif = esp_netif_get_handle_from_ifkey("WIFI_STA_DEF");
+  if (staNetif != nullptr) {
+    esp_netif_ip_info_t ipInfo;
+    if (esp_netif_get_ip_info(staNetif, &ipInfo) == ESP_OK) {
+      ip = ipInfo.ip;
+      ESP_LOGI(TAG, "Connected! Open http://" IPSTR "/ in your browser",
+               IP2STR(&ip));
+    }
+  }
+
+  showConnectionInfo(display, ip);
+
+  // Start the HTTP server and register the route handlers.
+  httpd_config_t config = HTTPD_DEFAULT_CONFIG();
+  httpd_handle_t server = nullptr;
+  if (httpd_start(&server, &config) != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to start HTTP server");
+  } else {
+    httpd_uri_t rootUri = {};
+    rootUri.uri = "/";
+    rootUri.method = HTTP_GET;
+    rootUri.handler = handleRoot;
+    httpd_register_uri_handler(server, &rootUri);
+
+    httpd_uri_t uploadUri = {};
+    uploadUri.uri = "/upload";
+    uploadUri.method = HTTP_POST;
+    uploadUri.handler = handleUpload;
+    uploadUri.user_ctx = &display;
+    httpd_register_uri_handler(server, &uploadUri);
+
+    ESP_LOGI(TAG, "HTTP server started");
+  }
+
+  // Nothing left to do in app_main() - esp_http_server dispatches requests
+  // from its own task, so just keep this task alive.
+  while (true) {
+    vTaskDelay(pdMS_TO_TICKS(1000));
+  }
 }
