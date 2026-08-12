@@ -101,7 +101,15 @@ static const CityInfo kCities[] = {
 static const int kNumCities = sizeof(kCities) / sizeof(kCities[0]);
 
 static NetworkFunctions network;
-static Inkplate display;
+
+// `display` is NOT a global: it's constructed as a local in app_main() and
+// passed by reference into every function that needs it. A file-scope
+// `Inkplate display;` would leave its construction order relative to other
+// globals unspecified by C++ (cross-translation-unit static init order) —
+// harmless on Inkplate2 specifically (no I2C/PCAL peripheral globals to race
+// on this board), but the pattern is avoided everywhere in this codebase for
+// consistency and because it stops being safe the moment any I2C-backed
+// peripheral is added.
 
 /**
  * @brief Draw one analog clock face with an AM/PM indicator and city label.
@@ -112,8 +120,8 @@ static Inkplate display;
  * @param minutes Local minute (0-59) to render.
  * @param city Label printed under the clock face.
  */
-static void drawTime(uint16_t x_pos, uint16_t y_pos, int hours, int minutes,
-                      const char *city) {
+static void drawTime(Inkplate &display, uint16_t x_pos, uint16_t y_pos,
+                      int hours, int minutes, const char *city) {
   const bool pm = hours >= 12;
   const uint16_t w = 80;
 
@@ -177,7 +185,7 @@ static void drawTime(uint16_t x_pos, uint16_t y_pos, int hours, int minutes,
  * @brief Redraw every configured city's clock face for the current time.
  *
  */
-static void drawAllClocks() {
+static void drawAllClocks(Inkplate &display) {
   display.clearDisplay(); // Start from a clean buffer every refresh
 
   for (int i = 0; i < kNumCities; i++) {
@@ -191,13 +199,15 @@ static void drawAllClocks() {
 
     // Two clocks side by side, matching the original Arduino layout.
     const uint16_t x_pos = 17 + i * 98;
-    drawTime(x_pos, 1, hours, minutes, kCities[i].label);
+    drawTime(display, x_pos, 1, hours, minutes, kCities[i].label);
   }
 
   display.display();
 }
 
 extern "C" void app_main(void) {
+  Inkplate display;
+
   // --- DISPLAY SELF-TEST (so we know the panel can refresh) ---
   display.clearDisplay();
   display.setTextSize(1);
@@ -225,7 +235,7 @@ extern "C" void app_main(void) {
   ESP_LOGI(TAG, "WiFi connected, time synced. Starting clock refresh loop.");
 
   while (true) {
-    drawAllClocks();
+    drawAllClocks(display);
     vTaskDelay(pdMS_TO_TICKS(REFRESH_INTERVAL_MS));
   }
 }

@@ -81,10 +81,16 @@
 
 static const char *TAG = "IMAGE_UPLOADER";
 
-// Display instance shared with the HTTP handlers below. Handlers registered
-// with esp_http_server are free functions (no lambda captures), so the
-// display is kept as a file-scope static instead of a local in app_main().
-static Inkplate display;
+// `display` is NOT a global: it's constructed as a local in app_main(). A
+// file-scope `Inkplate display;` would race the library's own global
+// I2C/PCAL peripheral objects (in BoardCommon.cpp) — C++ leaves
+// cross-translation-unit static init order unspecified, so the Inkplate ctor
+// can run before the I2C bus/expander objects it depends on, leaving
+// peripherals uninitialized.
+//
+// Handlers registered with esp_http_server are free functions (no lambda
+// captures), so app_main() hands each handler a pointer to its local
+// `display` via httpd_uri_t::user_ctx, retrieved as req->user_ctx.
 
 /* -------------------------------------------------------------------------- */
 /*                              HTTP request handlers                         */
@@ -113,6 +119,7 @@ static int findJpegStart(const uint8_t *buf, size_t len) {
 // POST "/upload" - receives the uploaded image, decodes it, and renders it
 // on the e-paper display.
 static esp_err_t handleUpload(httpd_req_t *req) {
+  Inkplate *display = static_cast<Inkplate *>(req->user_ctx);
   size_t remaining = req->content_len;
   if (remaining == 0) {
     ESP_LOGE(TAG, "Upload request has no body");
@@ -156,10 +163,10 @@ static esp_err_t handleUpload(httpd_req_t *req) {
     return ESP_FAIL;
   }
 
-  display.clearDisplay();
-  display.image.draw(buf + jpegStart, (int32_t)(received - jpegStart), 0, 0,
-                      true, false);
-  display.display();
+  display->clearDisplay();
+  display->image.draw(buf + jpegStart, (int32_t)(received - jpegStart), 0, 0,
+                       true, false);
+  display->display();
 
   free(buf);
 
@@ -172,7 +179,7 @@ static esp_err_t handleUpload(httpd_req_t *req) {
 /* -------------------------------------------------------------------------- */
 
 // Prints connection instructions on the e-paper display.
-static void showConnectionInfo(const esp_ip4_addr_t &ip) {
+static void showConnectionInfo(Inkplate &display, const esp_ip4_addr_t &ip) {
   char ipStr[16];
   snprintf(ipStr, sizeof(ipStr), IPSTR, IP2STR(&ip));
 
@@ -199,13 +206,19 @@ static void showConnectionInfo(const esp_ip4_addr_t &ip) {
 /* -------------------------------------------------------------------------- */
 
 extern "C" void app_main(void) {
+  // Never returns (loops forever below), so this local outlives every HTTP
+  // handler callback that receives a pointer to it via user_ctx.
+  Inkplate display;
   display.clearDisplay();
   display.display();
 
-  // Connect to WiFi using the credentials configured via menuconfig.
+  // Connect to WiFi using the credentials configured via menuconfig. Keep
+  // waiting (the WiFi component auto-retries on disconnect) rather than
+  // giving up after one timeout - some networks take longer than that to
+  // associate (e.g. WPA3-SAE renegotiation).
   display.wifi.begin();
-  if (!display.wifi.waitForConnect()) {
-    ESP_LOGE(TAG, "Failed to connect to WiFi, check menuconfig credentials");
+  while (!display.wifi.waitForConnect(10000)) {
+    ESP_LOGW(TAG, "Still waiting for WiFi connection...");
   }
 
   // Fetch the IP address assigned to the station interface and log it.
@@ -220,7 +233,7 @@ extern "C" void app_main(void) {
     }
   }
 
-  showConnectionInfo(ip);
+  showConnectionInfo(display, ip);
 
   // Start the HTTP server and register the route handlers.
   httpd_config_t config = HTTPD_DEFAULT_CONFIG();
@@ -238,6 +251,7 @@ extern "C" void app_main(void) {
     uploadUri.uri = "/upload";
     uploadUri.method = HTTP_POST;
     uploadUri.handler = handleUpload;
+    uploadUri.user_ctx = &display;
     httpd_register_uri_handler(server, &uploadUri);
 
     ESP_LOGI(TAG, "HTTP server started");

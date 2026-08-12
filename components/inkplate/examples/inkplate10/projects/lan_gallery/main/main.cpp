@@ -102,12 +102,24 @@ static const char *TAG = "LAN_GALLERY";
 #define GALLERY_MAX_IMAGES 128
 #define GALLERY_NAME_LEN 64
 
-// Display instance shared with the HTTP handlers in webserver.cpp (via the
-// startFileUpload()/writeFileData()/finishFileUpload() functions below).
-// Handlers registered with esp_http_server are free functions, so the
-// display and gallery state are kept as file-scope statics instead of
-// locals in app_main().
-static Inkplate display;
+// `display` itself is NOT a global: it's constructed as a local in
+// app_main() and passed by reference into every function in this file that
+// needs it. A file-scope `Inkplate display;` would race the library's own
+// global I2C/PCAL peripheral objects (in BoardCommon.cpp) — C++ leaves
+// cross-translation-unit static init order unspecified, so the Inkplate ctor
+// can run before the I2C bus/expander objects it depends on, leaving
+// peripherals uninitialized.
+//
+// startFileUpload() is the exception: it's called from webserver.cpp's HTTP
+// handler (a separate translation unit that deliberately knows nothing about
+// Inkplate — see webserver.cpp's file docstring), so there's no parameter to
+// thread `display` through. s_display is a raw, non-owning pointer: it's
+// zero-initialized at compile time (no constructor runs for a pointer), so
+// it carries no init-order risk, and app_main() points it at its local
+// `display` only after every static/global object in the program has
+// already finished constructing (guaranteed before main() is entered) and
+// app_main() never returns, so the pointee outlives every caller.
+static Inkplate *s_display = nullptr;
 
 // Names (relative to the SD card root) of every supported picture found by
 // the last buildImageList() scan.
@@ -142,7 +154,7 @@ static bool isGalleryImage(const char *name) {
 
 // Scans the SD card root directory for supported picture files and fills
 // s_imageNames. Must be called with s_sdMutex held.
-static int buildImageList() {
+static int buildImageList(Inkplate &display) {
   ESP_LOGI(TAG, "Building picture list...");
 
   DIR *dir = opendir(display.getMountPoint());
@@ -300,7 +312,7 @@ static bool readJpegSize(const char *path, int *w, int *h) {
 // Detects a picture's width/height from its file extension. Returns false
 // (leaving *w/*h untouched) if the format isn't recognised or reading
 // fails.
-static bool getImageSize(const char *name, int *w, int *h) {
+static bool getImageSize(Inkplate &display, const char *name, int *w, int *h) {
   char path[96];
   snprintf(path, sizeof(path), "%s/%s", display.getMountPoint(), name);
 
@@ -323,7 +335,7 @@ static bool getImageSize(const char *name, int *w, int *h) {
 // Draws the named picture (relative to the SD card root) centered on the
 // e-paper display, with a small footer label on top, then refreshes the
 // screen. Must be called with s_sdMutex held.
-static void showImage(const char *name) {
+static void showImage(Inkplate &display, const char *name) {
   ESP_LOGI(TAG, "Displaying: %s", name);
   display.clearDisplay();
 
@@ -331,7 +343,7 @@ static void showImage(const char *name) {
   // can't be parsed; getImageSize() only overwrites detectedW/detectedH
   // once it has fully validated the dimensions it read.
   int detectedW = 0, detectedH = 0;
-  bool okSize = getImageSize(name, &detectedW, &detectedH);
+  bool okSize = getImageSize(display, name, &detectedW, &detectedH);
   int imgW = okSize ? detectedW : display.width();
   int imgH = okSize ? detectedH : display.height();
   ESP_LOGI(TAG, "Picture size: %dx%d (detected=%s)", imgW, imgH,
@@ -349,7 +361,10 @@ static void showImage(const char *name) {
   if (!display.image.draw(name, x, y, true, false)) {
     ESP_LOGE(TAG, "Failed to draw picture: %s", name);
     display.setTextSize(2);
-    display.setTextColor(BLACK, WHITE);
+    // GRAYSCALE mode uses raw 0-7 gray levels (0=black, 7=white), not the
+    // BLACK/WHITE macros (1/0), which are only correct in BLACK_AND_WHITE
+    // mode - using WHITE(0) here would paint a black background.
+    display.setTextColor(0, 7);
     display.setCursor(100, 300);
     display.print("Failed to load picture:");
     display.setCursor(100, 330);
@@ -372,8 +387,11 @@ static void showImage(const char *name) {
   int16_t boxX = display.width() - boxW;
   int16_t boxY = display.height() - boxH;
 
-  display.fillRect(boxX, boxY, boxW, boxH, BLACK);
-  display.setTextColor(WHITE);
+  // GRAYSCALE mode uses raw 0-7 gray levels (0=black, 7=white), not the
+  // BLACK/WHITE macros (1/0), which are only correct in BLACK_AND_WHITE
+  // mode.
+  display.fillRect(boxX, boxY, boxW, boxH, 0);
+  display.setTextColor(7);
   display.setCursor(boxX + padding, boxY + textH - 2);
   display.print(overlayText);
 
@@ -381,10 +399,14 @@ static void showImage(const char *name) {
 }
 
 // Shows a simple full-screen message (used when there's nothing to draw).
-static void showMessage(const char *line1, const char *line2) {
+static void showMessage(Inkplate &display, const char *line1,
+                        const char *line2) {
   display.clearDisplay();
   display.setTextSize(3);
-  display.setTextColor(BLACK, WHITE);
+  // GRAYSCALE mode uses raw 0-7 gray levels (0=black, 7=white), not the
+  // BLACK/WHITE macros (1/0), which are only correct in BLACK_AND_WHITE
+  // mode - using WHITE(0) here would paint a black background.
+  display.setTextColor(0, 7);
   display.setCursor(20, 40);
   display.print(line1);
   if (line2) {
@@ -396,14 +418,15 @@ static void showMessage(const char *line1, const char *line2) {
 
 // Rebuilds the picture list and shows a random picture (or a "no pictures"
 // message if the SD card root is empty). Takes s_sdMutex internally.
-static void refreshGallery() {
+static void refreshGallery(Inkplate &display) {
   if (xSemaphoreTake(s_sdMutex, portMAX_DELAY) == pdTRUE) {
-    if (buildImageList() > 0) {
+    if (buildImageList(display) > 0) {
       char name[GALLERY_NAME_LEN];
       if (pickRandomImageName(name, sizeof(name)))
-        showImage(name);
+        showImage(display, name);
     } else {
-      showMessage("No pictures found on SD!", "Upload one from your browser.");
+      showMessage(display, "No pictures found on SD!",
+                  "Upload one from your browser.");
     }
     xSemaphoreGive(s_sdMutex);
   }
@@ -418,7 +441,8 @@ static void refreshGallery() {
 void startFileUpload(const char *filename) {
   if (xSemaphoreTake(s_sdMutex, portMAX_DELAY) == pdTRUE) {
     char path[96];
-    snprintf(path, sizeof(path), "%s/%s", display.getMountPoint(), filename);
+    snprintf(path, sizeof(path), "%s/%s", s_display->getMountPoint(),
+             filename);
 
     if (s_uploadFile) {
       fclose(s_uploadFile);
@@ -464,13 +488,21 @@ void finishFileUpload() {
 /* -------------------------------------------------------------------------- */
 
 extern "C" void app_main(void) {
-  display.setDisplayMode(GRAYSCALE); // 3-bit grayscale, matches original sketch
-  showMessage("Connecting Wi-Fi...", nullptr);
+  // Never returns (loops forever below), so this local outlives every HTTP
+  // handler callback and s_display, which is pointed at it right below.
+  Inkplate display;
+  s_display = &display;
 
-  // Connect to WiFi using the credentials configured via menuconfig.
+  display.setDisplayMode(GRAYSCALE); // 3-bit grayscale, matches original sketch
+  showMessage(display, "Connecting Wi-Fi...", nullptr);
+
+  // Connect to WiFi using the credentials configured via menuconfig. Keep
+  // waiting (the WiFi component auto-retries on disconnect) rather than
+  // giving up after one timeout - some networks take longer than that to
+  // associate (e.g. WPA3-SAE renegotiation).
   display.wifi.begin();
-  if (!display.wifi.waitForConnect()) {
-    ESP_LOGE(TAG, "Failed to connect to WiFi, check menuconfig credentials");
+  while (!display.wifi.waitForConnect(10000)) {
+    ESP_LOGW(TAG, "Still waiting for WiFi connection...");
   }
 
   // Fetch the IP address assigned to the station interface for the footer
@@ -488,7 +520,8 @@ extern "C" void app_main(void) {
 
   if (display.sdCardInit() != ESP_OK) {
     ESP_LOGE(TAG, "SD card init failed");
-    showMessage("SD card init failed!", "Insert a FAT32 microSD card and reset.");
+    showMessage(display, "SD card init failed!",
+                "Insert a FAT32 microSD card and reset.");
   }
 
   // Start the LAN web server; uploads are written to the SD card via
@@ -496,7 +529,7 @@ extern "C" void app_main(void) {
   setupWebServer();
 
   // Build the picture list and show a random picture at startup.
-  refreshGallery();
+  refreshGallery(display);
 
   TickType_t lastChange = xTaskGetTickCount();
   const TickType_t interval = pdMS_TO_TICKS(IMAGE_CHANGE_INTERVAL_MS);
@@ -505,10 +538,10 @@ extern "C" void app_main(void) {
     if (s_uploadComplete) {
       s_uploadComplete = false;
       ESP_LOGI(TAG, "Upload complete, rebuilding picture list...");
-      refreshGallery();
+      refreshGallery(display);
       lastChange = xTaskGetTickCount();
     } else if (xTaskGetTickCount() - lastChange >= interval) {
-      refreshGallery();
+      refreshGallery(display);
       lastChange = xTaskGetTickCount();
     }
 

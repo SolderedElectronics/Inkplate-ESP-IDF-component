@@ -71,7 +71,12 @@ static int random(int min, int max) {
   return (esp_random() % (max - min + 1)) + min;
 }
 
-Inkplate display;
+// `display` is NOT a global here: it's constructed as a local in app_main()
+// and passed by reference into randomize()/stepGeneration(). A global
+// `Inkplate display;` would race the library's own global I2C/PCAL
+// peripheral objects (in BoardCommon.cpp) — C++ leaves cross-translation-unit
+// static init order unspecified, so the Inkplate ctor can run before the I2C
+// bus/expander objects it depends on, leaving peripherals uninitialized.
 
 // Update the whole screen every FULLREFRESH partial updates to reduce
 // ghosting on the e-paper panel.
@@ -107,7 +112,7 @@ int dx = 0, dy = 0, nx = 0, ny = 0, neighbors = 0, cell_delta = 0,
 // (Re)initializes the grid geometry with a random cell size and seeds a new
 // random starting population. Also called automatically whenever the
 // simulation stagnates.
-void randomize() {
+void randomize(Inkplate &display) {
   cell_size = random(MIN_CELLSZ, MAX_CELLSZ);
 
   // Compute the (rounded-down) number of rows and columns
@@ -142,7 +147,7 @@ void randomize() {
 // state directly into the frame buffer, and swaps the current/next grids.
 // Note: this example draws while it computes (there is no separate
 // offscreen model), matching the original sketch's single-pass design.
-void stepGeneration() {
+void stepGeneration(Inkplate &display) {
   cell_delta = 0;
   for (int j = 0; j < cols; j++) {
     for (int i = 0; i < rows; i++) {
@@ -214,19 +219,21 @@ void stepGeneration() {
   // The longer this goes, the more cells this has,
   // the more change is required or we reset
   if (cell_delta * cell_size < frame_count)
-    randomize();
+    randomize(display);
   else
     frame_count++;
 }
 
 extern "C" void app_main(void) {
+  Inkplate display;
+
   // Partial updates are only supported in BLACK_AND_WHITE mode.
   display.setDisplayMode(BLACK_AND_WHITE);
 
-  randomize();
+  randomize(display);
 
   while (true) {
-    stepGeneration();
+    stepGeneration(display);
 
     // Update the whole screen after FULLREFRESH partials to reduce ghosting,
     // otherwise use a fast partial update to keep the animation smooth.

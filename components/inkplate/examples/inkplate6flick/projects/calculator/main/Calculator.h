@@ -16,6 +16,16 @@
  *              directly rather than behind extern declarations, mirroring
  *              the layout of the original Arduino sketch.
  *
+ *              `display` is NOT a global here: it's constructed as a local
+ *              in app_main() and passed by reference into mainDraw() (and,
+ *              in main.cpp, into every other function that touches it).
+ *              A global `Inkplate display;` would race the library's own
+ *              global I2C/PCAL peripheral objects (in BoardCommon.cpp) —
+ *              C++ leaves cross-translation-unit static init order
+ *              unspecified, so the Inkplate ctor can run before the I2C
+ *              bus/expander objects it depends on, leaving the touchscreen
+ *              controller I2C handle uninitialized.
+ *
  * @license     GNU GPL V3
  */
 
@@ -30,9 +40,6 @@
 // line grows leftward from a fixed right edge, matching the original
 // Arduino sketch's behavior.
 #define X_REZ_OFFSET 15
-
-// Defined in main.cpp.
-extern Inkplate display;
 
 // A single keypad key: its draw rectangle and its printed label. Touch hit
 // areas are checked separately in main.cpp with the exact coordinates used
@@ -105,7 +112,7 @@ inline int historyCursorY = 700;
 // Draws the full calculator UI: keypad, function buttons, display boxes and
 // the current expression/history text. Called after every state change;
 // the caller is responsible for clearDisplay()/display()/partialUpdate().
-inline void mainDraw() {
+inline void mainDraw(Inkplate &display) {
   display.setFont(&FreeSansBold24pt7b);
   display.setTextColor(BLACK, WHITE);
   display.setTextSize(1);

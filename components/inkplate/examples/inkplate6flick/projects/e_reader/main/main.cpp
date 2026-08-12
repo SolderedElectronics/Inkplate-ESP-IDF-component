@@ -110,9 +110,13 @@
 
 static const char *TAG = "E_READER";
 
-// Global display object (matches the pattern used by other ported examples
-// for this board, e.g. projects/calculator).
-Inkplate display;
+// `display` is NOT a global here: it's constructed as a local in app_main()
+// and passed by reference into every function that needs it. A global
+// `Inkplate display;` would race the library's own global I2C/PCAL
+// peripheral objects (in BoardCommon.cpp) — C++ leaves cross-translation-unit
+// static init order unspecified, so the Inkplate ctor can run before the I2C
+// bus/expander objects it depends on, leaving the touchscreen controller I2C
+// handle uninitialized.
 
 // Folder on the SD card root that holds one subfolder per book.
 #define BOOKS_FOLDER_NAME "books"
@@ -181,17 +185,18 @@ static bool naturalLess(const std::string &a, const std::string &b);
 static void listSubdirectories(const char *path);
 static void listPictures(const char *folderPath);
 
-static void displayMainPage();
-static void displayButtons();
-static void displayPicture();
-static void displayPictureButtons();
-static void invertButton(int x, int y, int w, int h, const char *label);
-static void displayPageCounter();
-static void displayGotoUI();
+static void displayMainPage(Inkplate &display);
+static void displayButtons(Inkplate &display);
+static void displayPicture(Inkplate &display);
+static void displayPictureButtons(Inkplate &display);
+static void invertButton(int x, int y, int w, int h, const char *label,
+                         Inkplate &display);
+static void displayPageCounter(Inkplate &display);
+static void displayGotoUI(Inkplate &display);
 
-static void handleMainViewTouch();
-static void handlePictureViewTouch();
-static void handleTouch();
+static void handleMainViewTouch(Inkplate &display);
+static void handlePictureViewTouch(Inkplate &display);
+static void handleTouch(Inkplate &display);
 
 // --------------------------------------------------------------------------
 // Filename helpers
@@ -284,7 +289,7 @@ static void listPictures(const char *folderPath) {
 // Drawing
 // --------------------------------------------------------------------------
 
-static void displayMainPage() {
+static void displayMainPage(Inkplate &display) {
   display.clearDisplay();
   display.setTextSize(3);
   display.setTextColor(BLACK);
@@ -311,11 +316,11 @@ static void displayMainPage() {
     display.println(bookNames[idx].c_str());
   }
 
-  displayButtons();
+  displayButtons(display);
   display.partialUpdate(false, true);
 }
 
-static void displayButtons() {
+static void displayButtons(Inkplate &display) {
   const char *labels[3] = {"SELECT", "PREV", "NEXT"};
   const int xs[3] = {LEFT_BTN_X, MIDDLE_BTN_X, RIGHT_BTN_X};
 
@@ -333,7 +338,7 @@ static void displayButtons() {
   }
 }
 
-static void displayPicture() {
+static void displayPicture(Inkplate &display) {
   display.clearDisplay();
 
   // Full path includes the SD mount point explicitly (e.g.
@@ -348,12 +353,12 @@ static void displayPicture() {
   if (!display.image.draw(fullPath, 0, 11, true))
     ESP_LOGE(TAG, "Failed to draw page image: %s", fullPath);
 
-  displayPictureButtons();
-  displayPageCounter();
+  displayPictureButtons(display);
+  displayPageCounter(display);
   display.partialUpdate(false, true);
 }
 
-static void displayPictureButtons() {
+static void displayPictureButtons(Inkplate &display) {
   const char *labels[4] = {"HOME", "GOTO", "PREV", "NEXT"};
   const int xs[4] = {HOME_BTN_X, GOTO_BTN_X, PREV_BTN_X, NEXT_BTN_X};
 
@@ -374,7 +379,8 @@ static void displayPictureButtons() {
 // Draws a button inverted (filled black, white outline/text) as immediate
 // tap feedback, then pushes it with a fast partial update. The caller is
 // still responsible for performing the actual action and redrawing.
-static void invertButton(int x, int y, int w, int h, const char *label) {
+static void invertButton(int x, int y, int w, int h, const char *label,
+                         Inkplate &display) {
   display.fillRect(x, y, w, h, BLACK);
   display.drawRect(x, y, w, h, WHITE);
   display.setTextSize(2);
@@ -388,7 +394,7 @@ static void invertButton(int x, int y, int w, int h, const char *label) {
   display.partialUpdate(false, true);
 }
 
-static void displayPageCounter() {
+static void displayPageCounter(Inkplate &display) {
   char buf[32];
   snprintf(buf, sizeof(buf), "%d / %d", currentPageIndex + 1,
            (int)pageNames.size());
@@ -403,7 +409,7 @@ static void displayPageCounter() {
   display.print(buf);
 }
 
-static void displayGotoUI() {
+static void displayGotoUI(Inkplate &display) {
   // Hide the underlying picture-view buttons.
   display.fillRect(0, BUTTON_Y, display.width(), BUTTON_H, WHITE);
 
@@ -470,15 +476,15 @@ static void displayGotoUI() {
 // basic/touch_in_area/main/main.cpp and TouchCypress::touchInArea()), so
 // there is no separate "read touch point, then hit-test" step — each button
 // is simply one touchInArea() check. The touchscreen itself is initialised
-// automatically while constructing the global `display` object; no explicit
+// automatically while constructing the `display` object; no explicit
 // touchscreen.init()/begin() call is needed on this board.
 // --------------------------------------------------------------------------
 
-static void handleMainViewTouch() {
+static void handleMainViewTouch(Inkplate &display) {
   // LEFT = SELECT -> open the highlighted book.
   if (display.touchscreen.touchInArea(LEFT_BTN_X, BUTTON_Y, BUTTON_W,
                                       BUTTON_H)) {
-    invertButton(LEFT_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "SELECT");
+    invertButton(LEFT_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "SELECT", display);
     if (!bookNames.empty()) {
       char folder[192];
       snprintf(folder, sizeof(folder), "%s/%s/%s", display.getMountPoint(),
@@ -487,7 +493,7 @@ static void handleMainViewTouch() {
       if (!pageNames.empty()) {
         inPictureView = true;
         currentPageIndex = 0;
-        displayPicture();
+        displayPicture(display);
       } else {
         ESP_LOGW(TAG, "No images in folder: %s", folder);
       }
@@ -499,7 +505,7 @@ static void handleMainViewTouch() {
   // MIDDLE = PREV book (cyclic if more than one book exists).
   if (display.touchscreen.touchInArea(MIDDLE_BTN_X, BUTTON_Y, BUTTON_W,
                                       BUTTON_H)) {
-    invertButton(MIDDLE_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "PREV");
+    invertButton(MIDDLE_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "PREV", display);
     if (bookNames.size() > 1) {
       currentBookIndex = (currentBookIndex == 0) ? (int)bookNames.size() - 1
                                                    : currentBookIndex - 1;
@@ -507,7 +513,7 @@ static void handleMainViewTouch() {
         firstVisibleBookIndex = currentBookIndex;
       else if (currentBookIndex >= firstVisibleBookIndex + visibleRows)
         firstVisibleBookIndex = currentBookIndex - visibleRows + 1;
-      displayMainPage();
+      displayMainPage(display);
     }
     vTaskDelay(pdMS_TO_TICKS(TAP_DEBOUNCE_MS));
     return;
@@ -516,21 +522,21 @@ static void handleMainViewTouch() {
   // RIGHT = NEXT book (cyclic if more than one book exists).
   if (display.touchscreen.touchInArea(RIGHT_BTN_X, BUTTON_Y, BUTTON_W,
                                       BUTTON_H)) {
-    invertButton(RIGHT_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "NEXT");
+    invertButton(RIGHT_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "NEXT", display);
     if (bookNames.size() > 1) {
       currentBookIndex = (currentBookIndex + 1) % (int)bookNames.size();
       if (currentBookIndex >= firstVisibleBookIndex + visibleRows)
         firstVisibleBookIndex = currentBookIndex - visibleRows + 1;
       else if (currentBookIndex < firstVisibleBookIndex)
         firstVisibleBookIndex = currentBookIndex;
-      displayMainPage();
+      displayMainPage(display);
     }
     vTaskDelay(pdMS_TO_TICKS(TAP_DEBOUNCE_MS));
     return;
   }
 }
 
-static void handlePictureViewTouch() {
+static void handlePictureViewTouch(Inkplate &display) {
   if (inGotoUI) {
     static const char *keys[4][3] = {
         {"1", "2", "3"}, {"4", "5", "6"}, {"7", "8", "9"}, {"CLR", "0", "OK"}};
@@ -548,11 +554,11 @@ static void handlePictureViewTouch() {
         int x = ovX + c * (btnW + spacing);
         int y = startY + r * (btnH + spacing);
         if (display.touchscreen.touchInArea(x, y, btnW, btnH)) {
-          invertButton(x, y, btnW, btnH, keys[r][c]);
+          invertButton(x, y, btnW, btnH, keys[r][c], display);
 
           if (strcmp(keys[r][c], "CLR") == 0) {
             pageInput.clear();
-            displayGotoUI();
+            displayGotoUI(display);
           } else if (strcmp(keys[r][c], "OK") == 0) {
             int p = pageInput.empty() ? 1 : atoi(pageInput.c_str());
             if (p < 1)
@@ -561,11 +567,11 @@ static void handlePictureViewTouch() {
               p = (int)pageNames.size();
             currentPageIndex = p - 1;
             inGotoUI = false;
-            displayPicture();
+            displayPicture(display);
           } else {
             if (pageInput.length() < PAGE_INPUT_MAX_DIGITS)
               pageInput += keys[r][c];
-            displayGotoUI();
+            displayGotoUI(display);
           }
 
           vTaskDelay(pdMS_TO_TICKS(TAP_DEBOUNCE_MS));
@@ -579,52 +585,52 @@ static void handlePictureViewTouch() {
   if (display.touchscreen.touchInArea(HOME_BTN_X, BUTTON_Y, BUTTON_W,
                                       BUTTON_H)) {
     invertButton(HOME_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H,
-                 inGotoUI ? "BACK" : "HOME");
+                 inGotoUI ? "BACK" : "HOME", display);
     if (inGotoUI) {
       inGotoUI = false;
-      displayPicture();
+      displayPicture(display);
     } else {
       inPictureView = false;
-      displayMainPage();
+      displayMainPage(display);
     }
     vTaskDelay(pdMS_TO_TICKS(TAP_DEBOUNCE_MS));
   }
   // GOTO button -> open the numeric keypad overlay.
   else if (display.touchscreen.touchInArea(GOTO_BTN_X, BUTTON_Y, BUTTON_W,
                                            BUTTON_H)) {
-    invertButton(GOTO_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "GOTO");
+    invertButton(GOTO_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "GOTO", display);
     inGotoUI = true;
     pageInput.clear();
-    displayGotoUI();
+    displayGotoUI(display);
     vTaskDelay(pdMS_TO_TICKS(TAP_DEBOUNCE_MS));
   }
   // PREV page.
   else if (display.touchscreen.touchInArea(PREV_BTN_X, BUTTON_Y, BUTTON_W,
                                            BUTTON_H)) {
-    invertButton(PREV_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "PREV");
+    invertButton(PREV_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "PREV", display);
     if (!inGotoUI && currentPageIndex > 0) {
       currentPageIndex--;
-      displayPicture();
+      displayPicture(display);
     }
     vTaskDelay(pdMS_TO_TICKS(TAP_DEBOUNCE_MS));
   }
   // NEXT page.
   else if (display.touchscreen.touchInArea(NEXT_BTN_X, BUTTON_Y, BUTTON_W,
                                            BUTTON_H)) {
-    invertButton(NEXT_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "NEXT");
+    invertButton(NEXT_BTN_X, BUTTON_Y, BUTTON_W, BUTTON_H, "NEXT", display);
     if (!inGotoUI && currentPageIndex < (int)pageNames.size() - 1) {
       currentPageIndex++;
-      displayPicture();
+      displayPicture(display);
     }
     vTaskDelay(pdMS_TO_TICKS(TAP_DEBOUNCE_MS));
   }
 }
 
-static void handleTouch() {
+static void handleTouch(Inkplate &display) {
   if (!inPictureView)
-    handleMainViewTouch();
+    handleMainViewTouch(display);
   else
-    handlePictureViewTouch();
+    handlePictureViewTouch(display);
 }
 
 // --------------------------------------------------------------------------
@@ -632,6 +638,8 @@ static void handleTouch() {
 // --------------------------------------------------------------------------
 
 extern "C" void app_main(void) {
+  Inkplate display;
+
   display.setDisplayMode(BLACK_AND_WHITE);
   display.setRotation(1);
   display.setFullUpdateThreshold(FULL_UPDATE_THRESHOLD);
@@ -674,10 +682,10 @@ extern "C" void app_main(void) {
   }
 
   currentBookIndex = 0;
-  displayMainPage();
+  displayMainPage(display);
 
   while (true) {
-    handleTouch();
+    handleTouch(display);
     vTaskDelay(pdMS_TO_TICKS(20));
   }
 }

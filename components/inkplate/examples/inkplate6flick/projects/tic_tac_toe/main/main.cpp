@@ -74,7 +74,13 @@
 #include "freertos/task.h"
 #include <cstring>
 
-Inkplate display;
+// `display` is NOT a global here: it's constructed as a local in app_main()
+// and passed by reference into every function that needs it. A global
+// `Inkplate display;` would race the library's own global I2C/PCAL
+// peripheral objects (in BoardCommon.cpp) — C++ leaves cross-translation-unit
+// static init order unspecified, so the Inkplate ctor can run before the I2C
+// bus/expander objects it depends on, leaving the touchscreen controller I2C
+// handle uninitialized.
 
 // How far to search for the best move, indexed by difficulty (0=Easy,
 // 1=Medium, 2=Hard).
@@ -97,7 +103,7 @@ char board[3][3] = {
 };
 
 // Draws X's and O's to the screen.
-void drawBoard() {
+void drawBoard(Inkplate &display) {
   for (int i = 0; i < 3; ++i)
     for (int j = 0; j < 3; ++j) {
       int x = 268 + 243 * j, y = 20 + 243 * i;
@@ -113,7 +119,7 @@ void drawBoard() {
 }
 
 // Draws game elements to the screen (status line, board, "Go Back" button).
-void mainDrawGame() {
+void mainDrawGame(Inkplate &display) {
   // Draw board lines.
   display.drawThickLine(511, 20, 511, 748, BLACK, 10);
   display.drawThickLine(754, 20, 754, 748, BLACK, 10);
@@ -148,20 +154,20 @@ void mainDrawGame() {
   display.print("Go Back");
   display.drawRoundRect(15, 600, 215, 140, 10, BLACK);
 
-  drawBoard();
+  drawBoard(display);
 }
 
 // Simulates faded text by drawing a white checkerboard pattern over the
 // "Computer first" option, used when 2-player mode is selected (that option
 // does not apply in 2-player mode).
-void crossOutHumanFirst() {
+void crossOutHumanFirst(Inkplate &display) {
   for (int i = rect6_a_y; i < rect6_b_y; ++i)
     for (int j = rect6_a_x + (i % 2); j < rect6_b_x; j += 2)
       display.drawPixel(j, i, WHITE);
 }
 
 // Draws the choice radio buttons for the currently selected menu options.
-void drawChoices() {
+void drawChoices(Inkplate &display) {
   switch (difficulty) {
   case 0:
     display.fillCircle(circle2_center_x, circle2_center_y, 7, BLACK);
@@ -198,40 +204,40 @@ void drawChoices() {
   // If 2-player mode is selected, the "who plays first" option doesn't
   // apply, so cross it out.
   if (difficulty == 3)
-    crossOutHumanFirst();
+    crossOutHumanFirst(display);
 }
 
 // Handles all touchscreen events while the menu is shown.
-void menuEvents() {
+void menuEvents(Inkplate &display) {
   if (display.touchscreen.touchInArea(39, 225, 300, 55)) { // Easy difficulty
     difficulty = 0;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.partialUpdate();
   }
 
   if (display.touchscreen.touchInArea(39, 320, 300, 55)) { // Medium difficulty
     difficulty = 1;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.partialUpdate();
   }
 
   if (display.touchscreen.touchInArea(39, 420, 300, 55)) { // Hard difficulty
     difficulty = 2;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.partialUpdate();
   }
 
   if (display.touchscreen.touchInArea(39, 516, 300, 55)) { // 2-player game
     difficulty = 3;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.partialUpdate();
   }
 
@@ -239,8 +245,8 @@ void menuEvents() {
       difficulty != 3) { // Human plays first
     firstHuman = 0;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.partialUpdate();
   }
 
@@ -248,24 +254,24 @@ void menuEvents() {
       difficulty != 3) { // Computer plays first
     firstHuman = 1;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.partialUpdate();
   }
 
   if (display.touchscreen.touchInArea(553, 447, 300, 55)) { // First player is X
     firstXO = 0;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.partialUpdate();
   }
 
   if (display.touchscreen.touchInArea(553, 512, 300, 55)) { // First player is O
     firstXO = 1;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.partialUpdate();
   }
 
@@ -275,13 +281,13 @@ void menuEvents() {
       menu = false;
       game = true;
       display.clearDisplay();
-      mainDrawGame();
+      mainDrawGame(display);
       display.display();
     } else if (difficulty != -1 && firstXO != -1 && firstHuman != -1) {
       menu = false;
       game = true;
       display.clearDisplay();
-      mainDrawGame();
+      mainDrawGame(display);
       display.display();
 
       // Make the first move, if the computer is to move first.
@@ -293,14 +299,14 @@ void menuEvents() {
         ++move;
 
         display.clearDisplay();
-        mainDrawGame();
+        mainDrawGame(display);
         display.partialUpdate();
       }
     } else { // Not all settings are legal.
       text13_content = "Please select all options!";
       display.clearDisplay();
-      mainDrawMenu();
-      drawChoices();
+      mainDrawMenu(display);
+      drawChoices(display);
       display.partialUpdate();
       text13_content = "";
     }
@@ -308,15 +314,15 @@ void menuEvents() {
 }
 
 // Handles all touchscreen events during a normal game.
-void gameEvents() {
+void gameEvents(Inkplate &display) {
   if (display.touchscreen.touchInArea(15, 600, 215, 140)) { // Go back
     memset(board, '_', sizeof board);
     menu = true;
     game = false;
     move = 0;
     display.clearDisplay();
-    mainDrawMenu();
-    drawChoices();
+    mainDrawMenu(display);
+    drawChoices(display);
     display.display();
   }
 
@@ -332,7 +338,7 @@ void gameEvents() {
 
         ++move;
         display.clearDisplay();
-        mainDrawGame();
+        mainDrawGame(display);
         display.partialUpdate();
 
         // If the game is against the computer, let it make a move.
@@ -348,25 +354,27 @@ void gameEvents() {
           // Draw the board again.
           ++move;
           display.clearDisplay();
-          mainDrawGame();
+          mainDrawGame(display);
           display.partialUpdate();
         }
       }
 }
 
 extern "C" void app_main(void) {
+  Inkplate display;
+
   // Partial updates are only supported in BLACK_AND_WHITE mode.
   display.setDisplayMode(BLACK_AND_WHITE);
 
   display.clearDisplay();
-  mainDrawMenu();
+  mainDrawMenu(display);
   display.display();
 
   while (true) {
     if (menu)
-      menuEvents();
+      menuEvents(display);
     else if (game)
-      gameEvents();
+      gameEvents(display);
 
     vTaskDelay(pdMS_TO_TICKS(15));
   }

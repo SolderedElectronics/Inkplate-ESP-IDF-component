@@ -73,9 +73,6 @@
 #include <cstdio>
 #include <cstdlib>
 
-// Create the Inkplate object (declared extern in Calculator.h).
-Inkplate display;
-
 // Calculator state, matching the original Arduino sketch's globals.
 static double leftNumber = 0;
 static double rightNumber = 0;
@@ -88,14 +85,14 @@ static int numOfDigitsEntered = 0;
 
 // Redraws the whole UI and pushes it with a fast partial update. Used after
 // every keypad interaction except "Refresh" (which does a full refresh).
-static void redrawPartial() {
+static void redrawPartial(Inkplate &display) {
   display.clearDisplay();
-  mainDraw();
+  mainDraw(display);
   display.partialUpdate();
 }
 
 // Appends a digit ('0'-'9') to the number currently being typed.
-static void enterDigit(char digit) {
+static void enterDigit(char digit, Inkplate &display) {
   if (numOfDigitsEntered >= 6 || numOfDecimalDigitsOnCurrentNumber >= 2)
     return;
 
@@ -105,7 +102,7 @@ static void enterDigit(char digit) {
   if (decimalPointOnCurrentNumber)
     numOfDecimalDigitsOnCurrentNumber++;
 
-  redrawPartial();
+  redrawPartial(display);
 
   if (op == ' ')
     ++rightNumPos;
@@ -113,7 +110,7 @@ static void enterDigit(char digit) {
 
 // Appends an operator token (" + ", " - ", " x ", " / ") once a left number
 // has been entered and no operator has been chosen yet.
-static void enterOperator(char symbol, const char *token) {
+static void enterOperator(char symbol, const char *token, Inkplate &display) {
   if (op != ' ' || rightNumPos <= 0)
     return;
 
@@ -123,18 +120,18 @@ static void enterOperator(char symbol, const char *token) {
   decimalPointOnCurrentNumber = false;
   numOfDecimalDigitsOnCurrentNumber = 0;
 
-  redrawPartial();
+  redrawPartial(display);
 }
 
 // Appends a decimal point to the number currently being typed.
-static void enterDecimalPoint() {
+static void enterDecimalPoint(Inkplate &display) {
   if (decimalPointOnCurrentNumber || numOfDigitsEntered >= 6)
     return;
 
   exprCursorX -= X_REZ_OFFSET;
   exprContent += ".";
 
-  redrawPartial();
+  redrawPartial(display);
 
   if (op == ' ')
     ++rightNumPos;
@@ -186,19 +183,19 @@ static double calculate() {
 // Checks every keypad/function button's touch area and handles it. Mirrors
 // the original sketch's keysEvents(): touchInArea() itself polls the
 // touchscreen controller, so no separate "pollTouch()" step is needed.
-static void handleKeypadEvents() {
+static void handleKeypadEvents(Inkplate &display) {
   // --- Function buttons ---
 
   if (display.touchscreen.touchInArea(30, 130, 150, 50)) { // Refresh
     display.clearDisplay();
-    mainDraw();
+    mainDraw(display);
     display.display();
     return;
   }
 
   if (display.touchscreen.touchInArea(30, 80, 150, 50)) { // Clear Input
     resetEntry();
-    redrawPartial();
+    redrawPartial(display);
     return;
   }
 
@@ -206,7 +203,7 @@ static void handleKeypadEvents() {
     historyContent = "";
     historyCursorX = 240;
     historyCursorY = 81;
-    redrawPartial();
+    redrawPartial(display);
     return;
   }
 
@@ -220,7 +217,7 @@ static void handleKeypadEvents() {
     snprintf(resultBuf, sizeof(resultBuf), "%.2f", result);
     historyContent = exprContent + " = " + resultBuf;
 
-    redrawPartial();
+    redrawPartial(display);
     resetEntry();
     result = 0;
     return;
@@ -229,84 +226,86 @@ static void handleKeypadEvents() {
   // --- Operators ---
 
   if (display.touchscreen.touchInArea(435, 471, 135, 97)) { // +
-    enterOperator('+', " + ");
+    enterOperator('+', " + ", display);
     return;
   }
   if (display.touchscreen.touchInArea(435, 374, 135, 97)) { // -
-    enterOperator('-', " - ");
+    enterOperator('-', " - ", display);
     return;
   }
   if (display.touchscreen.touchInArea(435, 277, 135, 97)) { // x
-    enterOperator('x', " x ");
+    enterOperator('x', " x ", display);
     return;
   }
   if (display.touchscreen.touchInArea(435, 180, 135, 97)) { // /
-    enterOperator('/', " / ");
+    enterOperator('/', " / ", display);
     return;
   }
 
   // --- Decimal point ---
 
   if (display.touchscreen.touchInArea(30, 471, 135, 97)) { // .
-    enterDecimalPoint();
+    enterDecimalPoint(display);
     return;
   }
 
   // --- Digits ---
 
   if (display.touchscreen.touchInArea(165, 471, 135, 97)) { // 0
-    enterDigit('0');
+    enterDigit('0', display);
     return;
   }
   if (display.touchscreen.touchInArea(30, 374, 135, 97)) { // 1
-    enterDigit('1');
+    enterDigit('1', display);
     return;
   }
   if (display.touchscreen.touchInArea(165, 374, 135, 97)) { // 2
-    enterDigit('2');
+    enterDigit('2', display);
     return;
   }
   if (display.touchscreen.touchInArea(300, 374, 135, 97)) { // 3
-    enterDigit('3');
+    enterDigit('3', display);
     return;
   }
   if (display.touchscreen.touchInArea(30, 277, 135, 97)) { // 4
-    enterDigit('4');
+    enterDigit('4', display);
     return;
   }
   if (display.touchscreen.touchInArea(165, 277, 135, 97)) { // 5
-    enterDigit('5');
+    enterDigit('5', display);
     return;
   }
   if (display.touchscreen.touchInArea(300, 277, 135, 97)) { // 6
-    enterDigit('6');
+    enterDigit('6', display);
     return;
   }
   if (display.touchscreen.touchInArea(30, 180, 135, 97)) { // 7
-    enterDigit('7');
+    enterDigit('7', display);
     return;
   }
   if (display.touchscreen.touchInArea(168, 180, 135, 97)) { // 8
-    enterDigit('8');
+    enterDigit('8', display);
     return;
   }
   if (display.touchscreen.touchInArea(300, 180, 135, 97)) { // 9
-    enterDigit('9');
+    enterDigit('9', display);
     return;
   }
 }
 
 extern "C" void app_main(void) {
+  Inkplate display;
+
   display.setDisplayMode(BLACK_AND_WHITE);
   display.clearDisplay();
 
-  mainDraw();
+  mainDraw(display);
   display.display();
 
   while (true) {
     // touchInArea() polls the touchscreen controller internally, so this
     // single call per button is the "poll + hit-test" step for that key.
-    handleKeypadEvents();
+    handleKeypadEvents(display);
     vTaskDelay(pdMS_TO_TICKS(20));
   }
 }

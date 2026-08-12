@@ -4,7 +4,13 @@
 #include "fonts/FreeSerifBold9pt7b.h"
 #include <string>
 
-extern Inkplate display;
+// `display` is NOT a global: it's constructed as a local in app_main() and
+// passed by reference into mainDrawMenu() (and everything else in main.cpp
+// that touches it). A global `Inkplate display;` would race the library's
+// own global I2C/PCAL peripheral objects (in BoardCommon.cpp) — C++ leaves
+// cross-translation-unit static init order unspecified, so the Inkplate ctor
+// can run before the I2C bus/expander objects it depends on, leaving the
+// touchscreen controller I2C handle uninitialized.
 
 // Title
 
@@ -241,7 +247,7 @@ int text13_cursor_y = 570;
 const GFXfont *text13_font = &FreeSerifBold9pt7b;
 
 
-void mainDrawMenu()
+void mainDrawMenu(Inkplate &display)
 {
     display.setFont(text1_font);
     display.setTextColor(BLACK, WHITE);
