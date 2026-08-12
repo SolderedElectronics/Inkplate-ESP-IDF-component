@@ -152,7 +152,7 @@ static void drawNews(Inkplate &display, news *entities, int count) {
   int xStart = display.width() * 0.05;
   int xEnd = display.width() * 0.95;
   for (int lineY = 60; lineY < 63; lineY++) {
-    display.drawLine(xStart, lineY, xEnd, lineY, BLACK);
+    display.drawLine(xStart, lineY, xEnd, lineY, 0); // 0 = black in GRAYSCALE
   }
 
   // Current date/time. time() returns UTC seconds regardless of the TZ set
@@ -185,7 +185,7 @@ static void drawNews(Inkplate &display, news *entities, int count) {
 
   // Dividing line below the date row.
   for (int lineY = 93; lineY < 96; lineY++) {
-    display.drawLine(xStart, lineY, xEnd, lineY, BLACK);
+    display.drawLine(xStart, lineY, xEnd, lineY, 0); // 0 = black in GRAYSCALE
   }
 
   // Headline boxes.
@@ -218,7 +218,10 @@ static void drawNews(Inkplate &display, news *entities, int count) {
 extern "C" void app_main(void) {
   Inkplate display;
 
-  display.setTextColor(BLACK, WHITE);
+  // Display mode defaults to GRAYSCALE (never switched here), which uses raw
+  // 0-7 gray levels (0=black, 7=white), not the BLACK/WHITE macros (1/0) -
+  // using WHITE(0) here would paint a black background.
+  display.setTextColor(0, 7);
   display.setTextWrap(false);
   display.clearDisplay();
   display.display();

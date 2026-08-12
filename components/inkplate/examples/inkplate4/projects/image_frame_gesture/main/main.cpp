@@ -147,7 +147,9 @@ static void showCurrentImage(Inkplate &display) {
 
   if (s_numImages == 0) {
     display.setCursor(10, 10);
-    display.setTextColor(BLACK);
+    // GRAYSCALE mode uses raw 0-7 gray levels (0=black, 7=white), not the
+    // BLACK macro (1), which is only correct in BLACK_AND_WHITE mode.
+    display.setTextColor(0);
     display.setTextSize(2);
     display.print("No images found in folder:");
     display.setCursor(10, 40);
@@ -165,7 +167,9 @@ static void showCurrentImage(Inkplate &display) {
   if (!display.image.draw(imagePath, 0, 0, true, false)) {
     ESP_LOGE(TAG, "Failed to draw image: %s", imagePath);
     display.setCursor(10, 10);
-    display.setTextColor(BLACK);
+    // GRAYSCALE mode uses raw 0-7 gray levels (0=black, 7=white), not the
+    // BLACK macro (1), which is only correct in BLACK_AND_WHITE mode.
+    display.setTextColor(0);
     display.setTextSize(2);
     display.print("Failed to load image:");
     display.setCursor(10, 40);
@@ -220,7 +224,9 @@ extern "C" void app_main(void) {
     ESP_LOGE(TAG, "SD card init failed");
     display.clearDisplay();
     display.setCursor(10, 10);
-    display.setTextColor(BLACK);
+    // GRAYSCALE mode uses raw 0-7 gray levels (0=black, 7=white), not the
+    // BLACK macro (1), which is only correct in BLACK_AND_WHITE mode.
+    display.setTextColor(0);
     display.setTextSize(2);
     display.print("SD Card error!");
     display.display();

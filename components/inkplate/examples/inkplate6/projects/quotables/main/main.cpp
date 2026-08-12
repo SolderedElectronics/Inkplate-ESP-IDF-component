@@ -89,7 +89,10 @@ extern "C" void app_main(void) {
   Inkplate display;
   NetworkFunctions network;
 
-  display.setTextColor(BLACK);
+  // Display mode defaults to GRAYSCALE (never switched here), which uses raw
+  // 0-7 gray levels (0=black, 7=white), not the BLACK macro (1), which is
+  // only correct in BLACK_AND_WHITE mode.
+  display.setTextColor(0);
   display.setTextWrap(false);
   display.clearDisplay();
   display.display();

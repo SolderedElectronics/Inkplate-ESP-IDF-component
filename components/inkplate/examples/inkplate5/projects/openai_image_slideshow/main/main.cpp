@@ -297,7 +297,10 @@ extern "C" void app_main(void) {
   display.setDisplayMode(GRAYSCALE);
   display.clearDisplay();
   display.setCursor(0, 0);
-  display.setTextColor(BLACK);
+  // GRAYSCALE mode uses raw 0-7 gray levels (0=black, 7=white), not the
+  // BLACK/WHITE macros (1/0), which were correct above only because that
+  // code ran in BLACK_AND_WHITE mode before the switch.
+  display.setTextColor(0);
 
   if (gotUrl) {
     display.print("Downloading and displaying image (may take a while)...");

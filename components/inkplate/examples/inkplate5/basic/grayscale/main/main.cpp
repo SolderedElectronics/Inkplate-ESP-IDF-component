@@ -79,7 +79,7 @@ extern "C" void app_main(void) {
   while (true) {
     // Single pixel
     display.clearDisplay();
-    display.drawPixel(640, 360, BLACK);
+    display.drawPixel(640, 360, 0); // 0 = black in GRAYSCALE mode
     displayCurrentAction(display, "Drawing a pixel");
     display.display();
     vTaskDelay(pdMS_TO_TICKS(DELAY_MS));

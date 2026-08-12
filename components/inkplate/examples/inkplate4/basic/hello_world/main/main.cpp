@@ -50,7 +50,10 @@ extern "C" void app_main(void) {
                           // screen)
   display.setCursor(10, 10);     // Set the text position to (10, 10) pixels
   display.setTextSize(3);        // Set text size to 3 (default is 1)
-  display.setTextColor(BLACK);   // Set text color to black (default is white)
+  // Display mode defaults to GRAYSCALE, which uses raw 0-7 gray levels
+  // (0=black, 7=white), not the BLACK macro (1), which is only correct in
+  // BLACK_AND_WHITE mode.
+  display.setTextColor(0); // Set text color to black (default is white)
   display.print("Hello World!"); // Print "Hello World!" at the set position
   display.display();             // Refresh the e-paper display to show changes
 }
