@@ -36,6 +36,7 @@
 #ifdef COLOR_IMAGE
 #include "ImageColor.h"
 #else
+#include "GIF.h"
 #include "Image.h"
 #endif
 
@@ -106,6 +107,7 @@ public:
   ImageColor image;
 #else
   Image image;
+  GIF gif;
 #endif
 
   WiFi wifi;

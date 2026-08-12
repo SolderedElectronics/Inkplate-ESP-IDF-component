@@ -1,0 +1,72 @@
+# OpenAI Image Slideshow
+
+Generate an image from a text prompt using OpenAI's image generation API (DALL-E), download it, and display it on Soldered Inkplate 5. Repeats periodically via RTC-scheduled deep sleep.
+
+## Overview
+
+Connects Inkplate 5 to WiFi, sends a JSON request to OpenAI's `/v1/images/generations` endpoint with a text prompt, parses the JSON response to extract the generated image's URL, then downloads and renders that image on the e-paper display.
+
+The HTTPS POST request is built with `esp_http_client` using the low-level `esp_http_client_open` -> `esp_http_client_write` -> `esp_http_client_fetch_headers` -> `esp_http_client_read` sequence, with a JSON body (`{"model": "dall-e-3", "prompt": ..., "style": "vivid", "n": 1, "size": "1024x1024"}`) and an `Authorization: Bearer <key>` header. The request body is built with cJSON, and the response is parsed with cJSON to extract `data[0].url`. Once the URL is known, `display.image.draw()` downloads and renders it.
+
+Status messages ("Connecting...", "Generating image...", etc.) are shown using partial updates in black & white mode for speed. Once the image URL is obtained, the display switches to grayscale mode for better image quality and does a full refresh to draw the downloaded image. The board then schedules its next wake-up using the on-board RTC alarm and enters deep sleep, so the whole flow repeats from `app_main()` on every wake-up.
+
+## Hardware Required
+
+- Soldered Inkplate 5
+- USB cable (battery optional)
+- Stable WiFi connection (2.4 GHz), internet access
+- An OpenAI API key
+
+## Setup
+
+### 1. Set your OpenAI API key and prompt
+
+In `main/main.cpp`, fill in:
+
+```cpp
+#define OPENAI_API_KEY "YOUR_OPENAI_API_KEY"
+#define IMAGE_PROMPT "Generate a cyberpunk city with a lot of vertical layers"
+```
+
+### 2. Configure WiFi and board
+
+Run `idf.py menuconfig` and navigate to:
+- **Inkplate Boards → Inkplate5**
+- **WiFi Configuration → Enter your SSID and password**
+
+### 3. Adjust the sleep interval (optional)
+
+`SLEEP_DURATION_SECONDS` in `main/main.cpp` controls how long the board sleeps between generated images (default: 30 minutes).
+
+## Build and Flash
+
+```
+idf.py build
+idf.py -p PORT flash monitor
+```
+
+## Expected Output
+
+- During startup: short status messages on the display via partial updates.
+- After generation: the downloaded image rendered on the e-paper display in grayscale.
+- Serial output includes the OpenAI HTTP status/response and the resolved image URL.
+- The board then deep-sleeps and wakes up periodically to generate the next image.
+
+## Notes
+
+- Display mode: status is shown in black & white; the image is rendered in grayscale. Partial updates are not supported in grayscale mode, so the image update is a full refresh.
+- Deep sleep restarts the ESP32 on every wake-up; no state is preserved.
+- `api.openai.com` is signed by a well-known public CA, so this example verifies the server certificate using the ESP-IDF certificate bundle (`esp_crt_bundle_attach`) rather than disabling TLS verification like the original Arduino sketch (`client.setInsecure()`) did. This requires `CONFIG_MBEDTLS_CERTIFICATE_BUNDLE=y` (already set in `sdkconfig.defaults`) and `REQUIRES "mbedtls"` in `main/CMakeLists.txt`.
+- `CONFIG_ESP_TLS_INSECURE` / `CONFIG_ESP_TLS_SKIP_SERVER_CERT_VERIFY` are kept enabled in `sdkconfig.defaults` for parity with the other ported examples, but are not actually relied on here since `esp_http_client_config_t.crt_bundle_attach` is set and the connection is verified against the CA bundle.
+- `display.image.draw()` auto-detects the image format from the downloaded data, so no explicit image format is passed (unlike the Arduino `Image::PNG` argument in the original sketch).
+- The requested image size is 1024x1024, but it's centered using a 512 px half-width/half-height offset, matching the original sketch. On Inkplate 5's 1280x720 panel this can clip the top/bottom of the image; this quirk is carried over from the original rather than "fixed" here.
+- WiFi connection uses a bounded timeout (`waitForConnect`) instead of the original's infinite retry loop. On failure, the device still schedules the RTC alarm and deep-sleeps, so it automatically retries on the next wake-up cycle.
+- RAM and bandwidth: downloading/decoding large PNGs can be slow and memory intensive. If decoding fails, reduce the requested image size.
+- Wake-up is configured via RTC alarm epoch and an external wake on GPIO 39 (tied to the RTC interrupt line on Inkplate 5).
+- Protect your API key — do not commit a real key to a public repository. OpenAI API usage and quotas apply.
+
+## Resources
+
+- Docs: https://docs.soldered.com/inkplate
+- Support: https://forum.soldered.com/
+- Image tool: https://tools.soldered.com/tools/image-converter/

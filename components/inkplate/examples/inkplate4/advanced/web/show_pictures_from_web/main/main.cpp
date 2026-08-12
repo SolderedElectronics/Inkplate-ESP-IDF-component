@@ -65,7 +65,10 @@ extern "C" void app_main(void) {
   if (!display.image.draw(IMAGE_URL, 0, 0, false, true)) {
     ESP_LOGE(TAG, "Image draw failed");
     display.setTextSize(2);
-    display.setTextColor(BLACK, WHITE);
+    // GRAYSCALE mode uses raw 0-7 gray levels (0=black, 7=white), not the
+    // BLACK/WHITE macros (1/0), which are only correct in BLACK_AND_WHITE
+    // mode - using WHITE(0) here would paint a black background.
+    display.setTextColor(0, 7);
     display.setCursor(20, 280);
     display.print("Image open error");
   }

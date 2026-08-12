@@ -1,12 +1,21 @@
+set(GIF_SRCS "")
+set(GIF_INCLUDES "")
+
 if(CONFIG_INKPLATE_BOARD_INKPLATE10)
     set(BOARD_SRC "src/boards/Inkplate10.cpp")
     set(IMAGE_SRCS "src/graphics/Image.cpp")
+    set(GIF_SRCS "src/graphics/decoders/GIF.cpp" "src/graphics/decoders/animatedgif/AnimatedGIF.cpp")
+    set(GIF_INCLUDES "include/graphics/decoders/animatedgif")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6)
     set(BOARD_SRC "src/boards/Inkplate6.cpp" "src/features/I2S.cpp")
     set(IMAGE_SRCS "src/graphics/Image.cpp")
+    set(GIF_SRCS "src/graphics/decoders/GIF.cpp" "src/graphics/decoders/animatedgif/AnimatedGIF.cpp")
+    set(GIF_INCLUDES "include/graphics/decoders/animatedgif")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6FLICK)
     set(BOARD_SRC "src/boards/Inkplate6.cpp" "src/features/I2S.cpp")
     set(IMAGE_SRCS "src/graphics/Image.cpp")
+    set(GIF_SRCS "src/graphics/decoders/GIF.cpp" "src/graphics/decoders/animatedgif/AnimatedGIF.cpp")
+    set(GIF_INCLUDES "include/graphics/decoders/animatedgif")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE6COLOR)
     set(BOARD_SRC "src/boards/Inkplate6Color.cpp" "src/features/SPI.cpp")
     set(IMAGE_SRCS "src/graphics/ImageColor.cpp")
@@ -16,9 +25,13 @@ elseif(CONFIG_INKPLATE_BOARD_INKPLATE13)
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE5)
     set(BOARD_SRC "src/boards/Inkplate5.cpp" "src/features/I2S.cpp")
     set(IMAGE_SRCS "src/graphics/Image.cpp")
+    set(GIF_SRCS "src/graphics/decoders/GIF.cpp" "src/graphics/decoders/animatedgif/AnimatedGIF.cpp")
+    set(GIF_INCLUDES "include/graphics/decoders/animatedgif")
 elseif(CONFIG_INKPLATE_BOARD_INKPLATE4)
     set(BOARD_SRC "src/boards/Inkplate4.cpp")
     set(IMAGE_SRCS "src/graphics/Image.cpp")
+    set(GIF_SRCS "src/graphics/decoders/GIF.cpp" "src/graphics/decoders/animatedgif/AnimatedGIF.cpp")
+    set(GIF_INCLUDES "include/graphics/decoders/animatedgif")
     set(SENSOR_SRCS
         "src/features/APDS9960/APDS9960.cpp"
         "src/features/APDS9960/libs/APDS9960Driver.cpp"
@@ -47,11 +60,13 @@ set(DECODER_SRCS
     "src/graphics/decoders/JPEG.cpp"
     "src/graphics/decoders/PNG.cpp"
     "src/graphics/decoders/pngle/pngle.c"
+    ${GIF_SRCS}
 )
 
 set(DECODER_INCLUDES
     "include/graphics/decoders"
     "include/graphics/decoders/pngle"
+    ${GIF_INCLUDES}
 )
 
 set(GRAPHICS_SRCS
