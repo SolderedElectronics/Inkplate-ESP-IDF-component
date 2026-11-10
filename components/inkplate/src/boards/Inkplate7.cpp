@@ -196,11 +196,24 @@ esp_err_t Inkplate7::display3b(bool leaveOn) {
                  SPECTRA73_DC_PIN);
   gpio_set_level(SPECTRA73_CS_PIN, 1);
 
+  // Panel driving voltages must be powered on after the data is loaded.
+  sendCommand(SPECTRA73_REGISTER_PON, nullptr, 0);
   waitForEpd(60000);
+
+  // BTST2 second setting - must be sent after PON and before the refresh.
+  sendCommand(SPECTRA73_REGISTER_BTST2, SPECTRA73_REGISTER_BTST2_V2,
+              sizeof(SPECTRA73_REGISTER_BTST2_V2));
 
   sendCommand(SPECTRA73_REGISTER_DRF, SPECTRA73_REGISTER_DRF_V,
               sizeof(SPECTRA73_REGISTER_DRF_V));
   waitForEpd(60000);
+
+  sendCommand(SPECTRA73_REGISTER_POF, SPECTRA73_REGISTER_POF_V,
+              sizeof(SPECTRA73_REGISTER_POF_V));
+  waitForEpd(60000);
+
+  // At least 10ms must pass after the power off command.
+  vTaskDelay(pdMS_TO_TICKS(15));
 
   if (!leaveOn)
     setPanelPower(false);
@@ -211,6 +224,9 @@ esp_err_t Inkplate7::display3b(bool leaveOn) {
 bool Inkplate7::waitForEpd(uint32_t timeout) {
   uint32_t elapsed = 0;
   const uint32_t STEP = 10;
+
+  // Give the panel some time to pull BUSYN low after the last command.
+  esp_rom_delay_us(2000);
 
   while (gpio_get_level(SPECTRA73_BUSYN_PIN) == 0) {
     if (elapsed >= timeout) {
@@ -225,10 +241,14 @@ bool Inkplate7::waitForEpd(uint32_t timeout) {
 }
 
 void Inkplate7::resetPanel() {
+  // The panel needs a dual reset, each pulse must be at least 30ms long.
   gpio_set_level(SPECTRA73_RST_PIN, 0);
-  vTaskDelay(pdMS_TO_TICKS(10));
+  vTaskDelay(pdMS_TO_TICKS(35));
   gpio_set_level(SPECTRA73_RST_PIN, 1);
-  vTaskDelay(pdMS_TO_TICKS(20));
+  vTaskDelay(pdMS_TO_TICKS(35));
+  gpio_set_level(SPECTRA73_RST_PIN, 0);
+  vTaskDelay(pdMS_TO_TICKS(35));
+  gpio_set_level(SPECTRA73_RST_PIN, 1);
 }
 
 void Inkplate7::setIO() {
@@ -268,15 +288,24 @@ void Inkplate7::setPanelPower(bool state) {
 
     resetPanel();
     waitForEpd(60000);
+    vTaskDelay(pdMS_TO_TICKS(10));
 
     screenInit();
-
-    sendCommand(SPECTRA73_REGISTER_PON, nullptr, 0);
-    waitForEpd(60000);
   } else {
-    sendCommand(SPECTRA73_REGISTER_POF, SPECTRA73_REGISTER_POF_V,
-                sizeof(SPECTRA73_REGISTER_POF_V));
+    // VDD off sequence - PSR has to be set to these values before the panel
+    // supply is cut off.
+    sendCommand(SPECTRA73_REGISTER_PSR, SPECTRA73_REGISTER_PSR_OFF_V,
+                sizeof(SPECTRA73_REGISTER_PSR_OFF_V));
     waitForEpd(60000);
+
+    // Release the SPI peripheral so MOSI can be driven as a GPIO.
+    m_spi.deinit();
+
+    // Pull the communication lines low before removing the supply.
+    gpio_set_level(SPECTRA73_CS_PIN, 0);
+    gpio_set_level(SPECTRA73_RST_PIN, 0);
+    gpio_set_direction(SPECTRA73_SPI_MOSI, GPIO_MODE_OUTPUT);
+    gpio_set_level(SPECTRA73_SPI_MOSI, 0);
 
     gpio_set_level(SPECTRA73_PWR_EN, 0);
 
@@ -285,8 +314,7 @@ void Inkplate7::setPanelPower(bool state) {
     gpio_set_direction(SPECTRA73_RST_PIN, GPIO_MODE_INPUT);
     gpio_set_direction(SPECTRA73_BUSYN_PIN, GPIO_MODE_INPUT);
     gpio_set_direction(SPECTRA73_PWR_EN, GPIO_MODE_INPUT);
-
-    m_spi.deinit();
+    gpio_set_direction(SPECTRA73_SPI_MOSI, GPIO_MODE_INPUT);
   }
 
   setPanelState(state);
@@ -316,42 +344,34 @@ void Inkplate7::sendCommand(uint8_t cmd, const uint8_t *data, int n) {
 }
 
 void Inkplate7::screenInit() {
+  // Register order and values follow the E Ink E6_73 sample code (V1.2)
+  // EPD_Init().
   sendCommand(SPECTRA73_REGISTER_CMDH, SPECTRA73_REGISTER_CMDH_V,
               sizeof(SPECTRA73_REGISTER_CMDH_V));
   sendCommand(SPECTRA73_REGISTER_PWR, SPECTRA73_REGISTER_PWR_V,
               sizeof(SPECTRA73_REGISTER_PWR_V));
   sendCommand(SPECTRA73_REGISTER_PSR, SPECTRA73_REGISTER_PSR_V,
               sizeof(SPECTRA73_REGISTER_PSR_V));
-  sendCommand(SPECTRA73_REGISTER_PFS, SPECTRA73_REGISTER_PFS_V,
-              sizeof(SPECTRA73_REGISTER_PFS_V));
   sendCommand(SPECTRA73_REGISTER_BTST1, SPECTRA73_REGISTER_BTST1_V,
               sizeof(SPECTRA73_REGISTER_BTST1_V));
-  sendCommand(SPECTRA73_REGISTER_BTST2, SPECTRA73_REGISTER_BTST2_V,
-              sizeof(SPECTRA73_REGISTER_BTST2_V));
   sendCommand(SPECTRA73_REGISTER_BTST3, SPECTRA73_REGISTER_BTST3_V,
               sizeof(SPECTRA73_REGISTER_BTST3_V));
-  sendCommand(SPECTRA73_REGISTER_IPC, SPECTRA73_REGISTER_IPC_V,
-              sizeof(SPECTRA73_REGISTER_IPC_V));
-  sendCommand(SPECTRA73_REGISTER_PLL, SPECTRA73_REGISTER_PLL_V,
-              sizeof(SPECTRA73_REGISTER_PLL_V));
-  sendCommand(SPECTRA73_REGISTER_TSE, SPECTRA73_REGISTER_TSE_V,
-              sizeof(SPECTRA73_REGISTER_TSE_V));
-  sendCommand(SPECTRA73_REGISTER_CDI, SPECTRA73_REGISTER_CDI_V,
-              sizeof(SPECTRA73_REGISTER_CDI_V));
+  // BTST2 first setting. The second setting is sent just before the refresh.
+  sendCommand(SPECTRA73_REGISTER_BTST2, SPECTRA73_REGISTER_BTST2_V1,
+              sizeof(SPECTRA73_REGISTER_BTST2_V1));
+  sendCommand(SPECTRA73_REGISTER_PFS, SPECTRA73_REGISTER_PFS_V,
+              sizeof(SPECTRA73_REGISTER_PFS_V));
   sendCommand(SPECTRA73_REGISTER_TCON, SPECTRA73_REGISTER_TCON_V,
               sizeof(SPECTRA73_REGISTER_TCON_V));
+  // PLL must be set for the version 2 IC.
+  sendCommand(SPECTRA73_REGISTER_PLL, SPECTRA73_REGISTER_PLL_V,
+              sizeof(SPECTRA73_REGISTER_PLL_V));
+  sendCommand(SPECTRA73_REGISTER_CDI, SPECTRA73_REGISTER_CDI_V,
+              sizeof(SPECTRA73_REGISTER_CDI_V));
   sendCommand(SPECTRA73_REGISTER_TRES, SPECTRA73_REGISTER_TRES_V,
               sizeof(SPECTRA73_REGISTER_TRES_V));
-  sendCommand(SPECTRA73_REGISTER_VDCS, SPECTRA73_REGISTER_VDCS_V,
-              sizeof(SPECTRA73_REGISTER_VDCS_V));
-  sendCommand(SPECTRA73_REGISTER_T_VDCS, SPECTRA73_REGISTER_T_VDCS_V,
-              sizeof(SPECTRA73_REGISTER_T_VDCS_V));
-  sendCommand(SPECTRA73_REGISTER_AGID, SPECTRA73_REGISTER_AGID_V,
-              sizeof(SPECTRA73_REGISTER_AGID_V));
   sendCommand(SPECTRA73_REGISTER_PWS, SPECTRA73_REGISTER_PWS_V,
               sizeof(SPECTRA73_REGISTER_PWS_V));
-  sendCommand(SPECTRA73_REGISTER_CCSET, SPECTRA73_REGISTER_CCSET_V,
-              sizeof(SPECTRA73_REGISTER_CCSET_V));
-  sendCommand(SPECTRA73_REGISTER_TSSET, SPECTRA73_REGISTER_TSSET_V,
-              sizeof(SPECTRA73_REGISTER_TSSET_V));
+  sendCommand(SPECTRA73_REGISTER_T_VDCS, SPECTRA73_REGISTER_T_VDCS_V,
+              sizeof(SPECTRA73_REGISTER_T_VDCS_V));
 }
